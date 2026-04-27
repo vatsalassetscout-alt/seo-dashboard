@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO Dashboard - Google Search Console</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 25px 30px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.3s; }
+        .btn-primary { background: white; color: #1a73e8; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .btn-success { background: #28a745; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; transition: 0.3s; cursor: pointer; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .stat-card h3 { font-size: 14px; color: #6c757d; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-card .value { font-size: 36px; font-weight: bold; color: #1a73e8; }
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .chart-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .chart-card h3 { margin-bottom: 15px; color: #333; font-size: 18px; }
+        canvas { max-height: 300px; }
+        .controls-bar { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
+        .control-group { display: flex; flex-direction: column; gap: 5px; }
+        .control-group label { font-size: 12px; color: #6c757d; font-weight: 600; }
+        select, input { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; min-width: 150px; }
+        .search-box { flex: 1; min-width: 200px; }
+        .search-box input { width: 100%; }
+        .table-container { background: white; border-radius: 12px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; background: #f8f9fa; font-weight: 600; cursor: pointer; border-bottom: 2px solid #dee2e6; }
+        th:hover { background: #e9ecef; }
+        td { padding: 12px 15px; border-bottom: 1px solid #dee2e6; }
+        .site-row { cursor: pointer; transition: 0.2s; }
+        .site-row:hover { background: #f8f9fa; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto; }
+        .modal-content { background: white; margin: 50px auto; max-width: 1200px; width: 90%; border-radius: 12px; animation: slideDown 0.3s; }
+        @keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #dee2e6; }
+        .modal-header h2 { color: #1a73e8; }
+        .close { font-size: 32px; cursor: pointer; color: #999; }
+        .close:hover { color: #333; }
+        .modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
+        .loading { text-align: center; padding: 40px; color: #6c757d; }
+        .error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 6px; margin: 20px; }
+        .badge { display: inline-block; padding: 3px 8px; background: #e9ecef; border-radius: 4px; font-size: 12px; }
+        .auth-status { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 50px; }
+        .login-container { text-align: center; padding: 60px 20px; }
+        .login-box { background: white; max-width: 600px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .login-box h2 { color: #1a73e8; margin-bottom: 15px; }
+        .login-box p { color: #6c757d; margin-bottom: 25px; line-height: 1.6; }
+        .step { background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0; text-align: left; }
+        .step-number { display: inline-block; width: 30px; height: 30px; background: #1a73e8; color: white; border-radius: 50%; text-align: center; line-height: 30px; margin-right: 10px; }
+        .code-input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: monospace; font-size: 12px; margin: 15px 0; }
+        .server-warning { background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107; text-align: left; }
+        .server-warning code { background: #fff; padding: 2px 6px; border-radius: 4px; }
+        @media (max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 SEO Dashboard - Google Search Console</h1>
+            <div class="auth-status">
+                <span id="authStatusText">🔴 Not Connected</span>
+                <button id="logoutBtn" class="btn btn-secondary" style="display: none;">🚪 Logout</button>
+            </div>
+        </div>
+
+        <!-- Login Section -->
+        <div id="loginContainer" class="login-container">
+            <div class="login-box">
+                <div class="server-warning" id="serverWarning">
+                    ⚠️ <strong>Important:</strong> You need to run this file with a local server. 
+                    <br><br>
+                    <strong>Quick fix (choose one):</strong><br>
+                    • <strong>Option 1:</strong> Install "Live Server" extension in VS Code, right-click → "Open with Live Server"<br>
+                    • <strong>Option 2:</strong> Open terminal/command prompt and run: <code>python -m http.server 3000</code><br>
+                    • <strong>Option 3:</strong> Use Replit or CodePen online
+                </div>
+                <h2>🔐 Connect to Search Console</h2>
+                <p>Authorize once to access all your sites — now and in the future.</p>
+                
+                <div class="step">
+                    <div><span class="step-number">1</span> <strong>Generate your Google authorization link</strong></div>
+                    <button id="generateLinkBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%;">🔗 Generate Authorization Link</button>
+                    <div id="linkStatus" style="margin-top: 10px; font-size: 12px;"></div>
+                </div>
+
+                <div class="step">
+                    <div><span class="step-number">2</span> <strong>Open the link and sign in with Google</strong></div>
+                    <button id="openGoogleBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%; background: #db4437;" disabled>🌐 Open Google Authorization</button>
+                    <p style="margin-top: 10px; font-size: 12px; color: #6c757d;">After you authorize, your browser will show an error — that's expected. Copy the full URL from your browser's address bar.</p>
+                </div>
+
+                <div class="step">
+                    <div><span class="step-number">3</span> <strong>Paste the full URL from your browser bar</strong></div>
+                    <input type="text" id="codeUrl" class="code-input" placeholder="http://localhost/?code=4/0...">
+                    <p style="font-size: 11px; color: #6c757d;">Copy the entire URL from the address bar after Google redirects you — it starts with http://localhost/?code=</p>
+                    <button id="connectBtn" class="btn btn-success" style="width: 100%;" disabled>✅ Connect to Search Console</button>
+                    <div id="connectionStatus" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="mainContent" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card"><h3>Total Clicks</h3><div class="value" id="totalClicks">0</div></div>
+                <div class="stat-card"><h3>Total Impressions</h3><div class="value" id="totalImpressions">0</div></div>
+                <div class="stat-card"><h3>Average CTR</h3><div class="value" id="avgCtr">0%</div></div>
+                <div class="stat-card"><h3>Average Position</h3><div class="value" id="avgPosition">0.0</div></div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card"><h3>📈 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div>
+                <div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div>
+            </div>
+
+            <div class="controls-bar">
+                <div class="control-group"><label>📅 Preset</label><select id="dateRange"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="custom">Custom range</option></select></div>
+                <div class="control-group"><label>From</label><input type="date" id="startDate"></div>
+                <div class="control-group"><label>To</label><input type="date" id="endDate"></div>
+                <div class="control-group"><label>🧪 Data</label><select id="dataState"><option value="all" selected>Fresh + Final (GSC default)</option><option value="final">Final only</option></select></div>
+                <div class="control-group"><label>🔽 Sort By</label><select id="sortBy"><option value="clicks">Clicks (Highest)</option><option value="impressions">Impressions (Highest)</option><option value="ctr">CTR (Highest)</option><option value="position">Position (Lowest)</option></select></div>
+                <div class="search-box"><label>🔍 Search Site</label><input type="text" id="searchInput" placeholder="Type to filter sites..."></div>
+                <div class="control-group"><label>&nbsp;</label><button id="applyDatesBtn" class="btn btn-primary" style="background:#1a73e8;color:white;">Apply</button></div>
+                <div class="control-group"><label>&nbsp;</label><button id="exportBtn" class="btn btn-success">📥 Export Excel</button></div>
+                <div class="control-group"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-info">🔄 Refresh</button></div>
+            </div>
+
+            <div class="table-container">
+                <table id="sitesTable">
+                    <thead><tr><th>🌐 Website</th><th>👆 Clicks</th><th>👁️ Impressions</th><th>📊 CTR</th><th>📍 Avg Position</th></tr></thead>
+                    <tbody id="sitesTableBody"><tr><td colspan="5" class="loading">Complete the login steps above to view your data...</div></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="siteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h2 id="modalTitle">Site Details</h2><span class="close">&times;</span></div>
+            <div class="modal-body" id="modalBody"><div class="loading">Loading keywords...</div></div>
+        </div>
+    </div>
+
+    <script>
+        // Your Google OAuth credentials (Desktop client — uses http://localhost as redirect)
+        const CLIENT_ID = '293203533603-er1eq6383ivth4n6er11hqpo4dgor0t0.apps.googleusercontent.com';
+        const CLIENT_SECRET = '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';
+        const REDIRECT_URI = 'http://localhost';
+        
+        // Check if running from file:// protocol
+        if (window.location.protocol === 'file:') {
+            // Show warning and disable buttons
+            document.getElementById('serverWarning').style.display = 'block';
+            document.getElementById('generateLinkBtn').disabled = true;
+            document.getElementById('openGoogleBtn').disabled = true;
+            document.getElementById('connectBtn').disabled = true;
+        } else {
+            document.getElementById('serverWarning').style.display = 'none';
+        }
+        
+        let accessToken = null;
+        let allSitesData = [];
+        let clicksChart, ctrChart;
+        let currentAuthUrl = null;
+
+        // Check for existing token
+        function checkToken() {
+            const savedToken = localStorage.getItem('gsc_token');
+            const savedTime = localStorage.getItem('gsc_token_time');
+            if (savedToken && savedTime && (Date.now() - parseInt(savedTime)) < 3600000) {
+                accessToken = savedToken;
+                return true;
+            }
+            return false;
+        }
+
+        // Show dashboard
+        function showDashboard() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('authStatusText').innerHTML = '✅ Connected';
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('gsc_token');
+            localStorage.removeItem('gsc_token_time');
+            accessToken = null;
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('logoutBtn').style.display = 'none';
+            document.getElementById('authStatusText').innerHTML = '🔴 Not Connected';
+            document.getElementById('codeUrl').value = '';
+            document.getElementById('connectionStatus').innerHTML = '';
+            document.getElementById('linkStatus').innerHTML = '';
+            document.getElementById('openGoogleBtn').disabled = true;
+            document.getElementById('connectBtn').disabled = true;
+        }
+
+        // Step 1: Generate auth link
+        document.getElementById('generateLinkBtn').onclick = () => {
+            const scope = 'https://www.googleapis.com/auth/webmasters.readonly';
+            const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+                `client_id=${CLIENT_ID}` +
+                `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+                `&response_type=code` +
+                `&scope=${encodeURIComponent(scope)}` +
+                `&access_type=offline` +
+                `&prompt=consent`;
+            
+            currentAuthUrl = authUrl;
+            document.getElementById('linkStatus').innerHTML = '<span style="color: #28a745;">✅ Link generated successfully!</span>';
+            document.getElementById('openGoogleBtn').disabled = false;
+        };
+
+        // Step 2: Open Google auth
+        document.getElementById('openGoogleBtn').onclick = () => {
+            if (currentAuthUrl) {
+                window.open(currentAuthUrl, '_blank');
+                document.getElementById('connectBtn').disabled = false;
+                document.getElementById('connectionStatus').innerHTML = '<span style="color: #17a2b8;">📋 After Google redirects, copy the URL and paste above</span>';
+            }
+        };
+
+        // Step 3: Exchange code for token
+        document.getElementById('connectBtn').onclick = async () => {
+            const urlInput = document.getElementById('codeUrl').value;
+            
+            // Extract code from URL
+            let code = null;
+            const codeMatch = urlInput.match(/[?&]code=([^&]+)/);
+            if (codeMatch) {
+                code = decodeURIComponent(codeMatch[1]);
+            }
+            
+            if (!code) {
+                document.getElementById('connectionStatus').innerHTML = '<span style="color: #dc3545;">❌ Could not find authorization code in URL</span>';
+                return;
+            }
+            
+            document.getElementById('connectionStatus').innerHTML = '<span style="color: #17a2b8;">🔄 Exchanging code for access token...</span>';
+            document.getElementById('connectBtn').disabled = true;
+            
+            try {
+                const tokenUrl = 'https://oauth2.googleapis.com/token';
+                const params = new URLSearchParams();
+                params.append('code', code);
+                params.append('client_id', CLIENT_ID);
+                params.append('client_secret', CLIENT_SECRET);
+                params.append('redirect_uri', REDIRECT_URI);
+                params.append('grant_type', 'authorization_code');
+                
+                const response = await fetch(tokenUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                });
+                
+                const data = await response.json();
+                
+                if (data.access_token) {
+                    accessToken = data.access_token;
+                    const expiry = Date.now() + (data.expires_in || 3600) * 1000;
+                    localStorage.setItem('gsc_token', accessToken);
+                    localStorage.setItem('gsc_token_time', expiry.toString());
+                    
+                    document.getElementById('connectionStatus').innerHTML = '<span style="color: #28a745;">✅ Successfully connected! Loading dashboard...</span>';
+                    
+                    setTimeout(() => {
+                        showDashboard();
+                        loadAllData();
+                    }, 1500);
+                } else {
+                    document.getElementById('connectionStatus').innerHTML = `<span style="color: #dc3545;">❌ Error: ${data.error_description || 'Failed to get access token'}</span>`;
+                    document.getElementById('connectBtn').disabled = false;
+                }
+            } catch (error) {
+                document.getElementById('connectionStatus').innerHTML = `<span style="color: #dc3545;">❌ Network error: ${error.message}</span>`;
+                document.getElementById('connectBtn').disabled = false;
+            }
+        };
+
+        document.getElementById('logoutBtn').onclick = logout;
+
+        // Fetch sites from Search Console
+        async function fetchSites() {
+            try {
+                const response = await fetch('https://www.googleapis.com/webmasters/v3/sites', {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                
+                if (response.status === 401) {
+                    logout();
+                    throw new Error('Session expired');
+                }
+                
+                if (!response.ok) throw new Error('Failed to fetch sites');
+                const data = await response.json();
+                return data.siteEntry || [];
+            } catch (error) {
+                console.error(error);
+                return [];
+            }
+        }
+
+        // Date helpers
+        function fmtDate(d) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+        function defaultEndDate() {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            return d;
+        }
+        function presetToDates(preset) {
+            const end = defaultEndDate();
+            const start = new Date(end);
+            start.setDate(end.getDate() - (parseInt(preset) - 1));
+            return { startDate: fmtDate(start), endDate: fmtDate(end) };
+        }
+        function getSelectedDates() {
+            const preset = document.getElementById('dateRange').value;
+            if (preset === 'custom') {
+                return {
+                    startDate: document.getElementById('startDate').value,
+                    endDate: document.getElementById('endDate').value
+                };
+            }
+            return presetToDates(preset);
+        }
+        function syncDateInputsFromPreset() {
+            const preset = document.getElementById('dateRange').value;
+            if (preset !== 'custom') {
+                const { startDate, endDate } = presetToDates(preset);
+                document.getElementById('startDate').value = startDate;
+                document.getElementById('endDate').value = endDate;
+            }
+        }
+
+        // Fetch ACCURATE site-wide totals from Google (no dimensions = true aggregated metrics across all queries)
+        async function fetchSiteTotals(siteUrl, startDate, endDate) {
+            try {
+                const requestBody = {
+                    startDate,
+                    endDate,
+                    type: 'web',
+                    dataState: document.getElementById('dataState').value
+                };
+                const response = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    console.error('GSC API error', siteUrl, response.status, await response.text());
+                    return null;
+                }
+
+                const data = await response.json();
+                const row = (data.rows && data.rows[0]) || { clicks: 0, impressions: 0, ctr: 0, position: 0 };
+                console.log('[GSC]', siteUrl, requestBody, '→', row);
+
+                return {
+                    url: siteUrl,
+                    name: siteUrl.replace(/^https?:\/\/(www\.)?|sc-domain:/g, '').replace(/\/$/, ''),
+                    clicks: row.clicks,
+                    impressions: row.impressions,
+                    ctr: row.ctr * 100,
+                    position: row.position,
+                    keywords: null
+                };
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // Lazy-fetch keywords only when user opens the site detail modal
+        async function fetchSiteKeywords(siteUrl, startDate, endDate) {
+            try {
+                const response = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        startDate,
+                        endDate,
+                        type: 'web',
+                        dataState: document.getElementById('dataState').value,
+                        dimensions: ['query'],
+                        rowLimit: 50
+                    })
+                });
+
+                if (!response.ok) return [];
+                const data = await response.json();
+                return data.rows || [];
+            } catch (error) {
+                return [];
+            }
+        }
+
+        // Load all data — high concurrency + incremental rendering
+        async function loadAllData() {
+            const { startDate, endDate } = getSelectedDates();
+            if (!startDate || !endDate) {
+                document.getElementById('sitesTableBody').innerHTML = '<tr><td colspan="5" class="error">Please pick a valid From and To date.</td></tr>';
+                return;
+            }
+            const sites = await fetchSites();
+
+            if (sites.length === 0) {
+                document.getElementById('sitesTableBody').innerHTML = '<tr><td colspan="5" class="error">No websites found in your Search Console account.</td></tr>';
+                return;
+            }
+
+            document.getElementById('sitesTableBody').innerHTML = `<tr><td colspan="5" class="loading">Loading data from ${sites.length} websites...</td></tr>`;
+
+            const concurrency = Math.min(12, sites.length);
+            const queue = sites.slice();
+            const results = [];
+            let completed = 0;
+            let lastRender = 0;
+
+            const worker = async () => {
+                while (queue.length > 0) {
+                    const site = queue.shift();
+                    const result = await fetchSiteTotals(site.siteUrl, startDate, endDate);
+                    if (result) results.push(result);
+                    completed++;
+                    if (completed - lastRender >= 5 || completed === sites.length) {
+                        lastRender = completed;
+                        allSitesData = results.slice();
+                        updateStats();
+                        updateTable();
+                        updateCharts();
+                    }
+                }
+            };
+
+            await Promise.all(Array.from({ length: concurrency }, worker));
+
+            allSitesData = results;
+            updateStats();
+            updateTable();
+            updateCharts();
+        }
+
+        // Update statistics — impression-weighted average position for accuracy
+        function updateStats() {
+            const totalClicks = allSitesData.reduce((sum, s) => sum + s.clicks, 0);
+            const totalImpressions = allSitesData.reduce((sum, s) => sum + s.impressions, 0);
+            const avgCtr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+            const weightedPosSum = allSitesData.reduce((sum, s) => sum + s.position * s.impressions, 0);
+            const avgPosition = totalImpressions > 0 ? weightedPosSum / totalImpressions : 0;
+
+            document.getElementById('totalClicks').textContent = formatExact(totalClicks);
+            document.getElementById('totalImpressions').textContent = formatExact(totalImpressions);
+            document.getElementById('avgCtr').textContent = avgCtr.toFixed(2) + '%';
+            document.getElementById('avgPosition').textContent = avgPosition.toFixed(1);
+        }
+
+        // Update table
+        function updateTable() {
+            const sortBy = document.getElementById('sortBy').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = [...allSitesData];
+            if (searchTerm) filtered = filtered.filter(s => s.name.toLowerCase().includes(searchTerm));
+            
+            filtered.sort((a, b) => {
+                if (sortBy === 'clicks') return b.clicks - a.clicks;
+                if (sortBy === 'impressions') return b.impressions - a.impressions;
+                if (sortBy === 'ctr') return b.ctr - a.ctr;
+                if (sortBy === 'position') return a.position - b.position;
+                return 0;
+            });
+            
+            const tbody = document.getElementById('sitesTableBody');
+            tbody.innerHTML = '';
+            
+            filtered.forEach(site => {
+                const row = tbody.insertRow();
+                row.className = 'site-row';
+                row.onclick = () => showSiteDetails(site);
+                row.insertCell(0).innerHTML = `<strong>${site.name}</strong>`;
+                row.insertCell(1).innerHTML = `<span class="badge" title="${formatExact(site.clicks)}">${formatExact(site.clicks)}</span>`;
+                row.insertCell(2).innerHTML = `<span class="badge" title="${formatExact(site.impressions)}">${formatExact(site.impressions)}</span>`;
+                row.insertCell(3).innerHTML = `<span class="badge">${site.ctr.toFixed(2)}%</span>`;
+                row.insertCell(4).innerHTML = `<span class="badge">${site.position.toFixed(1)}</span>`;
+            });
+        }
+
+        // Update charts
+        function updateCharts() {
+            const top10Clicks = [...allSitesData].sort((a,b) => b.clicks - a.clicks).slice(0,10);
+            const top10CTR = [...allSitesData].sort((a,b) => b.ctr - a.ctr).slice(0,10);
+            
+            if (clicksChart) clicksChart.destroy();
+            if (ctrChart) ctrChart.destroy();
+            
+            clicksChart = new Chart(document.getElementById('clicksChart'), {
+                type: 'bar',
+                data: {
+                    labels: top10Clicks.map(s => s.name.length > 20 ? s.name.substring(0,17)+'...' : s.name),
+                    datasets: [{ label: 'Clicks', data: top10Clicks.map(s => s.clicks), backgroundColor: '#1a73e8', borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+            
+            ctrChart = new Chart(document.getElementById('ctrChart'), {
+                type: 'bar',
+                data: {
+                    labels: top10CTR.map(s => s.name.length > 20 ? s.name.substring(0,17)+'...' : s.name),
+                    datasets: [{ label: 'CTR %', data: top10CTR.map(s => s.ctr), backgroundColor: '#28a745', borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        // Show site details modal — keywords are fetched on demand
+        async function showSiteDetails(site) {
+            const modal = document.getElementById('siteModal');
+            document.getElementById('modalTitle').textContent = `🔍 ${site.name}`;
+            const statsHtml = `
+                <div class="stats-grid" style="margin-bottom:20px">
+                    <div class="stat-card"><h3>Clicks</h3><div class="value" style="font-size:30px">${formatExact(site.clicks)}</div></div>
+                    <div class="stat-card"><h3>Impressions</h3><div class="value" style="font-size:30px">${formatExact(site.impressions)}</div></div>
+                    <div class="stat-card"><h3>CTR</h3><div class="value" style="font-size:30px">${site.ctr.toFixed(2)}%</div></div>
+                    <div class="stat-card"><h3>Position</h3><div class="value" style="font-size:30px">${site.position.toFixed(1)}</div></div>
+                </div>`;
+            document.getElementById('modalBody').innerHTML = statsHtml + '<div class="loading">Loading keywords...</div>';
+            modal.style.display = 'block';
+
+            const { startDate, endDate } = getSelectedDates();
+            const keywords = await fetchSiteKeywords(site.url, startDate, endDate);
+            site.keywords = keywords;
+
+            document.getElementById('modalBody').innerHTML = statsHtml + `
+                <h3>📝 Top Keywords (${keywords.length})</h3>
+                <div class="table-container">
+                    <table style="width:100%">
+                        <thead><tr><th>Keyword</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th></tr></thead>
+                        <tbody>${keywords.map(k => `<tr><td><strong>${escapeHtml(k.keys[0])}</strong></td><td>${formatExact(k.clicks)}</td><td>${formatExact(k.impressions)}</td><td>${(k.ctr*100).toFixed(2)}%</td><td>${k.position.toFixed(1)}</td></tr>`).join('')}</tbody>
+                    </table>
+                </div>`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function formatNumber(n) {
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+            return n.toString();
+        }
+
+        // Exact number with thousand separators (e.g. 1,234,567)
+        function formatExact(n) {
+            return Math.round(n).toLocaleString('en-US');
+        }
+
+        // Event listeners
+        document.getElementById('dateRange').addEventListener('change', () => {
+            const isCustom = document.getElementById('dateRange').value === 'custom';
+            document.getElementById('startDate').disabled = !isCustom;
+            document.getElementById('endDate').disabled = !isCustom;
+            if (!isCustom) {
+                syncDateInputsFromPreset();
+                if (accessToken) loadAllData();
+            }
+        });
+        document.getElementById('applyDatesBtn').addEventListener('click', () => {
+            const s = document.getElementById('startDate').value;
+            const e = document.getElementById('endDate').value;
+            if (!s || !e) { alert('Please select both From and To dates.'); return; }
+            if (s > e) { alert('From date must be before To date.'); return; }
+            document.getElementById('dateRange').value = 'custom';
+            document.getElementById('startDate').disabled = false;
+            document.getElementById('endDate').disabled = false;
+            if (accessToken) loadAllData();
+        });
+        document.getElementById('sortBy').addEventListener('change', updateTable);
+        document.getElementById('dataState').addEventListener('change', () => { if (accessToken) loadAllData(); });
+        document.getElementById('searchInput').addEventListener('input', updateTable);
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const ws = XLSX.utils.json_to_sheet(allSitesData.map(s => ({
+                'Website': s.name,
+                'Clicks': s.clicks,
+                'Impressions': s.impressions,
+                'CTR %': s.ctr.toFixed(2),
+                'Avg Position': s.position.toFixed(1)
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'SEO Data');
+            XLSX.writeFile(wb, `seo_dashboard_${new Date().toISOString().split('T')[0]}.xlsx`);
+        });
+        document.getElementById('refreshBtn').addEventListener('click', loadAllData);
+        
+        document.querySelector('.close').onclick = () => {
+            document.getElementById('siteModal').style.display = 'none';
+        };
+        
+        window.onclick = (e) => {
+            if (e.target === document.getElementById('siteModal')) {
+                document.getElementById('siteModal').style.display = 'none';
+            }
+        };
+        
+        // Initialize date inputs from default preset
+        syncDateInputsFromPreset();
+        document.getElementById('startDate').disabled = true;
+        document.getElementById('endDate').disabled = true;
+
+        // Initialize
+        if (checkToken() && window.location.protocol !== 'file:') {
+            showDashboard();
+            loadAllData();
+        }
+    </script>
+</body>
+</html>
