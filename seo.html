@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SEO Analytics Pro | Search Console Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f5f7fb; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 24px; }
+        /* header modern */
+        .header { background: linear-gradient(105deg, #0b2b5c 0%, #1b4a8b 100%); color: white; padding: 28px 32px; border-radius: 28px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        .btn { padding: 10px 20px; border: none; border-radius: 40px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: rgba(255,255,255,0.15); backdrop-filter: blur(2px); color: white; }
+        .btn-primary { background: white; color: #1a4c8c; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .btn-primary:hover { transform: translateY(-2px); background: #f0f4ff; }
+        .btn-success { background: #2c7a4d; color: white; }
+        .btn-success:hover { background: #1f5e3a; transform: scale(0.98);}
+        .btn-info { background: #2c6e9e; color: white; }
+        .btn-secondary { background: #4a5568; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px; margin-bottom: 32px; }
+        .stat-card { background: white; padding: 24px 20px; border-radius: 28px; box-shadow: 0 4px 14px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s; border: 1px solid rgba(0,0,0,0.05); text-align: center; cursor: pointer; }
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1); }
+        .stat-card h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #5b6e8c; margin-bottom: 12px; font-weight: 700; }
+        .stat-card .value { font-size: 38px; font-weight: 800; background: linear-gradient(135deg, #1e3a8a, #3b82f6); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 24px; margin-bottom: 32px; }
+        .chart-card { background: white; border-radius: 28px; padding: 20px 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.02); border: 1px solid #eef2f6; }
+        .controls-bar { background: white; border-radius: 28px; padding: 20px 28px; margin-bottom: 28px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; box-shadow: 0 2px 6px rgba(0,0,0,0.02); border: 1px solid #eef2f6; }
+        .control-group { display: flex; flex-direction: column; gap: 6px; min-width: 140px; }
+        .control-group label { font-size: 11px; font-weight: 700; color: #4a627a; letter-spacing: 0.5px; text-transform: uppercase; }
+        .date-range-custom { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; background: #f8fafc; padding: 8px 16px; border-radius: 60px; }
+        .date-input { border: 1px solid #cbd5e1; border-radius: 40px; padding: 8px 16px; font-size: 13px; background: white; }
+        select, input[type="text"] { padding: 10px 16px; border-radius: 40px; border: 1px solid #cbd5e1; background: white; font-size: 13px; font-weight: 500; transition: 0.2s; }
+        .search-box { flex: 2; min-width: 220px; }
+        .table-container { background: white; border-radius: 28px; overflow: auto; box-shadow: 0 8px 20px rgba(0,0,0,0.02); border: 1px solid #eef2f6; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 18px 20px; background: #fafcff; font-weight: 700; font-size: 13px; color: #2c3e66; border-bottom: 1px solid #e9edf2; cursor: pointer; }
+        td { padding: 14px 20px; border-bottom: 1px solid #f0f2f7; font-size: 14px; }
+        .site-row { cursor: pointer; transition: 0.1s; }
+        .site-row:hover { background: #f5f9ff; }
+        .badge { background: #eef2ff; padding: 5px 12px; border-radius: 40px; font-weight: 500; font-size: 13px; color: #1e40af; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); z-index: 1000; overflow-y: auto; }
+        .modal-content { background: white; margin: 50px auto; max-width: 1100px; width: 92%; border-radius: 32px; animation: modalFade 0.2s; }
+        @keyframes modalFade { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 24px 28px; border-bottom: 1px solid #eef2f6; }
+        .modal-header h2 { color: #0f3b6f; }
+        .close { font-size: 32px; cursor: pointer; color: #8ba0bc; transition: 0.1s; }
+        .close:hover { color: #1f2f45; }
+        .loading { text-align: center; padding: 48px; color: #5f7f9e; font-weight: 500; }
+        .error { background: #fee9e6; color: #b91c1c; padding: 16px; border-radius: 28px; margin: 20px; }
+        .auth-status { background: rgba(255,255,255,0.2); padding: 8px 18px; border-radius: 60px; font-size: 13px; }
+        .server-warning { background: #fffbeb; border-left: 5px solid #f59e0b; padding: 16px; border-radius: 20px; margin-bottom: 24px; text-align: left; font-size: 14px; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        @media (max-width: 720px) { .charts-grid { grid-template-columns: 1fr; } .controls-bar { flex-direction: column; align-items: stretch; } }
+        .progress-ring { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top: 3px solid #1e6fdf; border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; margin-right: 12px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1 style="font-size: 1.7rem;">📊 SEO Analytics · Search Console</h1>
+        <div class="auth-status" id="authStatusText">🔴 Not Connected</div>
+        <button id="logoutBtn" class="btn btn-secondary" style="display: none;">🚪 Logout</button>
+    </div>
+
+    <!-- Login Section -->
+    <div id="loginContainer">
+        <div class="login-box" style="background: white; max-width: 620px; margin: 0 auto; padding: 36px; border-radius: 40px; box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);">
+            <div id="serverWarning" class="server-warning" style="display: none;">⚠️ Run with local server (Live Server or python -m http.server 3000)</div>
+            <h2 style="color:#0b3b6b;">🔐 Connect to Google Search Console</h2>
+            <p style="margin: 15px 0; color:#4b5565;">Authorize once → secure token stored locally.</p>
+            <div class="step" style="background:#f8fafd; padding:18px; border-radius:28px; margin:18px 0;">
+                <span style="font-weight:800;">1️⃣</span> Generate link → <button id="generateLinkBtn" class="btn btn-primary">🔗 Get Auth URL</button>
+                <div id="linkStatus" style="margin-top: 10px; font-size:12px;"></div>
+            </div>
+            <div class="step" style="background:#f8fafd; padding:18px; border-radius:28px; margin:18px 0;">
+                <span style="font-weight:800;">2️⃣</span> <button id="openGoogleBtn" class="btn btn-primary" disabled>🌐 Open Google Consent</button>
+                <p style="font-size:12px; margin-top:8px;">After allow, copy FULL redirect URL from address bar (starts with http://localhost.../?code=...)</p>
+            </div>
+            <div class="step" style="background:#f8fafd; padding:18px; border-radius:28px; margin:18px 0;">
+                <span style="font-weight:800;">3️⃣</span> <input type="text" id="codeUrl" placeholder="Paste full URL here (contains ?code=...)" style="width:100%; padding:12px; border-radius:60px; border:1px solid #ccc;">
+                <button id="connectBtn" class="btn btn-success" style="margin-top:15px; width:100%;" disabled>✅ Connect & Load Dashboard</button>
+                <div id="connectionStatus" style="margin-top:12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard core -->
+    <div id="mainContent" style="display: none;">
+        <div class="stats-grid">
+            <div class="stat-card"><h3>Total Clicks</h3><div class="value" id="totalClicks">0</div></div>
+            <div class="stat-card"><h3>Total Impressions</h3><div class="value" id="totalImpressions">0</div></div>
+            <div class="stat-card"><h3>Avg CTR</h3><div class="value" id="avgCtr">0%</div></div>
+            <div class="stat-card"><h3>Avg Position</h3><div class="value" id="avgPosition">0.0</div></div>
+        </div>
+        <div class="charts-grid">
+            <div class="chart-card"><h3>📈 Top 10 Sites by Clicks</h3><canvas id="clicksChart" height="280"></canvas></div>
+            <div class="chart-card"><h3>🎯 Top 10 Sites by CTR %</h3><canvas id="ctrChart" height="280"></canvas></div>
+        </div>
+        <div class="controls-bar">
+            <div class="control-group"><label>📅 Quick Range</label>
+                <select id="quickRangeSelect">
+                    <option value="7">Last 7 days</option>
+                    <option value="28" selected>Last 28 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="custom">📆 Custom range</option>
+                </select>
+            </div>
+            <div id="customDateGroup" style="display: flex; gap: 10px; align-items: center; background:#f9fbfd; padding: 4px 14px; border-radius: 50px;">
+                <div class="control-group"><label>From</label><input type="date" id="startDate" class="date-input"></div>
+                <div class="control-group"><label>To</label><input type="date" id="endDate" class="date-input"></div>
+                <button id="applyCustomBtn" class="btn btn-info" style="background:#2c6e9e; padding:6px 18px;">Apply</button>
+            </div>
+            <div class="control-group"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div>
+            <div class="search-box"><label>🔍 Filter site</label><input type="text" id="searchInput" placeholder="domain name..."></div>
+            <div class="control-group"><label>&nbsp;</label><button id="exportBtn" class="btn btn-success">📎 Excel</button></div>
+            <div class="control-group"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-info">🔄 Refresh</button></div>
+        </div>
+        <div class="table-container">
+            <table id="sitesTable"><thead><tr><th>🌐 Website</th><th>👆 Clicks</th><th>👁️ Impressions</th><th>📊 CTR</th><th>📍 Avg Pos</th></tr></thead>
+            <tbody id="sitesTableBody"><tr><td colspan="5" class="loading">Complete login to see data</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="siteModal" class="modal"><div class="modal-content"><div class="modal-header"><h2 id="modalTitle">Detailed Keywords</h2><span class="close">&times;</span></div><div class="modal-body" id="modalBody">Loading...</div></div></div>
+
+<script>
+    const CLIENT_ID = '293203533603-jids2o34riod7etappf4bi07f08f4p3a.apps.googleusercontent.com';
+    const CLIENT_SECRET = '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';
+    let REDIRECT_URI = window.location.origin + window.location.pathname;
+    if (window.location.protocol === 'file:') {
+        document.getElementById('serverWarning').style.display = 'block';
+        document.getElementById('generateLinkBtn').disabled = true;
+        document.getElementById('openGoogleBtn').disabled = true;
+        document.getElementById('connectBtn').disabled = true;
+    } else { document.getElementById('serverWarning').style.display = 'none'; }
+    
+    let accessToken = null;
+    let allSitesData = [];
+    let clicksChart = null, ctrChart = null;
+    let currentAuthUrl = null;
+    let isFetching = false;
+
+    function showToast(msg, isError=false) { 
+        const statusDiv = document.getElementById('connectionStatus');
+        if(statusDiv) statusDiv.innerHTML = `<span style="color:${isError?'#dc3545':'#2c7a4d'}">${msg}</span>`;
+        setTimeout(()=>{if(statusDiv && !isError) statusDiv.innerHTML='';},3000);
+    }
+    function formatNumber(n){ if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1000) return (n/1000).toFixed(1)+'K'; return n.toString(); }
+    function escapeHtml(str){ return String(str).replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;});}
+    
+    // Token mgmt
+    function saveToken(token){ localStorage.setItem('gsc_token', token); localStorage.setItem('gsc_token_time', Date.now()+3600000); }
+    function checkToken(){ const t = localStorage.getItem('gsc_token'); const tm = localStorage.getItem('gsc_token_time'); if(t && tm && Date.now() < parseInt(tm)){ accessToken = t; return true; } return false; }
+    function logout(){ localStorage.removeItem('gsc_token'); localStorage.removeItem('gsc_token_time'); accessToken = null; document.getElementById('loginContainer').style.display='block'; document.getElementById('mainContent').style.display='none'; document.getElementById('logoutBtn').style.display='none'; document.getElementById('authStatusText').innerHTML='🔴 Not Connected'; }
+    function showDashboard(){ document.getElementById('loginContainer').style.display='none'; document.getElementById('mainContent').style.display='block'; document.getElementById('logoutBtn').style.display='block'; document.getElementById('authStatusText').innerHTML='✅ Connected'; }
+    
+    // OAuth steps
+    document.getElementById('generateLinkBtn').onclick = () => {
+        const scope = 'https://www.googleapis.com/auth/webmasters.readonly';
+        currentAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent`;
+        document.getElementById('linkStatus').innerHTML = '<span style="color:#15803d;">✅ Link generated! Click "Open Google Consent".</span>';
+        document.getElementById('openGoogleBtn').disabled = false;
+    };
+    document.getElementById('openGoogleBtn').onclick = () => { if(currentAuthUrl) window.open(currentAuthUrl, '_blank'); document.getElementById('connectBtn').disabled = false; };
+    document.getElementById('connectBtn').onclick = async () => {
+        const urlInput = document.getElementById('codeUrl').value;
+        let code = null; const match = urlInput.match(/[?&]code=([^&]+)/);
+        if(match) code = decodeURIComponent(match[1]);
+        if(!code){ showToast('❌ No code found in URL', true); return; }
+        showToast('🔄 Exchanging code...');
+        try{
+            const params = new URLSearchParams(); params.append('code', code); params.append('client_id', CLIENT_ID); params.append('client_secret', CLIENT_SECRET); params.append('redirect_uri', REDIRECT_URI); params.append('grant_type', 'authorization_code');
+            const resp = await fetch('https://oauth2.googleapis.com/token', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params });
+            const data = await resp.json();
+            if(data.access_token){ accessToken = data.access_token; saveToken(accessToken); showToast('✅ Connected! Loading data...'); setTimeout(()=>{ showDashboard(); loadAllData(); },800); }
+            else { showToast('❌ Token error: '+ (data.error_description || 'unknown'), true); }
+        }catch(e){ showToast('Network error: '+e.message, true); }
+    };
+    document.getElementById('logoutBtn').onclick = logout;
+    
+    // fetch sites list
+    async function fetchSites(){ try{ const r = await fetch('https://www.googleapis.com/webmasters/v3/sites', { headers:{'Authorization':`Bearer ${accessToken}`} }); if(r.status===401){ logout(); return []; } if(!r.ok) return []; const data = await r.json(); return data.siteEntry || []; } catch(e){ return []; } }
+    
+    // fetch analytics for one site with date range
+    async function fetchSiteData(siteUrl, startDateStr, endDateStr) {
+        try{
+            const body = { startDate: startDateStr, endDate: endDateStr, dimensions: ['query'], rowLimit: 2500 };
+            const resp = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+                method:'POST', headers:{'Authorization':`Bearer ${accessToken}`,'Content-Type':'application/json'}, body:JSON.stringify(body)
+            });
+            if(!resp.ok) return null;
+            const data = await resp.json();
+            let clicks=0, impressions=0, positionSum=0, rowCount=0;
+            const keywords = data.rows || [];
+            keywords.forEach(r=>{ clicks+=r.clicks; impressions+=r.impressions; positionSum+=r.position; rowCount++; });
+            return {
+                url: siteUrl,
+                name: siteUrl.replace(/^https?:\/\/(www\.)?|sc-domain:/g, '').replace(/\/$/,''),
+                clicks, impressions, ctr: impressions>0 ? (clicks/impressions)*100 : 0,
+                position: rowCount>0 ? positionSum/rowCount : 0,
+                keywords: keywords.slice(0,100).map(k=>({ query: k.keys[0], clicks:k.clicks, impressions:k.impressions, ctr:k.ctr, position:k.position }))
+            };
+        }catch(e){ return null; }
+    }
+    
+    // Efficient batched loading with progress
+    async function loadAllData() {
+        if(isFetching) return;
+        isFetching = true;
+        const refreshBtn = document.getElementById('refreshBtn');
+        refreshBtn.disabled = true;
+        const tbody = document.getElementById('sitesTableBody');
+        tbody.innerHTML = `<tr><td colspan="5" class="loading"><div class="progress-ring"></div> Fetching sites & analytics... please wait (can take 10-30s for large accounts)</td></tr>`;
+        try{
+            const sites = await fetchSites();
+            if(!sites.length){ tbody.innerHTML = '<tr><td colspan="5" class="error">No properties found in Search Console.</td></tr>'; isFetching=false; refreshBtn.disabled=false; return; }
+            // determine date range (custom or preset)
+            let startDateStr, endDateStr;
+            const quickVal = document.getElementById('quickRangeSelect').value;
+            const today = new Date();
+            const formatYMD = d => d.toISOString().split('T')[0];
+            if(quickVal === 'custom'){
+                let sd = document.getElementById('startDate').value, ed = document.getElementById('endDate').value;
+                if(!sd || !ed){ 
+                    const defEnd = new Date(); const defStart = new Date(); defStart.setDate(defEnd.getDate()-28);
+                    sd = formatYMD(defStart); ed = formatYMD(defEnd);
+                    document.getElementById('startDate').value = sd; document.getElementById('endDate').value = ed;
+                }
+                startDateStr = sd; endDateStr = ed;
+            } else {
+                const days = parseInt(quickVal);
+                const end = new Date(); const start = new Date(); start.setDate(end.getDate() - days);
+                startDateStr = formatYMD(start); endDateStr = formatYMD(end);
+                // sync custom date inputs for consistency
+                document.getElementById('startDate').value = startDateStr;
+                document.getElementById('endDate').value = endDateStr;
+            }
+            // parallel batch processing (concurrency limit 3)
+            const batchSize = 3;
+            const results = [];
+            for(let i=0; i<sites.length; i+=batchSize){
+                const batch = sites.slice(i, i+batchSize);
+                const batchPromises = batch.map(site => fetchSiteData(site.siteUrl, startDateStr, endDateStr));
+                const batchResults = await Promise.all(batchPromises);
+                results.push(...batchResults.filter(v=>v!==null));
+                tbody.innerHTML = `<tr><td colspan="5" class="loading"><div class="progress-ring"></div> Processing ${Math.min(i+batchSize, sites.length)}/${sites.length} websites... (${results.length} completed)</td></tr>`;
+            }
+            allSitesData = results;
+            if(allSitesData.length){
+                updateStatsAndUI();
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="error">No data for selected range. Try other dates.</td></tr>';
+            }
+        }catch(err){ console.error(err); tbody.innerHTML = `<tr><td colspan="5" class="error">Error: ${err.message}</td></tr>`; }
+        finally{ isFetching=false; refreshBtn.disabled=false; }
+    }
+    
+    function updateStatsAndUI(){
+        const totalClicks = allSitesData.reduce((s,site)=>s+site.clicks,0);
+        const totalImpres = allSitesData.reduce((s,site)=>s+site.impressions,0);
+        const avgCtrVal = totalImpres ? (totalClicks/totalImpres)*100 : 0;
+        const avgPosVal = allSitesData.reduce((s,site)=>s+site.position,0)/allSitesData.length;
+        document.getElementById('totalClicks').innerText = formatNumber(totalClicks);
+        document.getElementById('totalImpressions').innerText = formatNumber(totalImpres);
+        document.getElementById('avgCtr').innerText = avgCtrVal.toFixed(2)+'%';
+        document.getElementById('avgPosition').innerText = avgPosVal.toFixed(1);
+        updateTableAndCharts();
+    }
+    
+    function updateTableAndCharts(){
+        const sortBy = document.getElementById('sortBy').value;
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        let filtered = [...allSitesData];
+        if(searchTerm) filtered = filtered.filter(s=>s.name.toLowerCase().includes(searchTerm));
+        if(sortBy === 'clicks') filtered.sort((a,b)=>b.clicks - a.clicks);
+        else if(sortBy === 'impressions') filtered.sort((a,b)=>b.impressions - a.impressions);
+        else if(sortBy === 'ctr') filtered.sort((a,b)=>b.ctr - a.ctr);
+        else if(sortBy === 'position') filtered.sort((a,b)=>a.position - b.position);
+        const tbody = document.getElementById('sitesTableBody');
+        tbody.innerHTML = '';
+        if(filtered.length===0){ tbody.innerHTML='<tr><td colspan="5" class="loading">No matching sites</td></tr>'; }
+        filtered.forEach(site=>{
+            const row = tbody.insertRow(); row.className='site-row'; row.onclick = ()=>showSiteDetails(site);
+            row.insertCell(0).innerHTML = `<strong>${escapeHtml(site.name)}</strong>`;
+            row.insertCell(1).innerHTML = `<span class="badge">${formatNumber(site.clicks)}</span>`;
+            row.insertCell(2).innerHTML = `<span class="badge">${formatNumber(site.impressions)}</span>`;
+            row.insertCell(3).innerHTML = `<span class="badge">${site.ctr.toFixed(2)}%</span>`;
+            row.insertCell(4).innerHTML = `<span class="badge">${site.position.toFixed(1)}</span>`;
+        });
+        // update charts
+        const topClicks = [...allSitesData].sort((a,b)=>b.clicks-a.clicks).slice(0,10);
+        const topCTR = [...allSitesData].sort((a,b)=>b.ctr-a.ctr).slice(0,10);
+        if(clicksChart) clicksChart.destroy();
+        if(ctrChart) ctrChart.destroy();
+        clicksChart = new Chart(document.getElementById('clicksChart'), { type:'bar', data:{ labels: topClicks.map(s=>s.name.length>20?s.name.slice(0,18)+'..':s.name), datasets:[{ label:'Clicks', data:topClicks.map(s=>s.clicks), backgroundColor:'#3b82f6', borderRadius:12, barPercentage:0.7 }] }, options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ position:'top' } } } });
+        ctrChart = new Chart(document.getElementById('ctrChart'), { type:'bar', data:{ labels: topCTR.map(s=>s.name.length>20?s.name.slice(0,18)+'..':s.name), datasets:[{ label:'CTR (%)', data:topCTR.map(s=>s.ctr), backgroundColor:'#10b981', borderRadius:12 }] }, options:{ responsive:true, maintainAspectRatio:true } });
+    }
+    
+    function showSiteDetails(site){
+        const modal = document.getElementById('siteModal');
+        document.getElementById('modalTitle').innerHTML = `🔍 ${escapeHtml(site.name)}  ·  Top Keywords`;
+        const kwHtml = site.keywords && site.keywords.length ? 
+            `<div class="table-container" style="margin-top:16px;"><table style="width:100%"><thead><tr><th>Keyword</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th></tr></thead><tbody>
+             ${site.keywords.map(k=>`<tr><td><strong>${escapeHtml(k.query)}</strong></td><td>${formatNumber(k.clicks)}</td><td>${formatNumber(k.impressions)}</td><td>${((k.clicks/k.impressions)*100).toFixed(1)}%</td><td>${k.position.toFixed(1)}</td></tr>`).join('')}
+             </tbody></table></div>` : '<div class="loading">No keyword data for selected period.</div>';
+        document.getElementById('modalBody').innerHTML = `<div class="stats-grid" style="margin-bottom:20px"><div class="stat-card"><h3>Clicks</h3><div class="value">${formatNumber(site.clicks)}</div></div><div class="stat-card"><h3>Impressions</h3><div class="value">${formatNumber(site.impressions)}</div></div><div class="stat-card"><h3>CTR</h3><div class="value">${site.ctr.toFixed(2)}%</div></div><div class="stat-card"><h3>Position</h3><div class="value">${site.position.toFixed(1)}</div></div></div><h3>📌 Top Queries</h3>${kwHtml}`;
+        modal.style.display = 'block';
+    }
+    
+    // Event listeners for dynamic refresh
+    document.getElementById('applyCustomBtn').addEventListener('click', ()=>{
+        if(document.getElementById('quickRangeSelect').value !== 'custom') document.getElementById('quickRangeSelect').value = 'custom';
+        loadAllData();
+    });
+    document.getElementById('quickRangeSelect').addEventListener('change', (e)=>{
+        const isCustom = e.target.value === 'custom';
+        document.getElementById('customDateGroup').style.display = isCustom ? 'flex' : 'none';
+        if(!isCustom) loadAllData();
+    });
+    document.getElementById('sortBy').addEventListener('change', ()=>updateTableAndCharts());
+    document.getElementById('searchInput').addEventListener('input', ()=>updateTableAndCharts());
+    document.getElementById('exportBtn').addEventListener('click', ()=>{
+        if(!allSitesData.length) return;
+        const sheetData = allSitesData.map(s=>({ Website: s.name, Clicks: s.clicks, Impressions: s.impressions, 'CTR %': s.ctr.toFixed(2), 'Avg Position': s.position.toFixed(1) }));
+        const ws = XLSX.utils.json_to_sheet(sheetData);
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'SEO_Analytics');
+        XLSX.writeFile(wb, `seo_export_${new Date().toISOString().slice(0,10)}.xlsx`);
+    });
+    document.getElementById('refreshBtn').addEventListener('click', loadAllData);
+    // set default dates for custom
+    const defEnd = new Date(), defStart = new Date(); defStart.setDate(defEnd.getDate()-28);
+    document.getElementById('startDate').value = defStart.toISOString().split('T')[0];
+    document.getElementById('endDate').value = defEnd.toISOString().split('T')[0];
+    document.getElementById('customDateGroup').style.display = 'none';
+    document.querySelector('.close').onclick = ()=>document.getElementById('siteModal').style.display='none';
+    window.onclick = (e)=>{ if(e.target === document.getElementById('siteModal')) document.getElementById('siteModal').style.display='none'; };
+    
+    // initial auto-login if token exists
+    if(checkToken() && window.location.protocol !== 'file:'){
+        showDashboard(); loadAllData();
+    }
+</script>
+</body>
+</html>
