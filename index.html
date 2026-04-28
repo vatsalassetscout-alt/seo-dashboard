@@ -333,24 +333,20 @@ tbody tr:last-child td { border-bottom:none; }
         Make sure this exact URL is added to your Google OAuth app's <strong>Authorized redirect URIs</strong> in Google Cloud Console.
       </div>
       <h2>🔐 Connect Google Search Console</h2>
-      <p>Authorise once — your session is stored permanently. You'll never need to log in again.</p>
+      <p>Connect your Google Search Console account to view SEO data across all your properties. Your session is saved permanently after the first sign-in.</p>
 
       <div class="step">
-        <div class="step-head"><div class="snum">1</div>Generate the Google authorization link</div>
-        <button id="genBtn" class="btn btn-blue" style="width:100%">🔗 Generate Authorization Link</button>
+        <div class="step-head"><div class="snum">1</div>Sign in with Google</div>
+        <button id="genBtn" class="btn btn-blue" style="width:100%;padding:12px;font-size:14px">🔗 Connect Google Search Console</button>
         <div class="msg" id="genMsg"></div>
+        <button id="openBtn" style="display:none" disabled>hidden</button>
+        <small>You'll be redirected to Google to authorise access. After approving, you'll be brought back here automatically.</small>
       </div>
 
       <div class="step">
-        <div class="step-head"><div class="snum">2</div>Open link &amp; sign in with Google</div>
-        <button id="openBtn" class="btn btn-blue" style="width:100%;background:#db4437" disabled>🌐 Open Google Authorization</button>
-        <small>After authorising, Google will redirect back to this page and may show a brief blank screen — that's normal. The app will detect the auth code automatically, OR copy the full URL from your browser's address bar.</small>
-      </div>
-
-      <div class="step">
-        <div class="step-head"><div class="snum">3</div>Paste the full redirect URL (if not auto-detected)</div>
+        <div class="step-head"><div class="snum">2</div>Paste redirect URL <span style="font-weight:400;color:var(--text3);font-size:12px">(only if not redirected automatically)</span></div>
         <input type="text" id="codeUrl" class="url-input" placeholder="https://your-app.vercel.app/?code=4/0AX4XfW...">
-        <small>Paste the entire URL — it starts with <code style="font-family:var(--mono);font-size:11px;background:rgba(128,128,128,.15);padding:1px 5px;border-radius:3px">?code=</code></small>
+        <small>Paste the full URL from your browser's address bar after Google redirects you.</small>
         <button id="connectBtn" class="btn btn-green" style="width:100%;margin-top:10px" disabled>✅ Connect &amp; Save Session</button>
         <div class="msg" id="connectMsg"></div>
       </div>
@@ -469,6 +465,11 @@ tbody tr:last-child td { border-bottom:none; }
 // ─────────────────────────────────────────────
 //  THEME — persisted toggle
 // ─────────────────────────────────────────────
+// ─── STATE — declare before anything else ───
+let allData = [];
+let failedSites = [];
+let clicksChart, ctrChart;
+
 const html = document.documentElement;
 const themeBtn = document.getElementById('themeToggleBtn');
 
@@ -495,7 +496,7 @@ const CLIENT_SECRET = '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';
 
 // Automatically derive redirect URI from current page origin
 // Automatically derives redirect URI from current page origin
-const REDIRECT_URI  = 'https://locallhost';
+const REDIRECT_URI  = window.location.origin; // Always use origin only — no path — avoids redirect_uri mismatch
 
 const SCOPE         = 'https://www.googleapis.com/auth/webmasters.readonly';
 const TOKEN_URL     = 'https://oauth2.googleapis.com/token';
@@ -589,23 +590,12 @@ let authUrl = null;
 
 document.getElementById('genBtn').onclick = () => {
   authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}&access_type=offline&prompt=consent`;
-  document.getElementById('genMsg').className = 'msg ok';
-  document.getElementById('genMsg').textContent = '✓ Link ready — click step 2';
-  document.getElementById('openBtn').disabled = false;
+  // Navigate directly — works on all hosts, no popup blocker issues
+  window.location.href = authUrl;
 };
 
 document.getElementById('openBtn').onclick = () => {
-  if (authUrl) {
-    // On Vercel: open in same tab so redirect comes back here automatically
-    if (!isLocalhost) {
-      window.location.href = authUrl;
-    } else {
-      window.open(authUrl, '_blank');
-      document.getElementById('connectBtn').disabled = false;
-      document.getElementById('connectMsg').className = 'msg info';
-      document.getElementById('connectMsg').textContent = 'Paste the full redirect URL in step 3 after Google redirects you';
-    }
-  }
+  if (authUrl) window.location.href = authUrl;
 };
 
 document.getElementById('connectBtn').onclick = async () => {
@@ -729,9 +719,7 @@ document.getElementById('applyBtn').onclick = () => {
 // ─────────────────────────────────────────────
 //  DATA FETCHING
 // ─────────────────────────────────────────────
-let allData = [];
-let failedSites = [];
-let clicksChart, ctrChart;
+// allData declared at top of script
 
 async function fetchSites() {
   const token = await getToken();
@@ -989,6 +977,12 @@ document.getElementById('sortBy').onchange     = renderTable;
 document.getElementById('searchInput').oninput  = renderTable;
 document.getElementById('dataState').onchange   = () => { if (accessToken) loadData(); };
 document.getElementById('refreshBtn').onclick   = loadData;
+
+// Enable connect button as soon as user pastes a URL
+document.getElementById('codeUrl').oninput = () => {
+  const val = document.getElementById('codeUrl').value.trim();
+  document.getElementById('connectBtn').disabled = !val.includes('code=');
+};
 
 document.getElementById('exportBtn').onclick = () => {
   if (!allData.length) return;
