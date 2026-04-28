@@ -3,126 +3,373 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Asset Scout — SEO Dashboard | GSC Analytics</title>
+<title>Asset Scout — SEO Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
 :root {
-  --bg: #060a12; --s1: #0d1420; --s2: #111c2e; --s3: #172035;
-  --border: #1e2d45; --border2: #243553; --blue: #3b82f6; --blue2: #60a5fa;
-  --green: #10b981; --amber: #f59e0b; --red: #ef4444;
-  --purple: #8b5cf6; --text: #e2e8f0; --text2: #94a3b8; --text3: #4a5f7a;
-  --mono: 'JetBrains Mono', monospace; --sans: 'Outfit', sans-serif; --r: 12px;
+  /* Dark theme (default) */
+  --bg: #060a12;
+  --s1: #0d1420;
+  --s2: #111c2e;
+  --s3: #172035;
+  --border: #1e2d45;
+  --border2: #243553;
+  --blue: #3b82f6;
+  --blue2: #60a5fa;
+  --green: #10b981;
+  --amber: #f59e0b;
+  --red: #ef4444;
+  --purple: #8b5cf6;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #4a5f7a;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+  --r: 10px;
+  --shadow: none;
+  --card-bg: var(--s1);
+  --input-bg: var(--bg);
 }
-body { font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.5; }
-.wrap { max-width: 1440px; margin: 0 auto; padding: 20px 24px; }
+body.light {
+  --bg: #f8fafc;
+  --s1: #ffffff;
+  --s2: #f1f5f9;
+  --s3: #e2e8f0;
+  --border: #cbd5e1;
+  --border2: #94a3b8;
+  --blue: #2563eb;
+  --blue2: #3b82f6;
+  --green: #059669;
+  --amber: #d97706;
+  --red: #dc2626;
+  --purple: #7c3aed;
+  --text: #0f172a;
+  --text2: #334155;
+  --text3: #64748b;
+  --card-bg: #ffffff;
+  --input-bg: #f1f5f9;
+  --shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { font-family:var(--sans); background:var(--bg); color:var(--text); min-height:100vh; transition: background 0.2s, color 0.2s; }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--s1); }
+::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
+
+/* ─── LAYOUT ─── */
+.wrap { max-width:1440px; margin:0 auto; padding:20px 24px; }
+
+/* ─── HEADER ─── */
 .header {
-  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
-  padding: 16px 24px; background: var(--s1); border: 1px solid var(--border); border-radius: var(--r);
-  margin-bottom: 22px; backdrop-filter: blur(2px);
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:14px;
+  padding:18px 24px;
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  margin-bottom:22px;
+  box-shadow: var(--shadow);
 }
-.logo { display: flex; align-items: center; gap: 10px; }
-.logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #3b82f6, #9333ea); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-.logo h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.pill { padding: 5px 14px; border-radius: 30px; font-size: 11px; font-weight: 600; font-family: var(--mono); border: 1px solid; display: flex; align-items: center; gap: 7px; }
-.pill.off { background: rgba(239,68,68,.12); color: #f87171; border-color: rgba(239,68,68,.3); }
-.pill.on { background: rgba(16,185,129,.12); color: #34d399; border-color: rgba(16,185,129,.3); }
-.btn { padding: 8px 18px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; border: none; }
-.btn-blue { background: var(--blue); color: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-.btn-blue:hover { background: #2563eb; transform: translateY(-1px); }
-.btn-green { background: var(--green); color: #fff; }
-.btn-green:hover { background: #059669; transform: translateY(-1px); }
-.btn-red { background: rgba(239,68,68,.15); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
-.btn-red:hover { background: rgba(239,68,68,.25); }
-.login-box { background: var(--s1); border: 1px solid var(--border); border-radius: 20px; padding: 38px; max-width: 680px; margin: 0 auto; }
-.step { background: var(--s2); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; margin-bottom: 16px; transition: all 0.1s; }
-.snum { width: 28px; height: 28px; background: var(--blue); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; margin-right: 12px; }
-.url-input { width: 100%; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--mono); font-size: 12px; }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 18px; margin-bottom: 24px; }
-.stat { background: var(--s1); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; position: relative; transition: all 0.2s; }
-.stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent-color, var(--blue)); border-radius: 3px 3px 0 0; }
-.stat .val { font-size: 34px; font-weight: 700; font-family: var(--mono); color: var(--accent-color, var(--blue)); }
-.charts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px,1fr)); gap: 20px; margin-bottom: 24px; }
-.chart-card { background: var(--s1); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; }
-.controls { background: var(--s1); border-radius: var(--r); border: 1px solid var(--border); padding: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin-bottom: 20px; }
-.controls select, .controls input { background: var(--bg); border: 1px solid var(--border); padding: 8px 12px; border-radius: 10px; color: var(--text); font-size: 13px; }
-.table-wrap { background: var(--s1); border-radius: var(--r); border: 1px solid var(--border); overflow: hidden; }
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; padding: 14px 16px; background: var(--s2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); cursor: pointer; user-select: none; }
-td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 13px; }
-.site-row { cursor: pointer; transition: background 0.1s; }
-.site-row:hover { background: var(--s2); }
-.tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-family: var(--mono); font-size: 11px; font-weight: 500; }
-.tag-blue { background: rgba(59,130,246,.15); color: #93c5fd; }
-.tag-green { background: rgba(16,185,129,.15); color: #6ee7b7; }
-.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; backdrop-filter: blur(4px); }
-.modal-box { background: var(--s1); margin: 40px auto; max-width: 1000px; width: 92%; border-radius: 20px; border: 1px solid var(--border); animation: fadeIn 0.2s; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-.failed-box { background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.2); border-radius: 12px; padding: 12px 18px; margin-bottom: 14px; }
-.progress-wrap { margin: 12px 0; }
-.progress-bar { height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); transition: width 0.25s; }
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-icon {
+  width:34px; height:34px; background:var(--blue);
+  border-radius:8px; display:flex; align-items:center; justify-content:center;
+  font-size:16px;
+}
+.logo h1 { font-size:18px; font-weight:700; letter-spacing:-0.3px; }
+.logo h1 em { font-style:normal; color:var(--text2); font-weight:400; }
+.header-right { display:flex; align-items:center; gap:10px; }
+.pill {
+  padding:5px 14px; border-radius:20px; font-size:11px; font-weight:600;
+  font-family:var(--mono); letter-spacing:0.5px;
+  border:1px solid; display:flex; align-items:center; gap:6px;
+}
+.pill.off { background:rgba(239,68,68,.1); color:var(--red); border-color:rgba(239,68,68,.25); }
+.pill.on  { background:rgba(16,185,129,.1); color:var(--green); border-color:rgba(16,185,129,.25); }
+.pill .dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+/* ─── BUTTONS ─── */
+.btn {
+  padding:8px 16px; border:none; border-radius:8px; cursor:pointer;
+  font-size:13px; font-weight:600; font-family:var(--sans);
+  transition:all .18s; display:inline-flex; align-items:center; gap:6px;
+}
+.btn:disabled { opacity:.38; cursor:not-allowed !important; transform:none !important; }
+.btn-blue  { background:var(--blue); color:#fff; }
+.btn-blue:hover:not(:disabled)  { background:#2563eb; transform:translateY(-1px); }
+.btn-green { background:var(--green); color:#fff; }
+.btn-green:hover:not(:disabled) { background:#059669; transform:translateY(-1px); }
+.btn-indigo{ background:#6366f1; color:#fff; }
+.btn-indigo:hover:not(:disabled){ background:#4f46e5; transform:translateY(-1px); }
+.btn-ghost { background:var(--s2); color:var(--text2); border:1px solid var(--border); }
+.btn-ghost:hover:not(:disabled) { color:var(--text); border-color:var(--blue); }
+.btn-red   { background:rgba(239,68,68,.12); color:var(--red); border:1px solid rgba(239,68,68,.25); }
+.btn-red:hover:not(:disabled) { background:rgba(239,68,68,.22); }
+.btn-theme { background:var(--s2); color:var(--text2); border:1px solid var(--border); border-radius:30px; padding:6px 14px; font-size:12px; }
+
+/* ─── LOGIN ─── */
+.login-wrap { display:flex; justify-content:center; padding:36px 0; }
+.login-box {
+  background:var(--card-bg); border:1px solid var(--border);
+  border-radius:14px; padding:38px; max-width:640px; width:100%;
+  box-shadow: var(--shadow);
+}
+.login-box h2 { font-size:21px; font-weight:700; margin-bottom:6px; }
+.login-box > p { color:var(--text2); font-size:13px; line-height:1.7; margin-bottom:26px; }
+.warn {
+  background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.3);
+  border-left:3px solid var(--amber); border-radius:8px;
+  padding:13px 16px; margin-bottom:22px; font-size:12.5px; color:#fcd34d; line-height:1.8;
+}
+body.light .warn { background:#fef3c7; color:#92400e; border-color:#fbbf24; }
+.warn code { background:rgba(0,0,0,.08); padding:1px 6px; border-radius:4px; font-family:var(--mono); font-size:11px; }
+.step {
+  background:var(--s2); border:1px solid var(--border);
+  border-radius:10px; padding:17px 19px; margin-bottom:13px;
+}
+.step-head { display:flex; align-items:center; gap:11px; margin-bottom:11px; font-weight:600; font-size:14px; }
+.snum {
+  width:27px; height:27px; background:var(--blue); color:#fff;
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700; flex-shrink:0;
+}
+.step small { font-size:11.5px; color:var(--text3); line-height:1.7; display:block; margin-top:7px; }
+.url-input {
+  width:100%; padding:9px 13px; margin-top:10px;
+  background:var(--input-bg); border:1px solid var(--border);
+  border-radius:7px; color:var(--text);
+  font-family:var(--mono); font-size:11.5px;
+  transition:border-color .2s;
+}
+.url-input:focus { outline:none; border-color:var(--blue); }
+.msg { margin-top:9px; font-size:12px; min-height:17px; }
+.msg.ok { color:var(--green); }
+.msg.err { color:var(--red); }
+.msg.info { color:var(--blue2); }
+
+/* ─── STATS ─── */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:22px; }
+.stat {
+  background:var(--card-bg); border:1px solid var(--border);
+  border-radius:var(--r); padding:20px 22px;
+  transition:border-color .2s, transform .2s;
+  position:relative; overflow:hidden;
+  box-shadow: var(--shadow);
+}
+.stat::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:var(--accent-color,var(--blue)); opacity:.7;
+}
+.stat:hover { border-color:var(--accent-color,var(--blue)); transform:translateY(-2px); }
+.stat h3 { font-size:10.5px; color:var(--text3); text-transform:uppercase; letter-spacing:1.2px; margin-bottom:10px; font-weight:600; }
+.stat .val { font-size:30px; font-weight:700; color:var(--accent-color,var(--blue)); font-family:var(--mono); line-height:1; }
+.stat .sub { font-size:11px; color:var(--text3); margin-top:5px; }
+
+/* ─── CHARTS ─── */
+.charts-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(460px,1fr)); gap:18px; margin-bottom:22px; }
+.chart-card { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--r); padding:20px; box-shadow: var(--shadow); }
+.chart-card h3 { font-size:14px; font-weight:600; margin-bottom:14px; color:var(--text2); }
+canvas { max-height:260px; }
+
+/* ─── CONTROLS ─── */
+.controls {
+  background:var(--card-bg); border:1px solid var(--border);
+  border-radius:var(--r); padding:16px 20px;
+  margin-bottom:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;
+  box-shadow: var(--shadow);
+}
+.cg { display:flex; flex-direction:column; gap:5px; }
+.cg label { font-size:10px; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:.9px; }
+select, input[type=date], input[type=text] {
+  padding:7px 11px; border:1px solid var(--border);
+  background:var(--input-bg); color:var(--text);
+  border-radius:7px; font-size:13px; font-family:var(--sans);
+  min-width:140px; transition:border-color .2s;
+}
+select:focus, input:focus { outline:none; border-color:var(--blue); }
+.search { flex:1; min-width:190px; }
+.search input { width:100%; }
+
+/* ─── PROGRESS ─── */
+.progress-wrap { display:none; margin-bottom:14px; }
+.progress-bar { height:3px; background:var(--border); border-radius:2px; overflow:hidden; margin-bottom:5px; }
+.progress-fill { height:100%; background:linear-gradient(90deg,var(--blue),var(--purple)); border-radius:2px; transition:width .3s; width:0; }
+.progress-text { font-size:11px; color:var(--text3); font-family:var(--mono); }
+
+/* ─── TABLE ─── */
+.table-wrap { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; box-shadow: var(--shadow); }
+.table-scroll { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+thead th {
+  text-align:left; padding:13px 16px;
+  background:var(--s2); font-size:10.5px;
+  text-transform:uppercase; letter-spacing:1px; color:var(--text3);
+  border-bottom:1px solid var(--border); cursor:pointer; white-space:nowrap;
+  font-weight:600; user-select:none;
+}
+thead th:hover { color:var(--text2); }
+thead th .sort-arrow { opacity:.4; margin-left:4px; }
+thead th.active .sort-arrow { opacity:1; color:var(--blue); }
+td { padding:11px 16px; border-bottom:1px solid var(--border); font-size:13px; }
+tbody tr:last-child td { border-bottom:none; }
+.site-row { cursor:pointer; transition:background .12s; }
+.site-row:hover { background:var(--s2); }
+.site-name-cell { display:flex; flex-direction:column; gap:2px; }
+.site-domain { font-weight:600; font-size:13px; }
+.site-type { font-size:10px; color:var(--text3); font-family:var(--mono); }
+.tag {
+  display:inline-block; padding:2px 8px;
+  border-radius:5px; font-family:var(--mono); font-size:11.5px; font-weight:500;
+}
+.tag-blue   { background:rgba(59,130,246,.12); color:#93c5fd; }
+body.light .tag-blue { background:#dbeafe; color:#1e40af; }
+.tag-green  { background:rgba(16,185,129,.12); color:#6ee7b7; }
+body.light .tag-green { background:#d1fae5; color:#065f46; }
+.tag-amber  { background:rgba(245,158,11,.12); color:#fcd34d; }
+body.light .tag-amber { background:#fef3c7; color:#92400e; }
+.tag-purple { background:rgba(139,92,246,.12); color:#c4b5fd; }
+body.light .tag-purple { background:#ede9fe; color:#5b21b6; }
+.tag-red    { background:rgba(239,68,68,.12); color:#fca5a5; }
+.loading-cell { text-align:center; padding:48px; color:var(--text3); font-size:14px; }
+
+/* ─── MODAL ─── */
+.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:1000; overflow-y:auto; }
+.modal-box {
+  background:var(--card-bg); margin:44px auto;
+  max-width:1100px; width:92%; border-radius:13px;
+  border:1px solid var(--border);
+  animation:drop .22s ease;
+}
+@keyframes drop { from{transform:translateY(-24px);opacity:0} to{transform:translateY(0);opacity:1} }
+.modal-head {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:19px 24px; border-bottom:1px solid var(--border);
+}
+.modal-head h2 { font-size:17px; color:var(--blue2); font-weight:600; }
+.x { font-size:26px; cursor:pointer; color:var(--text3); line-height:1; }
+.x:hover { color:var(--text); }
+.modal-body { padding:22px; max-height:72vh; overflow-y:auto; }
+
+/* ─── FAILED DETAILS ─── */
+.failed-box { background:rgba(239,68,68,.06); border:1px solid rgba(239,68,68,.2); border-radius:8px; padding:12px 15px; margin-bottom:16px; }
+.failed-box summary { font-size:12px; color:var(--red); cursor:pointer; font-weight:600; }
+.failed-list { margin-top:8px; font-size:11px; color:var(--text3); line-height:2; font-family:var(--mono); }
+
+@media(max-width:768px){
+  .charts-row { grid-template-columns:1fr; }
+  .stats-grid { grid-template-columns:repeat(2,1fr); }
+  .wrap { padding:14px; }
+}
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <!-- HEADER -->
   <div class="header">
-    <div class="logo"><div class="logo-icon">📡</div><h1>Asset Scout <span style="font-weight:400;">· SEO Intelligence</span></h1></div>
-    <div class="header-right"><div class="pill off" id="statusPill"><span class="dot"></span><span id="statusText">Offline</span></div><button id="logoutBtn" class="btn btn-red" style="display:none">Sign Out</button></div>
+    <div class="logo">
+      <div class="logo-icon">📡</div>
+      <h1>Asset Scout <em>/ SEO</em></h1>
+    </div>
+    <div class="header-right">
+      <button id="themeToggleBtn" class="btn btn-theme">🌓 Light / Dark</button>
+      <div class="pill off" id="statusPill"><span class="dot"></span><span id="statusText">Not Connected</span></div>
+      <button id="logoutBtn" class="btn btn-red" style="display:none">Sign Out</button>
+    </div>
   </div>
 
+  <!-- LOGIN -->
   <div id="loginWrap" class="login-wrap">
     <div class="login-box">
-      <div class="warn" id="fileWarn" style="background:rgba(245,158,11,.08); border-left:4px solid var(--amber); padding:14px; border-radius:12px; margin-bottom:20px;">⚠️ <strong>Local server required</strong> — Use Live Server or <code>python -m http.server 3000</code></div>
-      <h2 style="font-size:24px; margin-bottom:6px;">🔐 Google Search Console</h2>
-      <p style="margin-bottom:24px; color:var(--text2);">One-time auth — tokens stored securely, auto-refresh enabled.</p>
-      <div class="step"><div class="step-head" style="display:flex; align-items:center; margin-bottom:12px;"><div class="snum">1</div><strong>Generate auth link</strong></div><button id="genBtn" class="btn btn-blue" style="width:100%">🔗 Generate Link</button><div class="msg" id="genMsg" style="margin-top:8px;"></div></div>
-      <div class="step"><div class="step-head" style="display:flex; align-items:center; margin-bottom:12px;"><div class="snum">2</div><strong>Open & authorize</strong></div><button id="openBtn" class="btn btn-blue" style="width:100%; background:#4285f4;" disabled>🌐 Open Google Consent</button><small style="display:block; margin-top:8px;">After approval, copy the full redirect URL (starts with http://localhost/?code=...)</small></div>
-      <div class="step"><div class="step-head" style="display:flex; align-items:center; margin-bottom:12px;"><div class="snum">3</div><strong>Paste redirect URL</strong></div><input type="text" id="codeUrl" class="url-input" placeholder="http://localhost/?code=4/0AX..."><button id="connectBtn" class="btn btn-green" style="width:100%; margin-top:12px;" disabled>✅ Verify & Save Session</button><div class="msg" id="connectMsg"></div></div>
+      <div class="warn" id="fileWarn">
+        ⚠️ <strong>Must run via local server — not file://</strong><br>
+        <strong>VS Code:</strong> Right-click → "Open with Live Server"<br>
+        <strong>Terminal:</strong> <code>python -m http.server 3000</code> then open <code>http://localhost:3000</code>
+      </div>
+      <h2>🔐 Connect Google Search Console</h2>
+      <p>Authorise once — your session is stored permanently. You'll never need to log in again.</p>
+
+      <div class="step">
+        <div class="step-head"><div class="snum">1</div>Generate the Google authorization link</div>
+        <button id="genBtn" class="btn btn-blue" style="width:100%">🔗 Generate Authorization Link</button>
+        <div class="msg" id="genMsg"></div>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><div class="snum">2</div>Open link &amp; sign in with Google</div>
+        <button id="openBtn" class="btn btn-blue" style="width:100%;background:#db4437" disabled>🌐 Open Google Authorization</button>
+        <small>After authorising, Google will redirect to localhost and show an error — that's normal. Copy the full URL from your browser's address bar.</small>
+      </div>
+
+      <div class="step">
+        <div class="step-head"><div class="snum">3</div>Paste the full redirect URL</div>
+        <input type="text" id="codeUrl" class="url-input" placeholder="http://localhost/?code=4/0AX4XfW...">
+        <small>Paste the entire URL — it starts with <code style="font-family:var(--mono);font-size:11px;background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px">http://localhost/?code=</code></small>
+        <button id="connectBtn" class="btn btn-green" style="width:100%;margin-top:10px" disabled>✅ Connect &amp; Save Session</button>
+        <div class="msg" id="connectMsg"></div>
+      </div>
     </div>
   </div>
 
+  <!-- DASHBOARD -->
   <div id="dashboard" style="display:none">
     <div class="stats-grid">
-      <div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">all properties</div></div>
-      <div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">search visibility</div></div>
-      <div class="stat" style="--accent-color:var(--green)"><h3>Avg CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div>
-      <div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">weighted avg</div></div>
+      <div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">across all properties</div></div>
+      <div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">across all properties</div></div>
+      <div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div>
+      <div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">impression-weighted</div></div>
     </div>
-    <div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart" height="200"></canvas></div><div class="chart-card"><h3>⚡ Top 10 Sites by CTR</h3><canvas id="ctrChart" height="200"></canvas></div></div>
+    <div class="charts-row">
+      <div class="chart-card"><h3>📈 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div>
+      <div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div>
+    </div>
     <div class="controls">
-      <div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="custom">Custom</option></select></div>
-      <div class="cg"><label>From</label><input type="date" id="dateFrom" disabled></div><div class="cg"><label>To</label><input type="date" id="dateTo" disabled></div>
-      <div class="cg"><label>Data State</label><select id="dataState"><option value="final">Final (stable)</option><option value="all" selected>All (fresh + final)</option></select></div>
-      <div class="cg"><label>Sort by</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div>
-      <div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter domain..."></div>
-      <div class="cg"><button id="applyBtn" class="btn btn-blue">Apply</button></div><div class="cg"><button id="refreshBtn" class="btn btn-indigo" style="background:#4f46e5;">⟳ Refresh</button></div><div class="cg"><button id="exportBtn" class="btn btn-green">📎 Excel</button></div>
+      <div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="custom">Custom</option></select></div>
+      <div class="cg"><label>From</label><input type="date" id="dateFrom" disabled></div>
+      <div class="cg"><label>To</label><input type="date" id="dateTo" disabled></div>
+      <div class="cg"><label>Data State</label><select id="dataState"><option value="final">Final only (stable, 2-day lag)</option><option value="all" selected>All data (final + fresh)</option></select></div>
+      <div class="cg"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div>
+      <div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter sites..."></div>
+      <div class="cg"><label>&nbsp;</label><button id="applyBtn" class="btn btn-blue">Apply</button></div>
+      <div class="cg"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-indigo">🔄 Refresh</button></div>
+      <div class="cg"><label>&nbsp;</label><button id="exportBtn" class="btn btn-green">📥 Excel</button></div>
     </div>
-    <div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText" style="font-size:11px; color:var(--text3); margin-top:6px;"></div></div>
-    <div class="table-wrap"><div class="table-scroll"><table><thead><tr><th data-sort="name">🌐 Website</th><th data-sort="clicks" class="active">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions</th><th data-sort="ctr">CTR</th><th data-sort="position">Avg Position</th></tr></thead><tbody id="tbody"><tr><td colspan="5" class="loading-cell" style="text-align:center; padding:48px;">Authenticate to view analytics</td></tr></tbody></table></div></div>
+    <div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">Loading...</div></div>
+    <div class="table-wrap"><div class="table-scroll">
+      <table><thead><tr><th>🌐 Website</th><th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions <span class="sort-arrow">↕</span></th><th data-sort="ctr">CTR <span class="sort-arrow">↕</span></th><th data-sort="position">Avg Position <span class="sort-arrow">↕</span></th></tr></thead>
+      <tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td></tr></tbody>
+      </table>
+    </div></div>
   </div>
 </div>
-<div class="modal" id="modal"><div class="modal-box"><div class="modal-head" style="display:flex; justify-content:space-between; padding:18px 24px; border-bottom:1px solid var(--border);"><h2 id="modalTitle" style="color:var(--blue2);">Site details</h2><span class="x" id="closeModal" style="font-size:28px; cursor:pointer;">&times;</span></div><div class="modal-body" id="modalBody" style="padding:24px;"></div></div></div>
+
+<div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">Site Details</h2><span class="x" id="closeModal">&times;</span></div><div class="modal-body" id="modalBody"><div class="loading-cell">Loading keywords…</div></div></div></div>
 
 <script>
-// ---------- CONFIGURATION ----------
-const CLIENT_ID = '293203533603-er1eq6383ivth4n6er11hqpo4dgor0t0.apps.googleusercontent.com';
+// ========== FIXED CREDENTIALS & ACCURACY ==========
+const CLIENT_ID     = '293203533603-er1eq6383ivth4n6er11hqpo4dgor0t0.apps.googleusercontent.com';
 const CLIENT_SECRET = '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';
-const REDIRECT_URI = 'http://localhost';
-const SCOPE = 'https://www.googleapis.com/auth/webmasters.readonly';
-const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-const GSC_BASE = 'https://www.googleapis.com/webmasters/v3';
+const REDIRECT_URI  = 'http://localhost';
+const SCOPE         = 'https://www.googleapis.com/auth/webmasters.readonly';
+const TOKEN_URL     = 'https://oauth2.googleapis.com/token';
+const GSC_BASE      = 'https://www.googleapis.com/webmasters/v3';
 
-// ---------- GLOBAL STATE ----------
-let accessToken = null;
-let refreshTimer = null;
-let allData = [];        // array of { url, name, type, clicks, impressions, ctr (%), position, keywords? }
-let failedSites = [];
-let clicksChart = null, ctrChart = null;
+let accessToken = null, refreshTimer = null, allData = [], failedSites = [];
+let clicksChart, ctrChart;
 
-// Helper: Save tokens (refresh token once)
+// Theme handling
+const themeToggle = document.getElementById('themeToggleBtn');
+themeToggle.onclick = () => document.body.classList.toggle('light');
+if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
+themeToggle.onclick = () => { document.body.classList.toggle('light'); localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark'); };
+if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
+
+// Token management with accurate expiry
 function saveTokens(data) {
   if (data.refresh_token) localStorage.setItem('gsc_refresh', data.refresh_token);
   accessToken = data.access_token;
@@ -131,111 +378,41 @@ function saveTokens(data) {
   localStorage.setItem('gsc_expires', expiresAt.toString());
   scheduleRefresh(data.expires_in || 3600);
 }
-
-function scheduleRefresh(expiresSec) { if (refreshTimer) clearTimeout(refreshTimer); const delay = Math.max((expiresSec - 300) * 1000, 30000); refreshTimer = setTimeout(silentRefresh, delay); }
-async function silentRefresh() { const rt = localStorage.getItem('gsc_refresh'); if (!rt) { logout(); return; } try { const p = new URLSearchParams({ grant_type: 'refresh_token', refresh_token: rt, client_id: CLIENT_ID, client_secret: CLIENT_SECRET }); const res = await fetch(TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p }); const data = await res.json(); if (data.access_token) { saveTokens(data); console.log('[Auth] refreshed'); } } catch (e) { console.warn(e); } }
-async function getToken() { const expiresAt = parseInt(localStorage.getItem('gsc_expires') || '0'); if (Date.now() < expiresAt && accessToken) return accessToken; const rt = localStorage.getItem('gsc_refresh'); if (!rt) { logout(); throw new Error('No session'); } const p = new URLSearchParams({ grant_type: 'refresh_token', refresh_token: rt, client_id: CLIENT_ID, client_secret: CLIENT_SECRET }); const res = await fetch(TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p }); const data = await res.json(); if (!data.access_token) { logout(); throw new Error('refresh invalid'); } saveTokens(data); return data.access_token; }
+function scheduleRefresh(expiresInSecs) { if (refreshTimer) clearTimeout(refreshTimer); setTimeout(silentRefresh, Math.max((expiresInSecs - 300) * 1000, 10000)); }
+async function silentRefresh() { const rt = localStorage.getItem('gsc_refresh'); if (!rt) { logout(); return; } try { const p = new URLSearchParams({ grant_type: 'refresh_token', refresh_token: rt, client_id: CLIENT_ID, client_secret: CLIENT_SECRET }); const res = await fetch(TOKEN_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p }); const data = await res.json(); if (data.access_token) saveTokens(data); } catch(e) { console.warn(e); } }
+async function getToken() {
+  const expiresAt = parseInt(localStorage.getItem('gsc_expires') || '0');
+  if (Date.now() < expiresAt && accessToken) return accessToken;
+  const rt = localStorage.getItem('gsc_refresh');
+  if (!rt) { logout(); throw new Error('No refresh token'); }
+  const p = new URLSearchParams({ grant_type: 'refresh_token', refresh_token: rt, client_id: CLIENT_ID, client_secret: CLIENT_SECRET });
+  const res = await fetch(TOKEN_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p });
+  const data = await res.json();
+  if (!data.access_token) { logout(); throw new Error('Refresh failed'); }
+  saveTokens(data);
+  return data.access_token;
+}
 function hasSession() { return !!localStorage.getItem('gsc_refresh'); }
+function logout() { clearTimeout(refreshTimer); localStorage.removeItem('gsc_refresh'); localStorage.removeItem('gsc_access'); localStorage.removeItem('gsc_expires'); accessToken = null; allData = []; document.getElementById('loginWrap').style.display = 'flex'; document.getElementById('dashboard').style.display = 'none'; document.getElementById('logoutBtn').style.display = 'none'; document.getElementById('statusPill').className = 'pill off'; document.getElementById('statusText').textContent = 'Not Connected'; document.getElementById('codeUrl').value = ''; document.getElementById('connectMsg').textContent = ''; document.getElementById('genMsg').textContent = ''; document.getElementById('openBtn').disabled = true; document.getElementById('connectBtn').disabled = true; }
 
-// ---------- AUTH UI ----------
-if (window.location.protocol === 'file:') document.getElementById('fileWarn').style.display = 'block';
-else document.getElementById('fileWarn').style.display = 'none';
+// Auth flow
 let authUrl = null;
-document.getElementById('genBtn').onclick = () => { authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}&access_type=offline&prompt=consent`; document.getElementById('genMsg').innerHTML = '<span style="color:#10b981;">✓ Link ready — open step 2</span>'; document.getElementById('openBtn').disabled = false; };
-document.getElementById('openBtn').onclick = () => { if (authUrl) { window.open(authUrl, '_blank'); document.getElementById('connectBtn').disabled = false; document.getElementById('connectMsg').innerHTML = '<span style="color:#60a5fa;">📋 Paste redirect URL below</span>'; } };
-document.getElementById('connectBtn').onclick = async () => { const raw = document.getElementById('codeUrl').value.trim(); const match = raw.match(/[?&]code=([^&]+)/); if (!match) { document.getElementById('connectMsg').innerHTML = '<span style="color:#ef4444;">❌ No "code=" parameter found in URL</span>'; return; } const code = decodeURIComponent(match[1]); document.getElementById('connectMsg').innerHTML = '<span>⏳ Exchanging code...</span>'; document.getElementById('connectBtn').disabled = true; try { const p = new URLSearchParams({ code, client_id: CLIENT_ID, client_secret: CLIENT_SECRET, redirect_uri: REDIRECT_URI, grant_type: 'authorization_code' }); const res = await fetch(TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p }); const data = await res.json(); if (data.access_token && data.refresh_token) { saveTokens(data); document.getElementById('connectMsg').innerHTML = '<span style="color:#10b981;">✅ Connected! Loading dashboard...</span>'; setTimeout(() => { showDashboard(); loadData(); }, 800); } else if (data.access_token && !data.refresh_token) { document.getElementById('connectMsg').innerHTML = '<span style="color:#ef4444;">⚠️ Missing refresh_token — remove app access from Google Account & retry</span>'; document.getElementById('connectBtn').disabled = false; } else { document.getElementById('connectMsg').innerHTML = `<span style="color:#ef4444;">✗ ${data.error_description || 'auth failed'}</span>`; document.getElementById('connectBtn').disabled = false; } } catch(e) { document.getElementById('connectMsg').innerHTML = `<span style="color:#ef4444;">Network error: ${e.message}</span>`; document.getElementById('connectBtn').disabled = false; } };
-function showDashboard() { document.getElementById('loginWrap').style.display = 'none'; document.getElementById('dashboard').style.display = 'block'; document.getElementById('logoutBtn').style.display = 'flex'; document.getElementById('statusPill').className = 'pill on'; document.getElementById('statusText').innerText = 'Live Session'; }
-function logout() { clearTimeout(refreshTimer); localStorage.removeItem('gsc_refresh'); localStorage.removeItem('gsc_access'); localStorage.removeItem('gsc_expires'); accessToken = null; allData = []; document.getElementById('loginWrap').style.display = 'flex'; document.getElementById('dashboard').style.display = 'none'; document.getElementById('logoutBtn').style.display = 'none'; document.getElementById('statusPill').className = 'pill off'; document.getElementById('statusText').innerText = 'Offline'; }
+if (window.location.protocol === 'file:') { document.getElementById('fileWarn').style.display = 'block'; document.getElementById('genBtn').disabled = true; } else { document.getElementById('fileWarn').style.display = 'none'; }
+document.getElementById('genBtn').onclick = () => { authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}&access_type=offline&prompt=consent`; document.getElementById('genMsg').className = 'msg ok'; document.getElementById('genMsg').textContent = '✓ Link ready — click step 2'; document.getElementById('openBtn').disabled = false; };
+document.getElementById('openBtn').onclick = () => { if (authUrl) window.open(authUrl, '_blank'); document.getElementById('connectBtn').disabled = false; document.getElementById('connectMsg').className = 'msg info'; document.getElementById('connectMsg').textContent = 'Paste the full redirect URL in step 3 after Google redirects you'; };
+document.getElementById('connectBtn').onclick = async () => { const raw = document.getElementById('codeUrl').value.trim(); const match = raw.match(/[?&]code=([^&]+)/); if (!match) { setMsg('connectMsg', 'err', '✗ Could not find code= in URL'); return; } const code = decodeURIComponent(match[1]); setMsg('connectMsg', 'info', '⏳ Exchanging code for tokens…'); document.getElementById('connectBtn').disabled = true; try { const p = new URLSearchParams({ code, client_id: CLIENT_ID, client_secret: CLIENT_SECRET, redirect_uri: REDIRECT_URI, grant_type: 'authorization_code' }); const res = await fetch(TOKEN_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p }); const data = await res.json(); if (data.access_token && data.refresh_token) { saveTokens(data); setMsg('connectMsg', 'ok', '✓ Connected! Loading dashboard…'); setTimeout(() => { showDashboard(); loadData(); }, 1200); } else { setMsg('connectMsg', 'err', '✗ Refresh token missing – remove app access and retry.'); document.getElementById('connectBtn').disabled = false; } } catch(e) { setMsg('connectMsg', 'err', `✗ Error: ${e.message}`); document.getElementById('connectBtn').disabled = false; } };
+function setMsg(id, cls, txt) { const el = document.getElementById(id); el.className = 'msg ' + cls; el.textContent = txt; }
+function showDashboard() { document.getElementById('loginWrap').style.display = 'none'; document.getElementById('dashboard').style.display = 'block'; document.getElementById('logoutBtn').style.display = ''; document.getElementById('statusPill').className = 'pill on'; document.getElementById('statusText').textContent = 'Connected'; }
 document.getElementById('logoutBtn').onclick = logout;
 
-// ---------- DATE & PRESETS ----------
 function toYMD(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 function presetDates(days) { const end = new Date(); end.setDate(end.getDate() - 1); const start = new Date(end); start.setDate(end.getDate() - (days - 1)); return { start: toYMD(start), end: toYMD(end) }; }
-function getDates() { const p = document.getElementById('preset').value; if (p === 'custom') return { start: document.getElementById('dateFrom').value, end: document.getElementById('dateTo').value }; return presetDates(parseInt(p)); }
+function getDates() { if (document.getElementById('preset').value === 'custom') return { start: document.getElementById('dateFrom').value, end: document.getElementById('dateTo').value }; return presetDates(parseInt(document.getElementById('preset').value)); }
 function syncDateInputs() { if (document.getElementById('preset').value !== 'custom') { const { start, end } = presetDates(parseInt(document.getElementById('preset').value)); document.getElementById('dateFrom').value = start; document.getElementById('dateTo').value = end; } }
-document.getElementById('preset').onchange = () => { const isCustom = document.getElementById('preset').value === 'custom'; document.getElementById('dateFrom').disabled = !isCustom; document.getElementById('dateTo').disabled = !isCustom; if (!isCustom) { syncDateInputs(); if (accessToken) loadData(); } };
-document.getElementById('applyBtn').onclick = () => { if (accessToken) loadData(); };
-document.getElementById('dateFrom').onchange = () => { document.getElementById('preset').value = 'custom'; document.getElementById('dateFrom').disabled = false; document.getElementById('dateTo').disabled = false; };
-document.getElementById('dateTo').onchange = () => { document.getElementById('preset').value = 'custom'; };
-document.getElementById('refreshBtn').onclick = () => { if (accessToken) loadData(); };
+document.getElementById('preset').onchange = () => { const custom = document.getElementById('preset').value === 'custom'; document.getElementById('dateFrom').disabled = !custom; document.getElementById('dateTo').disabled = !custom; if (!custom) { syncDateInputs(); if (accessToken) loadData(); } };
+document.getElementById('applyBtn').onclick = () => { const s = document.getElementById('dateFrom').value, e = document.getElementById('dateTo').value; if (!s || !e) { alert('Both dates required'); return; } if (s > e) { alert('Invalid date range'); return; } document.getElementById('preset').value = 'custom'; document.getElementById('dateFrom').disabled = false; document.getElementById('dateTo').disabled = false; if (accessToken) loadData(); };
 document.getElementById('dataState').onchange = () => { if (accessToken) loadData(); };
+document.getElementById('refreshBtn').onclick = () => { if (accessToken) loadData(); };
+document.getElementById('exportBtn').onclick = () => { if (!allData.length) return; const ws = XLSX.utils.json_to_sheet(allData.map(s=>({ Website: s.name, Type: s.type, Clicks: s.clicks, Impressions: s.impressions, 'CTR %': parseFloat(s.ctr.toFixed(2)), 'Avg Position': parseFloat(s.position.toFixed(1)) }))); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'GSC Data'); XLSX.writeFile(wb, `asset-scout-${new Date().toISOString().split('T')[0]}.xlsx`); };
 
-// ---------- GSC FETCH (ACCURATE AGGREGATION) ----------
-async function fetchSites() { const token = await getToken(); const res = await fetch(`${GSC_BASE}/sites`, { headers: { Authorization: `Bearer ${token}` } }); if (res.status === 401) { logout(); throw new Error('Unauthorized'); } if (!res.ok) throw new Error('Fetch sites failed'); const json = await res.json(); return json.siteEntry || []; }
-
-// site totals:  CRITICAL: NO dimensions + aggregationType:byProperty yields correct property totals across pages
-async function fetchTotals(siteUrl, start, end) {
-  const token = await getToken();
-  const body = { startDate: start, endDate: end, type: 'web', aggregationType: 'byProperty', dataState: document.getElementById('dataState').value };
-  try {
-    const res = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (res.status === 403) return null;
-    if (!res.ok) { console.warn(`GSC error ${res.status} for ${siteUrl}`); return null; }
-    const data = await res.json();
-    const row = (data.rows && data.rows[0]) || { clicks: 0, impressions: 0, ctr: 0, position: 0 };
-    let name = siteUrl.replace(/^sc-domain:/, '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
-    const type = siteUrl.startsWith('sc-domain:') ? 'Domain' : 'URL Property';
-    return { url: siteUrl, name, type, clicks: Math.round(row.clicks), impressions: Math.round(row.impressions), ctr: row.ctr * 100, position: row.position, keywords: null };
-  } catch (err) { console.error(err); return null; }
-}
-
-async function fetchKeywords(siteUrl, start, end) {
-  const token = await getToken();
-  const body = { startDate: start, endDate: end, type: 'web', aggregationType: 'byProperty', dataState: document.getElementById('dataState').value, dimensions: ['query'], rowLimit: 50 };
-  const res = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  if (!res.ok) return [];
-  const data = await res.json();
-  return (data.rows || []).map(r => ({ keyword: r.keys[0], clicks: Math.round(r.clicks), impressions: Math.round(r.impressions), ctr: r.ctr * 100, position: r.position }));
-}
-
-// ---------- LOAD DATA (concurrent, progress, error resilience) ----------
-async function loadData() {
-  const { start, end } = getDates();
-  if (!start || !end) { document.getElementById('tbody').innerHTML = `<tr><td colspan="5" class="loading-cell">⚠️ Invalid date range</td></tr>`; return; }
-  const progressWrap = document.getElementById('progressWrap'); const progressFill = document.getElementById('progressFill'); const progressText = document.getElementById('progressText');
-  progressWrap.style.display = 'block'; progressFill.style.width = '0%'; progressText.innerText = 'Fetching properties...';
-  document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">Loading GSC properties...</td></tr>';
-  let sites = [];
-  try { sites = await fetchSites(); } catch(e) { document.getElementById('tbody').innerHTML = `<tr><td colspan="5" class="loading-cell" style="color:#ef4444;">Error: ${e.message}</td></tr>`; progressWrap.style.display = 'none'; return; }
-  if (!sites.length) { document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">No Search Console properties found.</td></tr>'; progressWrap.style.display = 'none'; return; }
-  progressText.innerText = `0 / ${sites.length} properties analyzed...`;
-  allData = []; failedSites = [];
-  let done = 0; const results = []; const queue = [...sites]; const CONCURRENCY = 5;
-  const worker = async () => { while (queue.length) { const site = queue.shift(); const result = await fetchTotals(site.siteUrl, start, end); if (result && (result.clicks > 0 || result.impressions > 0)) results.push(result); else if (result === null) failedSites.push(site.siteUrl); done++; const pct = Math.min(100, Math.round((done / sites.length) * 100)); progressFill.style.width = pct + '%'; progressText.innerText = `${done} / ${sites.length} properties done`; if (done % 3 === 0 || done === sites.length) { allData = [...results]; renderTable(); renderStats(); renderCharts(); } } };
-  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, sites.length) }, worker));
-  allData = results; renderStats(); renderTable(); renderCharts(); progressWrap.style.display = 'none'; if (failedSites.length) console.log(`Failed/empty: ${failedSites.length}`); 
-}
-
-function renderStats() {
-  const totalClicks = allData.reduce((a,b)=>a+b.clicks,0);
-  const totalImpressions = allData.reduce((a,b)=>a+b.impressions,0);
-  const avgCTR = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
-  const weightedPos = allData.reduce((s,r)=>s + (r.position * r.impressions),0);
-  const avgPos = totalImpressions > 0 ? weightedPos / totalImpressions : 0;
-  document.getElementById('s-clicks').innerText = totalClicks.toLocaleString();
-  document.getElementById('s-impr').innerText = totalImpressions.toLocaleString();
-  document.getElementById('s-ctr').innerText = avgCTR.toFixed(2) + '%';
-  document.getElementById('s-pos').innerText = avgPos.toFixed(1);
-}
-
-function renderTable() {
-  const sortBy = document.getElementById('sortBy').value;
-  const query = document.getElementById('searchInput').value.toLowerCase();
-  let rows = [...allData].filter(r => r.name.toLowerCase().includes(query));
-  if (sortBy === 'clicks') rows.sort((a,b)=> b.clicks - a.clicks);
-  else if (sortBy === 'impressions') rows.sort((a,b)=> b.impressions - a.impressions);
-  else if (sortBy === 'ctr') rows.sort((a,b)=> b.ctr - a.ctr);
-  else if (sortBy === 'position') rows.sort((a,b)=> a.position - b.position);
-  const tbody = document.getElementById('tbody'); tbody.innerHTML = '';
-  if (!rows.length && allData.length) { tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">No sites match filter</td></tr>'; return; }
-  if (failedSites.length) { const failRow = tbody.insertRow(); failRow.innerHTML = `<td colspan="5"><div class="failed-box"><details><summary>⚠️ ${failedSites.length} properties with no data (403 or zero impressions)</summary><div style="font-size:11px; font-family:monospace;">${failedSites.slice(0,12).join('<br>')}${failedSites.length>12?' ...':''}</div></details></div></td>`; }
-  rows.forEach(site => { const tr = tbody.insertRow(); tr.className = 'site-row'; tr.onclick = () => showModal(site); const posClass = site.position === 0 ? 'tag-red' : (site.position <= 3 ? 'tag-green' : (site.position <= 10 ? 'tag-amber' : 'tag-purple')); tr.innerHTML = `<td><div><strong>${escapeHtml(site.name)}</strong><div style="font-size:10px; color:var(--text3);">${site.type}</div></div></td><td><span class="tag tag-blue">${site.clicks.toLocaleString()}</span></td><td><span class="tag tag-purple">${site.impressions.toLocaleString()}</span></td><td><span class="tag tag-green">${site.ctr.toFixed(2)}%</span></td><td><span class="tag ${posClass}">${site.position > 0 ? site.position.toFixed(1) : '—'}</span></td>`; });
-}
-
-function renderCharts() {
-  const topClicks = [...allData].sort((a,b)=>b.clicks - a.clicks).slice(0,10);
-  const topCTR = [...allData].filter(s=>s.impressions>=100).sort((a,b)=>b.ctr - a.ctr).slice(0,10);
-  if (clicksChart) clicksChart.destroy(); if (ctrChart) ctrChart.destroy();
-  const labelShort = (n) => n.length > 22 ? n.slice(0,20)+'…' : n;
-  clicksChart = new Chart(document.getElementById('clicksChart'), { type: 'bar', data: { labels: topClicks.map(s=>labelShort(s.name)), datasets: [{ data: topClicks.map(s=>s.clicks), backgroundColor: '#3b82f6', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } } } });
-  ctrChart = new Chart(document.getElementById('ctrChart'), { type: 'bar', data: { labels: topCTR.map(s=>labelShort(s.name)), datasets: [{ data: topCTR.map(s=>parse
+async function fetchSites() { const token = await getToken(); const res = await fetch(`${GSC_BASE}/sites`, { headers:{ Authorization:`Bearer ${token}` } }); if (res.status === 401) { logout(); throw new Error('Una
