@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* Dark theme (default) */
   --bg: #060a12;
   --s1: #0d1420;
   --s2: #111c2e;
@@ -28,33 +27,10 @@
   --mono: 'JetBrains Mono', monospace;
   --sans: 'Outfit', sans-serif;
   --r: 10px;
-  --shadow: none;
-  --card-bg: var(--s1);
-  --input-bg: var(--bg);
-}
-body.light {
-  --bg: #f8fafc;
-  --s1: #ffffff;
-  --s2: #f1f5f9;
-  --s3: #e2e8f0;
-  --border: #cbd5e1;
-  --border2: #94a3b8;
-  --blue: #2563eb;
-  --blue2: #3b82f6;
-  --green: #059669;
-  --amber: #d97706;
-  --red: #dc2626;
-  --purple: #7c3aed;
-  --text: #0f172a;
-  --text2: #334155;
-  --text3: #64748b;
-  --card-bg: #ffffff;
-  --input-bg: #f1f5f9;
-  --shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 html { scroll-behavior:smooth; }
-body { font-family:var(--sans); background:var(--bg); color:var(--text); min-height:100vh; transition: background 0.2s, color 0.2s; }
+body { font-family:var(--sans); background:var(--bg); color:var(--text); min-height:100vh; }
 
 /* ─── SCROLLBAR ─── */
 ::-webkit-scrollbar { width:6px; height:6px; }
@@ -69,11 +45,10 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); min-hei
   display:flex; justify-content:space-between; align-items:center;
   flex-wrap:wrap; gap:14px;
   padding:18px 24px;
-  background:var(--card-bg);
+  background:var(--s1);
   border:1px solid var(--border);
   border-radius:var(--r);
   margin-bottom:22px;
-  box-shadow: var(--shadow);
 }
 .logo { display:flex; align-items:center; gap:10px; }
 .logo-icon {
@@ -110,14 +85,12 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); min-hei
 .btn-ghost:hover:not(:disabled) { color:var(--text); border-color:var(--blue); }
 .btn-red   { background:rgba(239,68,68,.12); color:var(--red); border:1px solid rgba(239,68,68,.25); }
 .btn-red:hover:not(:disabled) { background:rgba(239,68,68,.22); }
-.btn-theme { background:var(--s2); color:var(--text2); border:1px solid var(--border); border-radius:30px; padding:6px 14px; font-size:12px; }
 
 /* ─── LOGIN ─── */
 .login-wrap { display:flex; justify-content:center; padding:36px 0; }
 .login-box {
-  background:var(--card-bg); border:1px solid var(--border);
+  background:var(--s1); border:1px solid var(--border);
   border-radius:14px; padding:38px; max-width:640px; width:100%;
-  box-shadow: var(--shadow);
 }
 .login-box h2 { font-size:21px; font-weight:700; margin-bottom:6px; }
 .login-box > p { color:var(--text2); font-size:13px; line-height:1.7; margin-bottom:26px; }
@@ -126,8 +99,7 @@ body { font-family:var(--sans); background:var(--bg); color:var(--text); min-hei
   border-left:3px solid var(--amber); border-radius:8px;
   padding:13px 16px; margin-bottom:22px; font-size:12.5px; color:#fcd34d; line-height:1.8;
 }
-body.light .warn { background:#fef3c7; color:#92400e; border-color:#fbbf24; }
-.warn code { background:rgba(0,0,0,.08); padding:1px 6px; border-radius:4px; font-family:var(--mono); font-size:11px; }
+.warn code { background:rgba(255,255,255,.08); padding:1px 6px; border-radius:4px; font-family:var(--mono); font-size:11px; }
 .step {
   background:var(--s2); border:1px solid var(--border);
   border-radius:10px; padding:17px 19px; margin-bottom:13px;
@@ -141,7 +113,7 @@ body.light .warn { background:#fef3c7; color:#92400e; border-color:#fbbf24; }
 .step small { font-size:11.5px; color:var(--text3); line-height:1.7; display:block; margin-top:7px; }
 .url-input {
   width:100%; padding:9px 13px; margin-top:10px;
-  background:var(--input-bg); border:1px solid var(--border);
+  background:var(--bg); border:1px solid var(--border);
   border-radius:7px; color:var(--text);
   font-family:var(--mono); font-size:11.5px;
   transition:border-color .2s;
@@ -155,11 +127,10 @@ body.light .warn { background:#fef3c7; color:#92400e; border-color:#fbbf24; }
 /* ─── STATS ─── */
 .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; margin-bottom:22px; }
 .stat {
-  background:var(--card-bg); border:1px solid var(--border);
+  background:var(--s1); border:1px solid var(--border);
   border-radius:var(--r); padding:20px 22px;
   transition:border-color .2s, transform .2s;
   position:relative; overflow:hidden;
-  box-shadow: var(--shadow);
 }
 .stat::before {
   content:''; position:absolute; top:0; left:0; right:0; height:2px;
@@ -172,22 +143,21 @@ body.light .warn { background:#fef3c7; color:#92400e; border-color:#fbbf24; }
 
 /* ─── CHARTS ─── */
 .charts-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(460px,1fr)); gap:18px; margin-bottom:22px; }
-.chart-card { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--r); padding:20px; box-shadow: var(--shadow); }
+.chart-card { background:var(--s1); border:1px solid var(--border); border-radius:var(--r); padding:20px; }
 .chart-card h3 { font-size:14px; font-weight:600; margin-bottom:14px; color:var(--text2); }
 canvas { max-height:260px; }
 
 /* ─── CONTROLS ─── */
 .controls {
-  background:var(--card-bg); border:1px solid var(--border);
+  background:var(--s1); border:1px solid var(--border);
   border-radius:var(--r); padding:16px 20px;
   margin-bottom:16px; display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;
-  box-shadow: var(--shadow);
 }
 .cg { display:flex; flex-direction:column; gap:5px; }
 .cg label { font-size:10px; color:var(--text3); font-weight:600; text-transform:uppercase; letter-spacing:.9px; }
 select, input[type=date], input[type=text] {
   padding:7px 11px; border:1px solid var(--border);
-  background:var(--input-bg); color:var(--text);
+  background:var(--bg); color:var(--text);
   border-radius:7px; font-size:13px; font-family:var(--sans);
   min-width:140px; transition:border-color .2s;
 }
@@ -202,7 +172,7 @@ select:focus, input:focus { outline:none; border-color:var(--blue); }
 .progress-text { font-size:11px; color:var(--text3); font-family:var(--mono); }
 
 /* ─── TABLE ─── */
-.table-wrap { background:var(--card-bg); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; box-shadow: var(--shadow); }
+.table-wrap { background:var(--s1); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; }
 .table-scroll { overflow-x:auto; }
 table { width:100%; border-collapse:collapse; }
 thead th {
@@ -227,20 +197,16 @@ tbody tr:last-child td { border-bottom:none; }
   border-radius:5px; font-family:var(--mono); font-size:11.5px; font-weight:500;
 }
 .tag-blue   { background:rgba(59,130,246,.12); color:#93c5fd; }
-body.light .tag-blue { background:#dbeafe; color:#1e40af; }
 .tag-green  { background:rgba(16,185,129,.12); color:#6ee7b7; }
-body.light .tag-green { background:#d1fae5; color:#065f46; }
 .tag-amber  { background:rgba(245,158,11,.12); color:#fcd34d; }
-body.light .tag-amber { background:#fef3c7; color:#92400e; }
 .tag-purple { background:rgba(139,92,246,.12); color:#c4b5fd; }
-body.light .tag-purple { background:#ede9fe; color:#5b21b6; }
 .tag-red    { background:rgba(239,68,68,.12); color:#fca5a5; }
 .loading-cell { text-align:center; padding:48px; color:var(--text3); font-size:14px; }
 
 /* ─── MODAL ─── */
 .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:1000; overflow-y:auto; }
 .modal-box {
-  background:var(--card-bg); margin:44px auto;
+  background:var(--s1); margin:44px auto;
   max-width:1100px; width:92%; border-radius:13px;
   border:1px solid var(--border);
   animation:drop .22s ease;
@@ -274,10 +240,9 @@ body.light .tag-purple { background:#ede9fe; color:#5b21b6; }
   <div class="header">
     <div class="logo">
       <div class="logo-icon">📡</div>
-      <h1>Asset Scout <em>/ SEO</em></h1>
+      <h1>Asset Scout <em>- SEO Dashboard</em></h1>
     </div>
     <div class="header-right">
-      <button id="themeToggleBtn" class="btn btn-theme">🌓 Light / Dark</button>
       <div class="pill off" id="statusPill"><span class="dot"></span><span id="statusText">Not Connected</span></div>
       <button id="logoutBtn" class="btn btn-red" style="display:none">Sign Out</button>
     </div>
@@ -318,40 +283,116 @@ body.light .tag-purple { background:#ede9fe; color:#5b21b6; }
 
   <!-- DASHBOARD -->
   <div id="dashboard" style="display:none">
+
+    <!-- STATS -->
     <div class="stats-grid">
-      <div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">across all properties</div></div>
-      <div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">across all properties</div></div>
-      <div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div>
-      <div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">impression-weighted</div></div>
+      <div class="stat" style="--accent-color:var(--blue)">
+        <h3>Total Clicks</h3>
+        <div class="val" id="s-clicks">—</div>
+        <div class="sub">across all properties</div>
+      </div>
+      <div class="stat" style="--accent-color:var(--purple)">
+        <h3>Total Impressions</h3>
+        <div class="val" id="s-impr">—</div>
+        <div class="sub">across all properties</div>
+      </div>
+      <div class="stat" style="--accent-color:var(--green)">
+        <h3>Average CTR</h3>
+        <div class="val" id="s-ctr">—</div>
+        <div class="sub">clicks ÷ impressions</div>
+      </div>
+      <div class="stat" style="--accent-color:var(--amber)">
+        <h3>Avg Position</h3>
+        <div class="val" id="s-pos">—</div>
+        <div class="sub">impression-weighted</div>
+      </div>
     </div>
+
+    <!-- CHARTS -->
     <div class="charts-row">
       <div class="chart-card"><h3>📈 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div>
       <div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div>
     </div>
+
+    <!-- CONTROLS -->
     <div class="controls">
-      <div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="custom">Custom</option></select></div>
+      <div class="cg">
+        <label>Preset</label>
+        <select id="preset">
+          <option value="7">Last 7 days</option>
+          <option value="28" selected>Last 28 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="365">Last 365 days</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
       <div class="cg"><label>From</label><input type="date" id="dateFrom" disabled></div>
       <div class="cg"><label>To</label><input type="date" id="dateTo" disabled></div>
-      <div class="cg"><label>Data State</label><select id="dataState"><option value="final">Final only (stable, 2-day lag)</option><option value="all" selected>All data (final + fresh)</option></select></div>
-      <div class="cg"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div>
+      <div class="cg">
+        <label>Data State</label>
+        <select id="dataState">
+          <option value="final">Final only (stable, 2-day lag)</option>
+          <option value="all" selected>All data (final + fresh, most complete)</option>
+        </select>
+      </div>
+      <div class="cg">
+        <label>Sort By</label>
+        <select id="sortBy">
+          <option value="clicks">Clicks ↓</option>
+          <option value="impressions">Impressions ↓</option>
+          <option value="ctr">CTR ↓</option>
+          <option value="position">Position ↑</option>
+        </select>
+      </div>
       <div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter sites..."></div>
       <div class="cg"><label>&nbsp;</label><button id="applyBtn" class="btn btn-blue">Apply</button></div>
       <div class="cg"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-indigo">🔄 Refresh</button></div>
       <div class="cg"><label>&nbsp;</label><button id="exportBtn" class="btn btn-green">📥 Excel</button></div>
     </div>
-    <div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">Loading...</div></div>
-    <div class="table-wrap"><div class="table-scroll">
-      <table><thead><tr><th>🌐 Website</th><th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions <span class="sort-arrow">↕</span></th><th data-sort="ctr">CTR <span class="sort-arrow">↕</span></th><th data-sort="position">Avg Position <span class="sort-arrow">↕</span></th></tr></thead>
-      <tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td></tr></tbody>
-      </table>
-    </div></div>
+
+    <!-- PROGRESS -->
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">Loading...</div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>🌐 Website</th>
+              <th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th>
+              <th data-sort="impressions">Impressions <span class="sort-arrow">↕</span></th>
+              <th data-sort="ctr">CTR <span class="sort-arrow">↕</span></th>
+              <th data-sort="position">Avg Position <span class="sort-arrow">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="5" class="loading-cell">Complete login to view data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">Site Details</h2><span class="x" id="closeModal">&times;</span></div><div class="modal-body" id="modalBody"><div class="loading-cell">Loading keywords…</div></div></div></div>
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="modalTitle">Site Details</h2>
+      <span class="x" id="closeModal">&times;</span>
+    </div>
+    <div class="modal-body" id="modalBody"><div class="loading-cell">Loading keywords…</div></div>
+  </div>
+</div>
 
 <script>
-// ========== FIXED CREDENTIALS & ACCURACY ==========
+// ─────────────────────────────────────────────
+//  CONFIG — hardcoded credentials
+// ─────────────────────────────────────────────
 const CLIENT_ID     = '293203533603-er1eq6383ivth4n6er11hqpo4dgor0t0.apps.googleusercontent.com';
 const CLIENT_SECRET = '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';
 const REDIRECT_URI  = 'http://localhost';
@@ -359,60 +400,656 @@ const SCOPE         = 'https://www.googleapis.com/auth/webmasters.readonly';
 const TOKEN_URL     = 'https://oauth2.googleapis.com/token';
 const GSC_BASE      = 'https://www.googleapis.com/webmasters/v3';
 
-let accessToken = null, refreshTimer = null, allData = [], failedSites = [];
-let clicksChart, ctrChart;
+// ─────────────────────────────────────────────
+//  TOKEN MANAGEMENT — access + refresh
+// ─────────────────────────────────────────────
+let accessToken  = null;
+let refreshTimer = null;
 
-// Theme handling
-const themeToggle = document.getElementById('themeToggleBtn');
-themeToggle.onclick = () => document.body.classList.toggle('light');
-if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
-themeToggle.onclick = () => { document.body.classList.toggle('light'); localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark'); };
-if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
-
-// Token management with accurate expiry
 function saveTokens(data) {
-  if (data.refresh_token) localStorage.setItem('gsc_refresh', data.refresh_token);
+  // Always save refresh token if provided (only comes on first auth)
+  if (data.refresh_token) {
+    localStorage.setItem('gsc_refresh', data.refresh_token);
+  }
   accessToken = data.access_token;
-  const expiresAt = Date.now() + (data.expires_in || 3600) * 1000 - 60000;
+  // Store access token with true expiry timestamp
+  const expiresAt = Date.now() + (data.expires_in || 3600) * 1000 - 60000; // 1min buffer
   localStorage.setItem('gsc_access', data.access_token);
   localStorage.setItem('gsc_expires', expiresAt.toString());
   scheduleRefresh(data.expires_in || 3600);
 }
-function scheduleRefresh(expiresInSecs) { if (refreshTimer) clearTimeout(refreshTimer); setTimeout(silentRefresh, Math.max((expiresInSecs - 300) * 1000, 10000)); }
-async function silentRefresh() { const rt = localStorage.getItem('gsc_refresh'); if (!rt) { logout(); return; } try { const p = new URLSearchParams({ grant_type: 'refresh_token', refresh_token: rt, client_id: CLIENT_ID, client_secret: CLIENT_SECRET }); const res = await fetch(TOKEN_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p }); const data = await res.json(); if (data.access_token) saveTokens(data); } catch(e) { console.warn(e); } }
+
+function scheduleRefresh(expiresInSecs) {
+  if (refreshTimer) clearTimeout(refreshTimer);
+  // Refresh 5 minutes before expiry
+  const delay = Math.max((expiresInSecs - 300) * 1000, 10000);
+  refreshTimer = setTimeout(silentRefresh, delay);
+}
+
+async function silentRefresh() {
+  const rt = localStorage.getItem('gsc_refresh');
+  if (!rt) { logout(); return; }
+  try {
+    const p = new URLSearchParams({
+      grant_type: 'refresh_token',
+      refresh_token: rt,
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET
+    });
+    const res  = await fetch(TOKEN_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p });
+    const data = await res.json();
+    if (data.access_token) {
+      saveTokens(data);
+      console.log('[Auth] Access token silently refreshed ✓');
+    } else {
+      console.warn('[Auth] Refresh failed:', data);
+      // Token might still be valid — keep using existing
+    }
+  } catch(e) {
+    console.warn('[Auth] Refresh network error:', e);
+  }
+}
+
+// Returns a valid access token, refreshing proactively if near expiry
 async function getToken() {
   const expiresAt = parseInt(localStorage.getItem('gsc_expires') || '0');
   if (Date.now() < expiresAt && accessToken) return accessToken;
+
+  // Proactive refresh
   const rt = localStorage.getItem('gsc_refresh');
   if (!rt) { logout(); throw new Error('No refresh token'); }
-  const p = new URLSearchParams({ grant_type: 'refresh_token', refresh_token: rt, client_id: CLIENT_ID, client_secret: CLIENT_SECRET });
-  const res = await fetch(TOKEN_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p });
+
+  const p = new URLSearchParams({
+    grant_type: 'refresh_token',
+    refresh_token: rt,
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET
+  });
+  const res  = await fetch(TOKEN_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p });
   const data = await res.json();
-  if (!data.access_token) { logout(); throw new Error('Refresh failed'); }
+  if (!data.access_token) { logout(); throw new Error('Token refresh failed'); }
   saveTokens(data);
   return data.access_token;
 }
-function hasSession() { return !!localStorage.getItem('gsc_refresh'); }
-function logout() { clearTimeout(refreshTimer); localStorage.removeItem('gsc_refresh'); localStorage.removeItem('gsc_access'); localStorage.removeItem('gsc_expires'); accessToken = null; allData = []; document.getElementById('loginWrap').style.display = 'flex'; document.getElementById('dashboard').style.display = 'none'; document.getElementById('logoutBtn').style.display = 'none'; document.getElementById('statusPill').className = 'pill off'; document.getElementById('statusText').textContent = 'Not Connected'; document.getElementById('codeUrl').value = ''; document.getElementById('connectMsg').textContent = ''; document.getElementById('genMsg').textContent = ''; document.getElementById('openBtn').disabled = true; document.getElementById('connectBtn').disabled = true; }
 
-// Auth flow
+function hasSession() {
+  return !!localStorage.getItem('gsc_refresh');
+}
+
+// ─────────────────────────────────────────────
+//  AUTH FLOW — one-time setup
+// ─────────────────────────────────────────────
 let authUrl = null;
-if (window.location.protocol === 'file:') { document.getElementById('fileWarn').style.display = 'block'; document.getElementById('genBtn').disabled = true; } else { document.getElementById('fileWarn').style.display = 'none'; }
-document.getElementById('genBtn').onclick = () => { authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}&access_type=offline&prompt=consent`; document.getElementById('genMsg').className = 'msg ok'; document.getElementById('genMsg').textContent = '✓ Link ready — click step 2'; document.getElementById('openBtn').disabled = false; };
-document.getElementById('openBtn').onclick = () => { if (authUrl) window.open(authUrl, '_blank'); document.getElementById('connectBtn').disabled = false; document.getElementById('connectMsg').className = 'msg info'; document.getElementById('connectMsg').textContent = 'Paste the full redirect URL in step 3 after Google redirects you'; };
-document.getElementById('connectBtn').onclick = async () => { const raw = document.getElementById('codeUrl').value.trim(); const match = raw.match(/[?&]code=([^&]+)/); if (!match) { setMsg('connectMsg', 'err', '✗ Could not find code= in URL'); return; } const code = decodeURIComponent(match[1]); setMsg('connectMsg', 'info', '⏳ Exchanging code for tokens…'); document.getElementById('connectBtn').disabled = true; try { const p = new URLSearchParams({ code, client_id: CLIENT_ID, client_secret: CLIENT_SECRET, redirect_uri: REDIRECT_URI, grant_type: 'authorization_code' }); const res = await fetch(TOKEN_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p }); const data = await res.json(); if (data.access_token && data.refresh_token) { saveTokens(data); setMsg('connectMsg', 'ok', '✓ Connected! Loading dashboard…'); setTimeout(() => { showDashboard(); loadData(); }, 1200); } else { setMsg('connectMsg', 'err', '✗ Refresh token missing – remove app access and retry.'); document.getElementById('connectBtn').disabled = false; } } catch(e) { setMsg('connectMsg', 'err', `✗ Error: ${e.message}`); document.getElementById('connectBtn').disabled = false; } };
-function setMsg(id, cls, txt) { const el = document.getElementById(id); el.className = 'msg ' + cls; el.textContent = txt; }
-function showDashboard() { document.getElementById('loginWrap').style.display = 'none'; document.getElementById('dashboard').style.display = 'block'; document.getElementById('logoutBtn').style.display = ''; document.getElementById('statusPill').className = 'pill on'; document.getElementById('statusText').textContent = 'Connected'; }
+
+// Hide server warning if not file://
+if (window.location.protocol === 'file:') {
+  document.getElementById('fileWarn').style.display = 'block';
+  document.getElementById('genBtn').disabled = true;
+} else {
+  document.getElementById('fileWarn').style.display = 'none';
+}
+
+document.getElementById('genBtn').onclick = () => {
+  authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}&access_type=offline&prompt=consent`;
+  document.getElementById('genMsg').className = 'msg ok';
+  document.getElementById('genMsg').textContent = '✓ Link ready — click step 2';
+  document.getElementById('openBtn').disabled = false;
+};
+
+document.getElementById('openBtn').onclick = () => {
+  if (authUrl) {
+    window.open(authUrl, '_blank');
+    document.getElementById('connectBtn').disabled = false;
+    document.getElementById('connectMsg').className = 'msg info';
+    document.getElementById('connectMsg').textContent = 'Paste the full redirect URL in step 3 after Google redirects you';
+  }
+};
+
+document.getElementById('connectBtn').onclick = async () => {
+  const raw = document.getElementById('codeUrl').value.trim();
+  const match = raw.match(/[?&]code=([^&]+)/);
+  if (!match) {
+    setMsg('connectMsg', 'err', '✗ Could not find code= in URL — paste the full address bar URL');
+    return;
+  }
+  const code = decodeURIComponent(match[1]);
+  setMsg('connectMsg', 'info', '⏳ Exchanging code for tokens…');
+  document.getElementById('connectBtn').disabled = true;
+
+  try {
+    const p = new URLSearchParams({
+      code,
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      redirect_uri: REDIRECT_URI,
+      grant_type: 'authorization_code'
+    });
+    const res  = await fetch(TOKEN_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:p });
+    const data = await res.json();
+
+    if (data.access_token && data.refresh_token) {
+      saveTokens(data);
+      setMsg('connectMsg', 'ok', '✓ Connected! Refresh token saved permanently. Loading dashboard…');
+      setTimeout(() => { showDashboard(); loadData(); }, 1200);
+    } else if (data.access_token && !data.refresh_token) {
+      setMsg('connectMsg', 'err', '✗ Google did not return a refresh_token. Go to Google Account → Security → remove this app\'s access, then try again. (Make sure prompt=consent is in the URL — it already is.)');
+      document.getElementById('connectBtn').disabled = false;
+    } else {
+      setMsg('connectMsg', 'err', `✗ ${data.error_description || data.error || 'Unknown error'}`);
+      document.getElementById('connectBtn').disabled = false;
+    }
+  } catch(e) {
+    setMsg('connectMsg', 'err', `✗ Network error: ${e.message}`);
+    document.getElementById('connectBtn').disabled = false;
+  }
+};
+
+function setMsg(id, cls, txt) {
+  const el = document.getElementById(id);
+  el.className = 'msg ' + cls;
+  el.textContent = txt;
+}
+
+// ─────────────────────────────────────────────
+//  UI VISIBILITY
+// ─────────────────────────────────────────────
+function showDashboard() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('logoutBtn').style.display = '';
+  document.getElementById('statusPill').className = 'pill on';
+  document.getElementById('statusText').textContent = 'Connected';
+}
+
+function logout() {
+  clearTimeout(refreshTimer);
+  localStorage.removeItem('gsc_refresh');
+  localStorage.removeItem('gsc_access');
+  localStorage.removeItem('gsc_expires');
+  accessToken = null;
+  allData = [];
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('logoutBtn').style.display = 'none';
+  document.getElementById('statusPill').className = 'pill off';
+  document.getElementById('statusText').textContent = 'Not Connected';
+  document.getElementById('codeUrl').value = '';
+  document.getElementById('connectMsg').textContent = '';
+  document.getElementById('genMsg').textContent = '';
+  document.getElementById('openBtn').disabled = true;
+  document.getElementById('connectBtn').disabled = true;
+}
+
 document.getElementById('logoutBtn').onclick = logout;
 
-function toYMD(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-function presetDates(days) { const end = new Date(); end.setDate(end.getDate() - 1); const start = new Date(end); start.setDate(end.getDate() - (days - 1)); return { start: toYMD(start), end: toYMD(end) }; }
-function getDates() { if (document.getElementById('preset').value === 'custom') return { start: document.getElementById('dateFrom').value, end: document.getElementById('dateTo').value }; return presetDates(parseInt(document.getElementById('preset').value)); }
-function syncDateInputs() { if (document.getElementById('preset').value !== 'custom') { const { start, end } = presetDates(parseInt(document.getElementById('preset').value)); document.getElementById('dateFrom').value = start; document.getElementById('dateTo').value = end; } }
-document.getElementById('preset').onchange = () => { const custom = document.getElementById('preset').value === 'custom'; document.getElementById('dateFrom').disabled = !custom; document.getElementById('dateTo').disabled = !custom; if (!custom) { syncDateInputs(); if (accessToken) loadData(); } };
-document.getElementById('applyBtn').onclick = () => { const s = document.getElementById('dateFrom').value, e = document.getElementById('dateTo').value; if (!s || !e) { alert('Both dates required'); return; } if (s > e) { alert('Invalid date range'); return; } document.getElementById('preset').value = 'custom'; document.getElementById('dateFrom').disabled = false; document.getElementById('dateTo').disabled = false; if (accessToken) loadData(); };
-document.getElementById('dataState').onchange = () => { if (accessToken) loadData(); };
-document.getElementById('refreshBtn').onclick = () => { if (accessToken) loadData(); };
-document.getElementById('exportBtn').onclick = () => { if (!allData.length) return; const ws = XLSX.utils.json_to_sheet(allData.map(s=>({ Website: s.name, Type: s.type, Clicks: s.clicks, Impressions: s.impressions, 'CTR %': parseFloat(s.ctr.toFixed(2)), 'Avg Position': parseFloat(s.position.toFixed(1)) }))); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'GSC Data'); XLSX.writeFile(wb, `asset-scout-${new Date().toISOString().split('T')[0]}.xlsx`); };
+// ─────────────────────────────────────────────
+//  DATE HELPERS
+// ─────────────────────────────────────────────
+function toYMD(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function presetDates(days) {
+  const end   = new Date(); end.setDate(end.getDate() - 1); // yesterday — GSC with dataState:all covers this
+  const start = new Date(end); start.setDate(end.getDate() - (days - 1));
+  return { start: toYMD(start), end: toYMD(end) };
+}
+function getDates() {
+  const p = document.getElementById('preset').value;
+  if (p === 'custom') {
+    return { start: document.getElementById('dateFrom').value, end: document.getElementById('dateTo').value };
+  }
+  return presetDates(parseInt(p));
+}
+function syncDateInputs() {
+  const p = document.getElementById('preset').value;
+  if (p !== 'custom') {
+    const { start, end } = presetDates(parseInt(p));
+    document.getElementById('dateFrom').value = start;
+    document.getElementById('dateTo').value   = end;
+  }
+}
 
-async function fetchSites() { const token = await getToken(); const res = await fetch(`${GSC_BASE}/sites`, { headers:{ Authorization:`Bearer ${token}` } }); if (res.status === 401) { logout(); throw new Error('Una
+document.getElementById('preset').onchange = () => {
+  const isCustom = document.getElementById('preset').value === 'custom';
+  document.getElementById('dateFrom').disabled = !isCustom;
+  document.getElementById('dateTo').disabled   = !isCustom;
+  if (!isCustom) { syncDateInputs(); if (accessToken) loadData(); }
+};
+
+document.getElementById('applyBtn').onclick = () => {
+  const s = document.getElementById('dateFrom').value;
+  const e = document.getElementById('dateTo').value;
+  if (!s || !e) { alert('Pick both From and To dates'); return; }
+  if (s > e) { alert('From must be before To'); return; }
+  document.getElementById('preset').value = 'custom';
+  document.getElementById('dateFrom').disabled = false;
+  document.getElementById('dateTo').disabled   = false;
+  if (accessToken) loadData();
+};
+
+// ─────────────────────────────────────────────
+//  DATA FETCHING
+// ─────────────────────────────────────────────
+let allData = [];
+let failedSites = [];
+let clicksChart, ctrChart;
+
+async function fetchSites() {
+  const token = await getToken();
+  const res = await fetch(`${GSC_BASE}/sites`, { headers:{ Authorization:`Bearer ${token}` } });
+  if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
+  if (!res.ok) throw new Error('Failed to fetch sites: ' + res.status);
+  const d = await res.json();
+  return d.siteEntry || [];
+}
+
+// Single GSC searchAnalytics request — no dimensions = true site-wide totals
+async function fetchTotals(siteUrl, start, end) {
+  const token = await getToken();
+  const body = {
+    startDate: start,
+    endDate: end,
+    type: 'web',
+    aggregationType: 'byProperty',  // CRITICAL: forces true property-level totals, not byPage
+    dataState: document.getElementById('dataState').value  // 'final' or 'all'
+    // NO dimensions — omitting query/page gives accurate counts (GSC docs requirement)
+  };
+  const res = await fetch(
+    `${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,
+    {
+      method: 'POST',
+      headers: { Authorization:`Bearer ${token}`, 'Content-Type':'application/json' },
+      body: JSON.stringify(body)
+    }
+  );
+
+  if (res.status === 403) return null; // No access to this property
+  if (!res.ok) {
+    console.warn('[GSC] Error for', siteUrl, res.status);
+    return null;
+  }
+
+  const data = await res.json();
+  // GSC returns rows array; without dimensions it's always 0 or 1 row
+  const row = (data.rows && data.rows[0]) || { clicks:0, impressions:0, ctr:0, position:0 };
+
+  // Clean display name
+  let name = siteUrl
+    .replace(/^sc-domain:/, '')       // domain properties
+    .replace(/^https?:\/\/(www\.)?/, '') // URL properties
+    .replace(/\/$/, '');
+
+  const type = siteUrl.startsWith('sc-domain:') ? 'Domain' : 'URL';
+
+  return {
+    url: siteUrl,
+    name,
+    type,
+    clicks:      Math.round(row.clicks),
+    impressions: Math.round(row.impressions),
+    ctr:         row.ctr * 100,           // GSC returns decimal (0.05 = 5%) — convert once here
+    position:    row.position,
+    keywords:    null
+  };
+}
+
+async function fetchKeywords(siteUrl, start, end) {
+  const token = await getToken();
+  const body = {
+    startDate: start,
+    endDate: end,
+    type: 'web',
+    aggregationType: 'byProperty',  // property-level keyword data
+    dataState: document.getElementById('dataState').value,
+    dimensions: ['query'],
+    rowLimit: 50
+  };
+  const res = await fetch(
+    `${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,
+    {
+      method:'POST',
+      headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' },
+      body: JSON.stringify(body)
+    }
+  );
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.rows || []).map(r => ({
+    keyword:     r.keys[0],
+    clicks:      Math.round(r.clicks),
+    impressions: Math.round(r.impressions),
+    ctr:         r.ctr * 100,   // convert here too
+    position:    r.position
+  }));
+}
+
+async function loadData() {
+  const { start, end } = getDates();
+  if (!start || !end) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell" style="color:var(--red)">Pick valid dates</td></tr>';
+    return;
+  }
+
+  // Show progress bar
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  progressWrap.style.display = 'block';
+  progressFill.style.width = '0%';
+
+  document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">Fetching properties…</td></tr>';
+
+  let sites;
+  try { sites = await fetchSites(); }
+  catch(e) {
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="5" class="loading-cell" style="color:var(--red)">Error: ${e.message}</td></tr>`;
+    progressWrap.style.display = 'none';
+    return;
+  }
+
+  if (!sites.length) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">No Search Console properties found.</td></tr>';
+    progressWrap.style.display = 'none';
+    return;
+  }
+
+  progressText.textContent = `0 / ${sites.length} properties loaded…`;
+
+  allData = [];
+  failedSites = [];
+  let done = 0;
+
+  // Controlled concurrency — 6 parallel max to avoid GSC rate limits
+  const CONCURRENCY = 6;
+  const queue = [...sites];
+  const results = [];
+
+  const worker = async () => {
+    while (queue.length > 0) {
+      const site = queue.shift();
+      const result = await fetchTotals(site.siteUrl, start, end);
+      if (result) {
+        results.push(result);
+      } else {
+        failedSites.push(site.siteUrl);
+      }
+      done++;
+      const pct = Math.round((done / sites.length) * 100);
+      progressFill.style.width = pct + '%';
+      progressText.textContent = `${done} / ${sites.length} properties loaded…`;
+
+      // Render incrementally every 4 completions
+      if (done % 4 === 0 || done === sites.length) {
+        allData = results.slice();
+        renderStats();
+        renderTable();
+        renderCharts();
+      }
+    }
+  };
+
+  await Promise.all(Array.from({ length: Math.min(CONCURRENCY, sites.length) }, worker));
+
+  allData = results;
+  renderStats();
+  renderTable();
+  renderCharts();
+  progressWrap.style.display = 'none';
+  progressText.textContent = '';
+}
+
+// ─────────────────────────────────────────────
+//  RENDER STATS
+// ─────────────────────────────────────────────
+function renderStats() {
+  const totalClicks = allData.reduce((s,r)=>s+r.clicks,0);
+  const totalImpr   = allData.reduce((s,r)=>s+r.impressions,0);
+  // Correct CTR = total clicks / total impressions (not average of site CTRs)
+  const avgCtr = totalImpr > 0 ? (totalClicks / totalImpr) * 100 : 0;
+  // Impression-weighted position
+  const weightedPos = allData.reduce((s,r)=>s+r.position*r.impressions,0);
+  const avgPos = totalImpr > 0 ? weightedPos / totalImpr : 0;
+
+  document.getElementById('s-clicks').textContent = fmt(totalClicks);
+  document.getElementById('s-impr').textContent   = fmt(totalImpr);
+  document.getElementById('s-ctr').textContent    = avgCtr.toFixed(2)+'%';
+  document.getElementById('s-pos').textContent    = avgPos.toFixed(1);
+}
+
+// ─────────────────────────────────────────────
+//  RENDER TABLE
+// ─────────────────────────────────────────────
+function renderTable() {
+  const sortBy = document.getElementById('sortBy').value;
+  const q = document.getElementById('searchInput').value.toLowerCase();
+
+  let rows = [...allData];
+  if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q));
+  rows.sort((a,b)=>{
+    if (sortBy==='clicks')      return b.clicks - a.clicks;
+    if (sortBy==='impressions') return b.impressions - a.impressions;
+    if (sortBy==='ctr')         return b.ctr - a.ctr;
+    if (sortBy==='position')    return a.position - b.position;
+    return 0;
+  });
+
+  // Update sort arrow
+  document.querySelectorAll('thead th[data-sort]').forEach(th => {
+    th.classList.toggle('active', th.dataset.sort === sortBy);
+    const arrow = th.querySelector('.sort-arrow');
+    if (th.dataset.sort === sortBy) {
+      arrow.textContent = (sortBy === 'position') ? '↑' : '↓';
+    } else {
+      arrow.textContent = '↕';
+    }
+  });
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">No results</td></tr>';
+    return;
+  }
+
+  // Optional failed sites info row
+  if (failedSites.length) {
+    const infoRow = tbody.insertRow();
+    infoRow.innerHTML = `<td colspan="5" style="padding:0">
+      <div class="failed-box">
+        <details>
+          <summary>⚠️ ${failedSites.length} properties returned no data (403 or no impressions)</summary>
+          <div class="failed-list">${failedSites.join('<br>')}</div>
+        </details>
+      </div>
+    </td>`;
+  }
+
+  rows.forEach(site => {
+    const tr = tbody.insertRow();
+    tr.className = 'site-row';
+    tr.onclick = () => showModal(site);
+
+    // Position color coding
+    const posTag = site.position === 0 ? 'tag-red' :
+                   site.position <= 3  ? 'tag-green' :
+                   site.position <= 10 ? 'tag-amber' : 'tag-purple';
+
+    tr.innerHTML = `
+      <td>
+        <div class="site-name-cell">
+          <span class="site-domain">${esc(site.name)}</span>
+          <span class="site-type">${site.type}</span>
+        </div>
+      </td>
+      <td><span class="tag tag-blue">${fmtExact(site.clicks)}</span></td>
+      <td><span class="tag tag-purple">${fmtExact(site.impressions)}</span></td>
+      <td><span class="tag tag-green">${site.ctr.toFixed(2)}%</span></td>
+      <td><span class="tag ${posTag}">${site.position > 0 ? site.position.toFixed(1) : '—'}</span></td>
+    `;
+  });
+}
+
+// ─────────────────────────────────────────────
+//  RENDER CHARTS
+// ─────────────────────────────────────────────
+const chartOpts = (label, color) => ({
+  responsive:true, maintainAspectRatio:true,
+  plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${fmtExact(ctx.parsed.y)}` } } },
+  scales:{
+    x:{ grid:{ color:'rgba(255,255,255,.04)' }, ticks:{ color:'#4a5f7a', font:{ size:11 } } },
+    y:{ grid:{ color:'rgba(255,255,255,.06)' }, ticks:{ color:'#4a5f7a', font:{ size:11 } } }
+  }
+});
+
+function renderCharts() {
+  const top10c = [...allData].sort((a,b)=>b.clicks-a.clicks).slice(0,10);
+  const top10r = [...allData].sort((a,b)=>b.ctr-a.ctr).slice(0,10);
+
+  if (clicksChart) clicksChart.destroy();
+  if (ctrChart)    ctrChart.destroy();
+
+  const shortName = n => n.length > 20 ? n.slice(0,17)+'…' : n;
+
+  clicksChart = new Chart(document.getElementById('clicksChart'), {
+    type:'bar',
+    data:{
+      labels: top10c.map(s=>shortName(s.name)),
+      datasets:[{ data:top10c.map(s=>s.clicks), backgroundColor:'rgba(59,130,246,.8)', borderRadius:5, hoverBackgroundColor:'#3b82f6' }]
+    },
+    options: chartOpts('Clicks','#3b82f6')
+  });
+
+  ctrChart = new Chart(document.getElementById('ctrChart'), {
+    type:'bar',
+    data:{
+      labels: top10r.map(s=>shortName(s.name)),
+      datasets:[{ data:top10r.map(s=>parseFloat(s.ctr.toFixed(2))), backgroundColor:'rgba(16,185,129,.8)', borderRadius:5, hoverBackgroundColor:'#10b981' }]
+    },
+    options:{
+      ...chartOpts('CTR','#10b981'),
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y.toFixed(2)}%` } } }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+//  SITE DETAIL MODAL
+// ─────────────────────────────────────────────
+async function showModal(site) {
+  const modal = document.getElementById('modal');
+  const body  = document.getElementById('modalBody');
+  document.getElementById('modalTitle').textContent = `🔍 ${site.name}`;
+  modal.style.display = 'block';
+
+  const statsHtml = `
+    <div class="stats-grid" style="margin-bottom:20px">
+      <div class="stat" style="--accent-color:var(--blue)"><h3>Clicks</h3><div class="val">${fmtExact(site.clicks)}</div></div>
+      <div class="stat" style="--accent-color:var(--purple)"><h3>Impressions</h3><div class="val">${fmtExact(site.impressions)}</div></div>
+      <div class="stat" style="--accent-color:var(--green)"><h3>CTR</h3><div class="val">${site.ctr.toFixed(2)}%</div></div>
+      <div class="stat" style="--accent-color:var(--amber)"><h3>Position</h3><div class="val">${site.position > 0 ? site.position.toFixed(1) : '—'}</div></div>
+    </div>`;
+  body.innerHTML = statsHtml + '<div class="loading-cell">Loading keywords…</div>';
+
+  const { start, end } = getDates();
+  const kws = await fetchKeywords(site.url, start, end);
+  site.keywords = kws;
+
+  body.innerHTML = statsHtml + `
+    <h3 style="margin-bottom:14px;font-size:15px;color:var(--text2)">📝 Top Keywords (${kws.length})</h3>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Keyword</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th></tr></thead>
+          <tbody>
+            ${kws.length ? kws.map(k=>`
+              <tr>
+                <td><strong>${esc(k.keyword)}</strong></td>
+                <td><span class="tag tag-blue">${fmtExact(k.clicks)}</span></td>
+                <td><span class="tag tag-purple">${fmtExact(k.impressions)}</span></td>
+                <td><span class="tag tag-green">${k.ctr.toFixed(2)}%</span></td>
+                <td><span class="tag ${k.position<=3?'tag-green':k.position<=10?'tag-amber':'tag-purple'}">${k.position.toFixed(1)}</span></td>
+              </tr>`).join('') : '<tr><td colspan="5" class="loading-cell">No keyword data</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+document.getElementById('closeModal').onclick = () => document.getElementById('modal').style.display = 'none';
+window.onclick = e => { if (e.target === document.getElementById('modal')) document.getElementById('modal').style.display = 'none'; };
+
+// ─────────────────────────────────────────────
+//  SORT HEADERS
+// ─────────────────────────────────────────────
+document.querySelectorAll('thead th[data-sort]').forEach(th => {
+  th.onclick = () => {
+    document.getElementById('sortBy').value = th.dataset.sort;
+    renderTable();
+  };
+});
+
+// ─────────────────────────────────────────────
+//  MISC CONTROLS
+// ─────────────────────────────────────────────
+document.getElementById('sortBy').onchange    = renderTable;
+document.getElementById('searchInput').oninput = renderTable;
+document.getElementById('dataState').onchange  = () => { if (accessToken) loadData(); };
+document.getElementById('refreshBtn').onclick  = loadData;
+
+document.getElementById('exportBtn').onclick = () => {
+  if (!allData.length) return;
+  const ws = XLSX.utils.json_to_sheet(allData.map(s=>({
+    'Website': s.name,
+    'Type': s.type,
+    'Clicks': s.clicks,
+    'Impressions': s.impressions,
+    'CTR %': parseFloat(s.ctr.toFixed(2)),
+    'Avg Position': parseFloat(s.position.toFixed(1))
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'GSC Data');
+  XLSX.writeFile(wb, `asset-scout-${new Date().toISOString().split('T')[0]}.xlsx`);
+};
+
+// ─────────────────────────────────────────────
+//  FORMAT HELPERS
+// ─────────────────────────────────────────────
+function fmt(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toString();
+}
+function fmtExact(n) { return Math.round(n).toLocaleString('en-US'); }
+function esc(t) { const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+
+// ─────────────────────────────────────────────
+//  INIT — restore session automatically
+// ─────────────────────────────────────────────
+(async () => {
+  if (window.location.protocol === 'file:') return;
+  if (!hasSession()) return;
+
+  // Restore saved access token from storage
+  const saved = localStorage.getItem('gsc_access');
+  if (saved) accessToken = saved;
+
+  // Check if it's still valid, refresh if needed
+  try {
+    accessToken = await getToken();
+    showDashboard();
+    syncDateInputs();
+    document.getElementById('dateFrom').disabled = true;
+    document.getElementById('dateTo').disabled   = true;
+    loadData();
+  } catch(e) {
+    console.warn('[Init] Could not restore session:', e);
+    logout();
+  }
+})();
+
+// Initialize date inputs
+syncDateInputs();
+</script>
+</body>
+</html>
