@@ -240,7 +240,7 @@ tbody tr:last-child td { border-bottom:none; }
   <div class="header">
     <div class="logo">
       <div class="logo-icon">📡</div>
-      <h1>Asset Scout <em>- SEO Dashboard </em></h1>
+      <h1>Asset Scout <em>/ SEO</em></h1>
     </div>
     <div class="header-right">
       <div class="pill off" id="statusPill"><span class="dot"></span><span id="statusText">Not Connected</span></div>
@@ -286,14 +286,14 @@ tbody tr:last-child td { border-bottom:none; }
 
     <!-- STATS -->
     <div class="stats-grid">
-       <div class="stat" style="--accent-color:var(--purple)">
-        <h3>Total Impressions</h3>
-        <div class="val" id="s-impr">—</div>
-        <div class="sub">across all properties</div>
-      </div>
       <div class="stat" style="--accent-color:var(--blue)">
         <h3>Total Clicks</h3>
         <div class="val" id="s-clicks">—</div>
+        <div class="sub">across all properties</div>
+      </div>
+      <div class="stat" style="--accent-color:var(--purple)">
+        <h3>Total Impressions</h3>
+        <div class="val" id="s-impr">—</div>
         <div class="sub">across all properties</div>
       </div>
       <div class="stat" style="--accent-color:var(--green)">
@@ -331,8 +331,8 @@ tbody tr:last-child td { border-bottom:none; }
       <div class="cg">
         <label>Data State</label>
         <select id="dataState">
-          <option value="final" selected>Final (stable)</option>
-          <option value="fresh">Fresh (includes recent)</option>
+          <option value="final">Final only (stable, 2-day lag)</option>
+          <option value="all" selected>All data (final + fresh, most complete)</option>
         </select>
       </div>
       <div class="cg">
@@ -589,7 +589,7 @@ function toYMD(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function presetDates(days) {
-  const end   = new Date(); end.setDate(end.getDate() - 2); // GSC data lags ~2 days
+  const end   = new Date(); end.setDate(end.getDate() - 1); // yesterday — GSC with dataState:all covers this
   const start = new Date(end); start.setDate(end.getDate() - (days - 1));
   return { start: toYMD(start), end: toYMD(end) };
 }
@@ -650,8 +650,9 @@ async function fetchTotals(siteUrl, start, end) {
     startDate: start,
     endDate: end,
     type: 'web',
-    dataState: document.getElementById('dataState').value  // 'final' or 'fresh'
-    // NO dimensions — this returns true aggregated site totals
+    aggregationType: 'byProperty',  // CRITICAL: forces true property-level totals, not byPage
+    dataState: document.getElementById('dataState').value  // 'final' or 'all'
+    // NO dimensions — omitting query/page gives accurate counts (GSC docs requirement)
   };
   const res = await fetch(
     `${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,
@@ -698,6 +699,7 @@ async function fetchKeywords(siteUrl, start, end) {
     startDate: start,
     endDate: end,
     type: 'web',
+    aggregationType: 'byProperty',  // property-level keyword data
     dataState: document.getElementById('dataState').value,
     dimensions: ['query'],
     rowLimit: 50
