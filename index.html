@@ -163,12 +163,7 @@ body {
 }
 .login-box h2 { font-size:21px; font-weight:700; margin-bottom:6px; }
 .login-box > p { color:var(--text2); font-size:13px; line-height:1.7; margin-bottom:26px; }
-.warn {
-  background:var(--warn-bg); border:1px solid var(--warn-border);
-  border-left:3px solid var(--amber); border-radius:8px;
-  padding:13px 16px; margin-bottom:22px; font-size:12.5px; color:var(--warn-fg); line-height:1.8;
-}
-.warn code { background:rgba(128,128,128,.15); padding:1px 6px; border-radius:4px; font-family:var(--mono); font-size:11px; }
+
 .step {
   background:var(--s2); border:1px solid var(--border);
   border-radius:10px; padding:17px 19px; margin-bottom:13px;
@@ -332,7 +327,6 @@ tbody tr:last-child td { border-bottom:none; }
   <!-- LOGIN -->
   <div id="loginWrap" class="login-wrap">
     <div class="login-box">
-      <!-- File:// warning (hidden on server) -->
       <!-- Vercel notice (shown on vercel/non-localhost) -->
       <div class="vercel-notice" id="vercelNotice" style="display:none">
         ✅ <strong>Vercel detected.</strong> The redirect URI has been automatically set to <strong id="autoRedirectUri"></strong>.<br>
@@ -408,8 +402,8 @@ tbody tr:last-child td { border-bottom:none; }
           <option value="custom">Custom</option>
         </select>
       </div>
-      <div class="cg"><label>From</label><input type="date" id="dateFrom" disabled></div>
-      <div class="cg"><label>To</label><input type="date" id="dateTo" disabled></div>
+      <div class="cg"><label>From</label><input type="text" id="dateFrom" placeholder="YYYY-MM-DD" maxlength="10" style="min-width:130px;font-family:var(--mono);font-size:12px" disabled></div>
+      <div class="cg"><label>To</label><input type="text" id="dateTo" placeholder="YYYY-MM-DD" maxlength="10" style="min-width:130px;font-family:var(--mono);font-size:12px" disabled></div>
       <div class="cg">
         <label>Data State</label>
         <select id="dataState">
@@ -500,7 +494,7 @@ const CLIENT_ID     = '293203533603-8esforfqiosq1jmj5ab5f49v1pj38i96.apps.google
 const CLIENT_SECRET = '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';
 
 // Automatically derive redirect URI from current page origin
-// This works on localhost, Live Server, Vercel, any custom domain
+// Automatically derives redirect URI from current page origin
 const REDIRECT_URI  = window.location.origin + window.location.pathname.replace(/\/$/, '') || window.location.origin;
 
 const SCOPE         = 'https://www.googleapis.com/auth/webmasters.readonly';
@@ -510,19 +504,13 @@ const GSC_BASE      = 'https://www.googleapis.com/webmasters/v3';
 // ─────────────────────────────────────────────
 //  SHOW APPROPRIATE NOTICE
 // ─────────────────────────────────────────────
-const isFileProtocol = window.location.protocol === 'file:';
+const isFileProtocol = false;
 const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
-if (isFileProtocol) {
-  document.getElementById('fileWarn').style.display = 'block';
-  document.getElementById('genBtn').disabled = true;
-} else {
-  document.getElementById('fileWarn').style.display = 'none';
-  if (!isLocalhost) {
-    // Running on Vercel or remote host — show redirect URI notice
-    document.getElementById('vercelNotice').style.display = 'block';
-    document.getElementById('autoRedirectUri').textContent = REDIRECT_URI;
-  }
+// Show redirect URI notice on non-localhost deployments
+if (!isLocalhost) {
+  document.getElementById('vercelNotice').style.display = 'block';
+  document.getElementById('autoRedirectUri').textContent = REDIRECT_URI;
 }
 
 // ─────────────────────────────────────────────
@@ -722,11 +710,16 @@ document.getElementById('preset').onchange = () => {
   if (!isCustom) { syncDateInputs(); if (accessToken) loadData(); }
 };
 
+const YMD_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
 document.getElementById('applyBtn').onclick = () => {
-  const s = document.getElementById('dateFrom').value;
-  const e = document.getElementById('dateTo').value;
-  if (!s || !e) { alert('Pick both From and To dates'); return; }
-  if (s > e)   { alert('From must be before To'); return; }
+  const s = document.getElementById('dateFrom').value.trim();
+  const e = document.getElementById('dateTo').value.trim();
+  if (!YMD_RE.test(s) || !YMD_RE.test(e)) {
+    alert('Dates must be in YYYY-MM-DD format (e.g. 2024-01-31)');
+    return;
+  }
+  if (s > e) { alert('From must be before To'); return; }
   document.getElementById('preset').value = 'custom';
   document.getElementById('dateFrom').disabled = false;
   document.getElementById('dateTo').disabled   = false;
@@ -1023,7 +1016,6 @@ function esc(t) { const d=document.createElement('div'); d.textContent=t; return
 //  INIT — restore session automatically
 // ─────────────────────────────────────────────
 (async () => {
-  if (isFileProtocol) return;
   if (!hasSession()) return;
   const saved = localStorage.getItem('gsc_access');
   if (saved) accessToken = saved;
