@@ -257,8 +257,46 @@ function updateTriggerLabels(){document.getElementById('fromLabel').textContent=
 window.calSelect=(id,ds)=>{if(id==='from')calState.from=ds;else calState.to=ds;updateTriggerLabels();if(calState.from&&calState.to)loadData();};
 window.calClear=()=>{calState={from:null,to:null};updateTriggerLabels();closeCals();};
 async function fetchSites(){const token=await getToken();const r=await fetch(`${GSC_BASE}/sites`,{headers:{Authorization:`Bearer ${token}`}});if(!r.ok)throw new Error('fetch sites failed');return(await r.json()).siteEntry||[];}
-async function fetchTotals(siteUrl,start,end){const token=await getToken();const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all'})});if(r.status!==200)return null;const d=await r.json();const row=(d.rows&&d.rows[0])||{clicks:0,impressions:0,ctr:0,position:0};const name=siteUrl.replace(/^sc-domain:/,'').replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');return{url:siteUrl,name,type:siteUrl.startsWith('sc-domain:')?'Domain':'URL',clicks:Math.round(row.clicks),impressions:Math.round(row.impressions),ctr:row.ctr*100,position:row.position,keywords:null};}
-async function fetchTimeSeriesCombined(sites,start,end){const token=await getToken();const dailyMap=new Map();for(const site of sites){try{const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all',dimensions:['date'],rowLimit:500})});if(!r.ok)continue;const d=await r.json();(d.rows||[]).forEach(row=>{const date=row.keys[0];const clicks=Math.round(row.clicks),imps=Math.round(row.impressions),ctr=row.ctr*100,pos=row.position;if(!dailyMap.has(date))dailyMap.set(date,{clicks:0,impressions:0,ctrWeightedSum:0,posWeightedSum:0,weightCount:0});const entry=dailyMap.get(date);entry.clicks+=clicks;entry.impressions+=imps;entry.ctrWeightedSum+=ctr*imps;entry.posWeightedSum+=pos*imps;entry.weightCount+=imps;});}catch(e){console.warn('TS error for',site.url,e);}}return Array.from(dailyMap.keys()).sort().map(date=>{const e=dailyMap.get(date);const totalImps=e.impressions;return{date,clicks:e.clicks,impressions:e.impressions,ctr:totalImps>0?e.ctrWeightedSum/totalImps:0,position:totalImps>0?e.posWeightedSum/totalImps:0};});}
+async function fetchTotals(siteUrl, start, end) {
+  const token = await getToken();
+  try {
+    const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        startDate: start,
+        endDate: end,
+        type: 'web',
+        aggregationType: 'byProperty',
+        dataState: 'all'
+      })
+    });
+    if (r.status !== 200) return null;
+    const d = await r.json();
+    const row = (d.rows && d.rows[0]) || { clicks: 0, impressions: 0, ctr: 0, position: 0 };
+    const name = siteUrl.replace(/^sc-domain:/, '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+    
+    // ✅ CRITICAL FIX: Google returns CTR as 0-1 decimal
+    // Example: 0.0523 = 5.23% - multiply by 100 for display
+    const ctrPercent = row.ctr * 100;
+    // Position comes as 0-100 (lower is better)
+    const avgPosition = row.position;
+    
+    return {
+      url: siteUrl,
+      name,
+      type: siteUrl.startsWith('sc-domain:') ? 'Domain' : 'URL',
+      clicks: Math.round(row.clicks),
+      impressions: Math.round(row.impressions),
+      ctr: ctrPercent,  // Now 5.23% not 0.0523%
+      position: avgPosition,
+      keywords: null
+    };
+  } catch(e) {
+    console.error('Fetch totals error:', e);
+    return null;
+  }
+}async function fetchTimeSeriesCombined(sites,start,end){const token=await getToken();const dailyMap=new Map();for(const site of sites){try{const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all',dimensions:['date'],rowLimit:500})});if(!r.ok)continue;const d=await r.json();(d.rows||[]).forEach(row=>{const date=row.keys[0];const clicks=Math.round(row.clicks),imps=Math.round(row.impressions),ctr=row.ctr*100,pos=row.position;if(!dailyMap.has(date))dailyMap.set(date,{clicks:0,impressions:0,ctrWeightedSum:0,posWeightedSum:0,weightCount:0});const entry=dailyMap.get(date);entry.clicks+=clicks;entry.impressions+=imps;entry.ctrWeightedSum+=ctr*imps;entry.posWeightedSum+=pos*imps;entry.weightCount+=imps;});}catch(e){console.warn('TS error for',site.url,e);}}return Array.from(dailyMap.keys()).sort().map(date=>{const e=dailyMap.get(date);const totalImps=e.impressions;return{date,clicks:e.clicks,impressions:e.impressions,ctr:totalImps>0?e.ctrWeightedSum/totalImps:0,position:totalImps>0?e.posWeightedSum/totalImps:0};});}
 async function fetchKeywords(siteUrl,start,end){const token=await getToken();const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all',dimensions:['query'],rowLimit:50})});if(!r.ok)return[];const d=await r.json();return(d.rows||[]).map(row=>({keyword:row.keys[0],clicks:Math.round(row.clicks),impressions:Math.round(row.impressions),ctr:row.ctr*100,position:row.position}));}
 async function loadData(){const{start,end}=getDates();if(!start||!end){document.getElementById('tbody').innerHTML='</td><td colspan="5" class="loading-cell">Invalid dates</td></tr>';return;}const pw=document.getElementById('progressWrap');pw.style.display='block';document.getElementById('tbody').innerHTML='<tr><td colspan="5" class="loading-cell">Fetching sites...</td></tr>';let sites;try{sites=await fetchSites();}catch(e){document.getElementById('tbody').innerHTML=`<tr><td colspan="5" class="loading-cell" style="color:var(--red)">Error: ${e.message}</td></tr>`;pw.style.display='none';return;}if(!sites.length){document.getElementById('tbody').innerHTML='<tr><td colspan="5" class="loading-cell">No properties found.</td></tr>';pw.style.display='none';return;}allData=[];failedSites=[];let done=0;const results=[];for(const site of sites){const res=await fetchTotals(site.siteUrl,start,end);if(res)results.push(res);else failedSites.push(site.siteUrl);done++;document.getElementById('progressFill').style.width=Math.round(done/sites.length*100)+'%';document.getElementById('progressText').textContent=`${done}/${sites.length} properties`;allData=results.slice();renderStats();renderTable();renderCharts();}allData=results;renderStats();renderTable();renderCharts();document.getElementById('progressText').textContent='Fetching combined timeline for ALL sites...';try{tsRows=await fetchTimeSeriesCombined(results,start,end);renderTsChart();}catch(e){console.warn(e);tsRows=[];renderTsChart();}pw.style.display='none';}
 function renderStats(){const tc=allData.reduce((s,r)=>s+r.clicks,0),ti=allData.reduce((s,r)=>s+r.impressions,0),ctr=ti>0?(tc/ti)*100:0,wp=allData.reduce((s,r)=>s+r.position*r.impressions,0),pos=ti>0?wp/ti:0;document.getElementById('s-clicks').textContent=allData.length?fmt(tc):'—';document.getElementById('s-impr').textContent=allData.length?fmt(ti):'—';document.getElementById('s-ctr').textContent=allData.length?ctr.toFixed(2)+'%':'—';document.getElementById('s-pos').textContent=allData.length?pos.toFixed(1):'—';}
