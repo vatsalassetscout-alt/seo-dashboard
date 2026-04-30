@@ -48,7 +48,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     display: flex;
     align-items: center;
     justify-content: space-between;
-    position: relative; /* important */
+    position: relative;
     padding: 18px 24px;
     background: var(--s1);
     border: 1px solid var(--border);
@@ -57,14 +57,12 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     box-shadow: 0 1px 4px var(--shadow);
 }
 
-/* LEFT SECTION */
 .logo {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-/* CENTER LOGO IMAGE */
 .logo-img {
     position: absolute;
     left: 50%;
@@ -76,7 +74,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     object-fit: contain;
 }
 
-/* TEXT stays left */
 .logo-text h1 {
     font-size: 26px;
     font-weight: 700;
@@ -92,7 +89,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     font-size: 0.7em;
 }
 
-/* RIGHT SIDE stays same */
 .header-right {
     display: flex;
     align-items: center;
@@ -227,6 +223,8 @@ tbody tr:last-child td{border-bottom:none}
 .failed-box{background:var(--failed-bg);border:1px solid var(--failed-border);border-radius:8px;padding:12px 15px;margin-bottom:16px}
 .failed-box summary{font-size:12px;color:var(--red);cursor:pointer;font-weight:600}
 .failed-list{margin-top:8px;font-size:11px;color:var(--text3);line-height:2;font-family:var(--mono)}
+/* Export Modal */
+#exportModal .modal-box{max-width:400px; text-align:center}
 @media(max-width:768px){.charts-row{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}.wrap{padding:14px}.ts-canvas-wrap{height:200px}.cal-popup{left:auto;right:0}.logo-img{height:36px}.logo-text h1{font-size:22px}}
 </style>
 </head>
@@ -362,7 +360,8 @@ tbody tr:last-child td{border-bottom:none}
               <th data-sort="position">Avg Position <span class="sort-arrow">⇅</span></th>
             </tr>
           </thead>
-          <tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td></tr></tbody>
+          <tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td></tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -376,6 +375,20 @@ tbody tr:last-child td{border-bottom:none}
       <span class="x" id="closeModal">&times;</span>
     </div>
     <div class="modal-body" id="modalBody"><div class="loading-cell">Loading keywords…</div></div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal" id="exportModal" style="display:none">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <h2>Export Options</h2>
+      <span class="x" id="closeExportModal">&times;</span>
+    </div>
+    <div class="modal-body" style="text-align:center">
+      <button id="exportSummaryBtn" class="btn btn-blue" style="margin:10px;width:80%">📊 Summary (Total per site)</button>
+      <button id="exportDailyBtn" class="btn btn-green" style="margin:10px;width:80%">📅 Daily Breakdown (per day per site)</button>
+    </div>
   </div>
 </div>
 
@@ -583,7 +596,63 @@ document.querySelectorAll('thead th[data-sort]').forEach(th=>{th.onclick=()=>{do
 document.getElementById('sortBy').onchange=renderTable;
 document.getElementById('searchInput').oninput=renderTable;
 document.getElementById('refreshBtn').onclick=loadData;
-document.getElementById('exportBtn').onclick=()=>{if(!allData.length)return;const ws=XLSX.utils.json_to_sheet(allData.map(s=>({'Website':s.name,'Type':s.type,'Clicks':s.clicks,'Impressions':s.impressions,'CTR %':parseFloat(s.ctr.toFixed(2)),'Avg Position':parseFloat(s.position.toFixed(1))})));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'GSC Data');XLSX.writeFile(wb,`asset-scout-${new Date().toISOString().split('T')[0]}.xlsx`);};
+
+// EXPORT FUNCTIONS - UPDATED
+function exportSummary(){
+  if(!allData.length) return;
+  const ws=XLSX.utils.json_to_sheet(allData.map(s=>({
+    'Website':s.name,'Type':s.type,'Clicks':s.clicks,
+    'Impressions':s.impressions,'CTR %':parseFloat(s.ctr.toFixed(2)),
+    'Avg Position':parseFloat(s.position.toFixed(1))
+  })));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Summary');
+  XLSX.writeFile(wb,`asset-scout-summary-${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+
+async function exportDaily(){
+  if(!allData.length) return;
+  const{start,end}=getDates();
+  const dailyData=[];
+  const originalText=document.getElementById('progressText').textContent;
+  document.getElementById('progressText').textContent='Preparing daily export for top 10 sites...';
+  
+  for(const site of allData.slice(0,10)){
+    try{
+      const token=await getToken();
+      const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`,{
+        method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+        body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all',dimensions:['date'],rowLimit:500})
+      });
+      if(r.ok){
+        const d=await r.json();
+        (d.rows||[]).forEach(row=>{
+          dailyData.push({
+            'Date':row.keys[0],'Website':site.name,'Type':site.type,
+            'Clicks':Math.round(row.clicks),'Impressions':Math.round(row.impressions),
+            'CTR %':(row.ctr*100).toFixed(2),'Avg Position':row.position.toFixed(1)
+          });
+        });
+      }
+    } catch(e){console.warn(site.name,e);}
+  }
+  
+  if(dailyData.length){
+    const ws=XLSX.utils.json_to_sheet(dailyData);
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Daily Breakdown');
+    XLSX.writeFile(wb,`asset-scout-daily-${start}_to_${end}.xlsx`);
+  } else {
+    alert('No daily data available for export');
+  }
+  document.getElementById('progressText').textContent=originalText;
+}
+
+// Updated export button handler
+document.getElementById('exportBtn').onclick=()=>{if(!allData.length){alert('No data to export');return;}document.getElementById('exportModal').style.display='block';};
+document.getElementById('closeExportModal').onclick=()=>document.getElementById('exportModal').style.display='none';
+document.getElementById('exportSummaryBtn').onclick=()=>{exportSummary();document.getElementById('exportModal').style.display='none';};
+document.getElementById('exportDailyBtn').onclick=()=>{exportDaily();document.getElementById('exportModal').style.display='none';};
 
 async function showModal(site){
   const modal=document.getElementById('modal'),body=document.getElementById('modalBody');
@@ -591,10 +660,11 @@ async function showModal(site){
   const sh=`<div class="stats-grid" style="margin-bottom:20px"><div class="stat" style="--accent-color:var(--blue)"><h3>Clicks</h3><div class="val">${fmtE(site.clicks)}</div></div><div class="stat" style="--accent-color:var(--purple)"><h3>Impressions</h3><div class="val">${fmtE(site.impressions)}</div></div><div class="stat" style="--accent-color:var(--green)"><h3>CTR</h3><div class="val">${site.ctr.toFixed(2)}%</div></div><div class="stat" style="--accent-color:var(--amber)"><h3>Position</h3><div class="val">${site.position>0?site.position.toFixed(1):'—'}</div></div></div>`;
   body.innerHTML=sh+'<div class="loading-cell">Loading keywords...</div>';
   const{start,end}=getDates();const kws=await fetchKeywords(site.url,start,end);site.keywords=kws;
-  body.innerHTML=sh+`<h3 style="margin-bottom:14px;font-size:15px;color:var(--text2)">Top Keywords (${kws.length})</h3><div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Keyword</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th></tr></thead><tbody>${kws.length?kws.map(k=>`<tr><td><strong>${esc(k.keyword)}</strong><\/td><td><span class="tag tag-blue">${fmtE(k.clicks)}</span><\/td><td><span class="tag tag-purple">${fmtE(k.impressions)}</span><\/td><td><span class="tag tag-green">${k.ctr.toFixed(2)}%</span><\/td><td><span class="tag ${k.position<=3?'tag-green':k.position<=10?'tag-amber':'tag-purple'}">${k.position.toFixed(1)}</span><\/td><\/tr>`).join(''):'<tr><td colspan="5" class="loading-cell">No keyword data<\/td><\/tr>'}</tbody>...</div></div>`;
+  body.innerHTML=sh+`<h3 style="margin-bottom:14px;font-size:15px;color:var(--text2)">Top Keywords (${kws.length})</h3><div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>Keyword</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th></tr></thead><tbody>${kws.length?kws.map(k=>`<tr><td><strong>${esc(k.keyword)}</strong><\/td><td><span class="tag tag-blue">${fmtE(k.clicks)}</span><\/td><tr><span class="tag tag-purple">${fmtE(k.impressions)}</span><\/td><td><span class="tag tag-green">${k.ctr.toFixed(2)}%</span><\/td><td><span class="tag ${k.position<=3?'tag-green':k.position<=10?'tag-amber':'tag-purple'}">${k.position.toFixed(1)}</span><\/td><\/tr>`).join(''):'<tr><td colspan="5" class="loading-cell">No keyword data<\/td><\/tr>'}</tbody>...</div></div>`;
 }
 document.getElementById('closeModal').onclick=()=>document.getElementById('modal').style.display='none';
-window.onclick=e=>{if(e.target===document.getElementById('modal'))document.getElementById('modal').style.display='none';};
+window.onclick=e=>{if(e.target===document.getElementById('modal'))document.getElementById('modal').style.display='none';
+if(e.target===document.getElementById('exportModal'))document.getElementById('exportModal').style.display='none';};
 
 function fmt(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return String(n);}
 function fmtE(n){return Math.round(n).toLocaleString('en-US');}
@@ -604,3 +674,4 @@ function esc(t){const d=document.createElement('div');d.textContent=t;return d.i
 </script>
 </body>
 </html>
+
