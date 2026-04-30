@@ -296,10 +296,132 @@ async function fetchTotals(siteUrl, start, end) {
     console.error('Fetch totals error:', e);
     return null;
   }
-}async function fetchTimeSeriesCombined(sites,start,end){const token=await getToken();const dailyMap=new Map();for(const site of sites){try{const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all',dimensions:['date'],rowLimit:500})});if(!r.ok)continue;const d=await r.json();(d.rows||[]).forEach(row=>{const date=row.keys[0];const clicks=Math.round(row.clicks),imps=Math.round(row.impressions),ctr=row.ctr*100,pos=row.position;if(!dailyMap.has(date))dailyMap.set(date,{clicks:0,impressions:0,ctrWeightedSum:0,posWeightedSum:0,weightCount:0});const entry=dailyMap.get(date);entry.clicks+=clicks;entry.impressions+=imps;entry.ctrWeightedSum+=ctr*imps;entry.posWeightedSum+=pos*imps;entry.weightCount+=imps;});}catch(e){console.warn('TS error for',site.url,e);}}return Array.from(dailyMap.keys()).sort().map(date=>{const e=dailyMap.get(date);const totalImps=e.impressions;return{date,clicks:e.clicks,impressions:e.impressions,ctr:totalImps>0?e.ctrWeightedSum/totalImps:0,position:totalImps>0?e.posWeightedSum/totalImps:0};});}
+}
+async function fetchTimeSeriesCombined(sites, start, end) {
+  const token = await getToken();
+  const dailyMap = new Map(); // key: date, value: aggregated metrics
+  
+  for (const site of sites) {
+    try {
+      const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startDate: start,
+          endDate: end,
+          type: 'web',
+          aggregationType: 'byProperty',
+          dataState: 'all',
+          dimensions: ['date'],
+          rowLimit: 500  // Max days in range
+        })
+      });
+      
+      if (!r.ok) continue;
+      const d = await r.json();
+      
+      (d.rows || []).forEach(row => {
+        const date = row.keys[0];
+        // ✅ Google returns these values:
+        // clicks: integer
+        // impressions: integer  
+        // ctr: decimal 0-1 (e.g., 0.05 = 5%)
+        // position: decimal 1-100 (lower is better)
+        const clicksRaw = Math.round(row.clicks);
+        const impsRaw = Math.round(row.impressions);
+        const ctrRaw = row.ctr;        // Keep as 0-1 for weighting
+        const posRaw = row.position;    // Already average position
+        
+        if (!dailyMap.has(date)) {
+          dailyMap.set(date, {
+            clicks: 0,
+            impressions: 0,
+            ctrWeightedSum: 0,    // Sum of (CTR * impressions)
+            posWeightedSum: 0,     // Sum of (position * impressions)
+            weightTotal: 0          // Total impressions for weighting
+          });
+        }
+        
+        const entry = dailyMap.get(date);
+        entry.clicks += clicksRaw;
+        entry.impressions += impsRaw;
+        // ✅ CORRECT WEIGHTING: Use raw CTR (0-1) multiplied by impressions
+        entry.ctrWeightedSum += ctrRaw * impsRaw;
+        entry.posWeightedSum += posRaw * impsRaw;
+        entry.weightTotal += impsRaw;
+      });
+    } catch(e) {
+      console.warn('Time series error for', site.url, e);
+    }
+  }
+  
+  // ✅ Convert to sorted array with properly calculated metrics
+  return Array.from(dailyMap.keys())
+    .sort()
+    .map(date => {
+      const e = dailyMap.get(date);
+      const totalImps = e.impressions;
+      
+      // Weighted average CTR: (Σ(CTR × Impressions)) / Σ(Impressions) × 100
+      const weightedCtr = totalImps > 0 
+        ? (e.ctrWeightedSum / totalImps) * 100  // Multiply by 100 for percentage display
+        : 0;
+      
+      // Weighted average Position: (Σ(Position × Impressions)) / Σ(Impressions)
+      const weightedPosition = totalImps > 0 
+        ? e.posWeightedSum / totalImps
+        : 0;
+      
+      return {
+        date,
+        clicks: e.clicks,
+        impressions: totalImps,
+        ctr: weightedCtr,      // Now 0-100 percentage
+        position: weightedPosition  // Still 1-100 scale
+      };
+    });
+}
+function validateMetrics(data) {
+  if (!data || data.length === 0) return [];
+  
+  return data.map(item => ({
+    ...item,
+    clicks: isNaN(item.clicks) ? 0 : Math.max(0, item.clicks),
+    impressions: isNaN(item.impressions) ? 0 : Math.max(0, item.impressions),
+    ctr: isNaN(item.ctr) ? 0 : Math.min(100, Math.max(0, item.ctr)),
+    position: isNaN(item.position) ? 99 : Math.min(100, Math.max(1, item.position))
+  }));
+}
 async function fetchKeywords(siteUrl,start,end){const token=await getToken();const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all',dimensions:['query'],rowLimit:50})});if(!r.ok)return[];const d=await r.json();return(d.rows||[]).map(row=>({keyword:row.keys[0],clicks:Math.round(row.clicks),impressions:Math.round(row.impressions),ctr:row.ctr*100,position:row.position}));}
-async function loadData(){const{start,end}=getDates();if(!start||!end){document.getElementById('tbody').innerHTML='</td><td colspan="5" class="loading-cell">Invalid dates</td></tr>';return;}const pw=document.getElementById('progressWrap');pw.style.display='block';document.getElementById('tbody').innerHTML='<tr><td colspan="5" class="loading-cell">Fetching sites...</td></tr>';let sites;try{sites=await fetchSites();}catch(e){document.getElementById('tbody').innerHTML=`<tr><td colspan="5" class="loading-cell" style="color:var(--red)">Error: ${e.message}</td></tr>`;pw.style.display='none';return;}if(!sites.length){document.getElementById('tbody').innerHTML='<tr><td colspan="5" class="loading-cell">No properties found.</td></tr>';pw.style.display='none';return;}allData=[];failedSites=[];let done=0;const results=[];for(const site of sites){const res=await fetchTotals(site.siteUrl,start,end);if(res)results.push(res);else failedSites.push(site.siteUrl);done++;document.getElementById('progressFill').style.width=Math.round(done/sites.length*100)+'%';document.getElementById('progressText').textContent=`${done}/${sites.length} properties`;allData=results.slice();renderStats();renderTable();renderCharts();}allData=results;renderStats();renderTable();renderCharts();document.getElementById('progressText').textContent='Fetching combined timeline for ALL sites...';try{tsRows=await fetchTimeSeriesCombined(results,start,end);renderTsChart();}catch(e){console.warn(e);tsRows=[];renderTsChart();}pw.style.display='none';}
-function renderStats(){const tc=allData.reduce((s,r)=>s+r.clicks,0),ti=allData.reduce((s,r)=>s+r.impressions,0),ctr=ti>0?(tc/ti)*100:0,wp=allData.reduce((s,r)=>s+r.position*r.impressions,0),pos=ti>0?wp/ti:0;document.getElementById('s-clicks').textContent=allData.length?fmt(tc):'—';document.getElementById('s-impr').textContent=allData.length?fmt(ti):'—';document.getElementById('s-ctr').textContent=allData.length?ctr.toFixed(2)+'%':'—';document.getElementById('s-pos').textContent=allData.length?pos.toFixed(1):'—';}
+async function loadData(){const{start,end}=getDates();if(!start||!end){document.getElementById('tbody').innerHTML='</td><td colspan="5" class="loading-cell">Invalid dates</td></tr>';return;}const pw=document.getElementById('progressWrap');pw.style.display='block';document.getElementById('tbody').innerHTML='<tr><td colspan="5" class="loading-cell">Fetching sites...</td></tr>';let sites;try{sites=await fetchSites();}catch(e){document.getElementById('tbody').innerHTML=`<tr><td colspan="5" class="loading-cell" style="color:var(--red)">Error: ${e.message}</td></tr>`;pw.style.display='none';return;}if(!sites.length){document.getElementById('tbody').innerHTML='<tr><td colspan="5" class="loading-cell">No properties found.</td></tr>';pw.style.display='none';return;}allData=[];failedSites=[];let done=0;const results=[];for(const site of sites){const res=await fetchTotals(site.siteUrl,start,end);if(res)results.push(res);else failedSites.push(site.siteUrl);done++;document.getElementById('progressFill').style.width=Math.round(done/sites.length*100)+'%';document.getElementById('progressText').textContent=`${done}/${sites.length} properties`;allData=results.slice();renderStats();renderTable();renderCharts();}allData=results;renderStats();renderTable();renderCharts();document.getElementById('progressText').textContent='Fetching combined timeline for ALL sites...';try{tsRows=await fetchTimeSeriesCombined(results,start,end);renderTsChart();}catch(e){console.warn(e);tsRows=[];renderTsChart();}pw.style.display='none';// After fetching tsRows
+tsRows = validateMetrics(tsRows);
+renderTsChart();}
+function renderStats() {
+  const totalClicks = allData.reduce((s, r) => s + (r.clicks || 0), 0);
+  const totalImpressions = allData.reduce((s, r) => s + (r.impressions || 0), 0);
+  
+  // ✅ Weighted CTR across all sites
+  let weightedCtrSum = 0;
+  let weightedPosSum = 0;
+  
+  allData.forEach(site => {
+    weightedCtrSum += (site.ctr / 100) * site.impressions;  // Convert back to 0-1 for weighting
+    weightedPosSum += site.position * site.impressions;
+  });
+  
+  const avgCtr = totalImpressions > 0 
+    ? (weightedCtrSum / totalImpressions) * 100 
+    : 0;
+    
+  const avgPosition = totalImpressions > 0 
+    ? weightedPosSum / totalImpressions 
+    : 0;
+  
+  document.getElementById('s-clicks').textContent = allData.length ? fmt(totalClicks) : '—';
+  document.getElementById('s-impr').textContent = allData.length ? fmt(totalImpressions) : '—';
+  document.getElementById('s-ctr').textContent = allData.length ? avgCtr.toFixed(2) + '%' : '—';
+  document.getElementById('s-pos').textContent = allData.length ? avgPosition.toFixed(1) : '—';
+}
 function renderTable(){const sortBy=document.getElementById('sortBy').value,q=document.getElementById('searchInput').value.toLowerCase();let rows=[...allData];if(q)rows=rows.filter(r=>r.name.toLowerCase().includes(q));rows.sort((a,b)=>sortBy==='clicks'?b.clicks-a.clicks:sortBy==='impressions'?b.impressions-a.impressions:sortBy==='ctr'?b.ctr-a.ctr:a.position-b.position);const tbody=document.getElementById('tbody');tbody.innerHTML='';if(!rows.length){tbody.innerHTML='<tr><td colspan="5" class="loading-cell">No results</td></tr>';return;}rows.forEach(site=>{const tr=tbody.insertRow();tr.className='site-row';tr.onclick=()=>showModal(site);const pt=site.position===0?'tag-red':site.position<=3?'tag-green':site.position<=10?'tag-amber':'tag-purple';tr.innerHTML=`<td><div class="site-name-cell"><span class="site-domain">${esc(site.name)}</span><span class="site-type">${site.type}</span></div></td><td><span class="tag tag-blue">${fmtE(site.clicks)}</span></td><td><span class="tag tag-purple">${fmtE(site.impressions)}</span></td><td><span class="tag tag-green">${site.ctr.toFixed(2)}%</span></td><td><span class="tag ${pt}">${site.position>0?site.position.toFixed(1):'—'}</span></td>`;});}
 function renderCharts(){const top10c=[...allData].sort((a,b)=>b.clicks-a.clicks).slice(0,10),top10r=[...allData].sort((a,b)=>b.ctr-a.ctr).slice(0,10);if(clicksChart)clicksChart.destroy();if(ctrChart)ctrChart.destroy();if(!top10c.length)return;const short=n=>n.length>20?n.slice(0,17)+'...':n,isDark=html.getAttribute('data-theme')==='dark',sc={grid:{color:isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.06)'},ticks:{color:isDark?'#4a5f7a':'#94a3b8',font:{size:11}}};clicksChart=new Chart(document.getElementById('clicksChart'),{type:'bar',data:{labels:top10c.map(s=>short(s.name)),datasets:[{data:top10c.map(s=>s.clicks),backgroundColor:'rgba(59,130,246,.8)',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmtE(ctx.parsed.y)}`}}},scales:{x:sc,y:sc}}});ctrChart=new Chart(document.getElementById('ctrChart'),{type:'bar',data:{labels:top10r.map(s=>short(s.name)),datasets:[{data:top10r.map(s=>parseFloat(s.ctr.toFixed(2))),backgroundColor:'rgba(16,185,129,.8)',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(2)}%`}}},scales:{x:sc,y:sc}}});}
 const MC={clicks:{label:'Clicks',color:'#3b82f6',yAxis:'yLeft',fmt:v=>fmtE(v)},impressions:{label:'Impressions',color:'#8b5cf6',yAxis:'yLeft',fmt:v=>fmtE(v)},ctr:{label:'CTR',color:'#10b981',yAxis:'yRight1',fmt:v=>v.toFixed(2)+'%'},position:{label:'Avg Position',color:'#f59e0b',yAxis:'yRight2',fmt:v=>v.toFixed(1)}};
