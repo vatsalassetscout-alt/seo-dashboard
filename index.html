@@ -60,19 +60,26 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .logo {
     display: flex;
     align-items: center;
-    justify-content: center;    /* ← ADD THIS LINE */
     gap: 12px;
     flex-wrap: wrap;
+    position: relative;
+    justify-content: flex-start;  /* text left side rahega */
 }
 
 .logo-img {
     height: 44px;
     width: auto;
     display: block;
-    /* margin: 0 auto;  ← REMOVE this, don't need it */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     filter: var(--logo-filter);
     transition: filter .25s ease;
     object-fit: contain;
+}
+
+.logo-text {
+    position: relative;  /* text apni jagah rahega */
 }
 .logo-text h1{font-size:26px;font-weight:700;letter-spacing:-0.5px;color:var(--text);line-height:1.2;}
 .logo-text h1 em{font-style:normal;color:var(--text2);font-weight:400;font-size:0.7em;}
