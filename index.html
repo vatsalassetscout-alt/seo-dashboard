@@ -279,7 +279,24 @@ const MC = { clicks: { label: 'Clicks', color: '#3b82f6', yAxis: 'yLeft', fmt: v
 function renderTsChart() { if (tsChart) tsChart.destroy(); const wrapDiv = document.getElementById('tsWrap'); if (!wrapDiv) return; if (!tsRows || !tsRows.length) { wrapDiv.innerHTML = '<div class="ts-empty">No combined time-series data for this range.</div>'; return; } if (!document.getElementById('tsChart')) wrapDiv.innerHTML = '<canvas id="tsChart"></canvas>'; const canvas = document.getElementById('tsChart'); if (!canvas) return; const ctx = canvas.getContext('2d'); const isDark = html.getAttribute('data-theme') === 'dark'; const gridCol = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)', tickCol = isDark ? '#4a5f7a' : '#94a3b8'; const labels = tsRows.map(d => { const dt = new Date(d.date + 'T12:00:00'); return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }); const datasets = []; for (const [key, cfg] of Object.entries(MC)) { if (activeMetrics.has(key)) { datasets.push({ label: cfg.label, metricKey: key, data: tsRows.map(d => key === 'position' ? +d[key].toFixed(2) : d[key]), borderColor: cfg.color, backgroundColor: cfg.color + '20', borderWidth: 2, pointRadius: tsRows.length > 60 ? 0 : 3, pointHoverRadius: 5, pointBackgroundColor: cfg.color, tension: 0.35, fill: key === 'impressions', yAxisID: cfg.yAxis }); } } const scales = { x: { grid: { color: gridCol }, ticks: { color: tickCol, maxTicksLimit: tsRows.length > 60 ? 15 : tsRows.length } } }; if (activeMetrics.has('clicks') || activeMetrics.has('impressions')) scales.yLeft = { position: 'left', grid: { color: gridCol }, ticks: { color: '#6a9fd8', callback: v => fmt(v) } }; if (activeMetrics.has('ctr')) scales.yRight1 = { position: 'right', grid: { display: false }, ticks: { color: '#10b981', callback: v => v.toFixed(1) + '%' } }; if (activeMetrics.has('position')) scales.yRight2 = { position: 'right', grid: { display: false }, reverse: true, ticks: { color: '#f59e0b' } }; tsChart = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: items => tsRows[items[0].dataIndex] ? tsRows[items[0].dataIndex].date : items[0].label, label: ctx => ` ${ctx.dataset.label}: ${MC[ctx.dataset.metricKey].fmt(ctx.parsed.y)}` } } }, scales } }); }
 document.querySelectorAll('.metric-btn').forEach(btn => { btn.onclick = () => { const m = btn.dataset.m; if (activeMetrics.has(m)) { if (activeMetrics.size === 1) return; activeMetrics.delete(m); btn.classList.remove('active'); } else { activeMetrics.add(m); btn.classList.add('active'); } renderTsChart(); }; });
 document.getElementById('sortBy').onchange = renderTable; document.getElementById('searchInput').oninput = renderTable; document.getElementById('refreshBtn').onclick = loadData;
-function exportSummary() { if (!allData.length) return; const ws = XLSX.utils.json_to_sheet(allData.map(s => ({ 'Website': s.name, 'Type': s.type, 'Clicks': s.clicks, 'Impressions': s.impressions, 'CTR %': parseFloat(s.ctr.toFixed(2)), 'Avg Position': parseFloat(s.position.toFixed(1)) }))); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Summary'); XLSX.writeFile(wb, `asset-scout-summary-${new Date().toISOString().split('T')[0]}.xlsx`); }
+function exportSummary() {
+  if (!allData.length) {
+    alert('No data to export. Please load data first.');
+    return;
+  }
+  const ws = XLSX.utils.json_to_sheet(allData.map(s => ({
+    'Website': s.name,
+    'Type': s.type,
+    'Clicks': s.clicks,
+    'Impressions': s.impressions,
+    'CTR %': parseFloat(s.ctr.toFixed(2)),
+    'Avg Position': parseFloat(s.position.toFixed(1))
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Summary');
+  XLSX.writeFile(wb, `asset-scout-summary-${new Date().toISOString().split('T')[0]}.xlsx`);
+  alert('✅ Summary exported successfully!');
+}
 async function exportDaily() {
   if (!allData.length) {
     alert('No data to export. Please load data first.');
@@ -287,13 +304,19 @@ async function exportDaily() {
   }
   
   const { start, end } = getDates();
+  if (!start || !end) {
+    alert('Invalid date range selected.');
+    return;
+  }
+  
   const progressFill = document.getElementById('progressFill');
   const progressWrap = document.getElementById('progressWrap');
   const progressText = document.getElementById('progressText');
   const originalDisplay = progressWrap.style.display;
   
   progressWrap.style.display = 'block';
-  progressText.textContent = 'Fetching daily data for all websites...';
+  progressText.textContent = '📊 Fetching daily data for all websites...';
+  progressFill.style.width = '0%';
   
   const allDatesSet = new Set();
   const websiteDataMap = new Map();
@@ -304,7 +327,7 @@ async function exportDaily() {
     const site = allData[idx];
     const percent = Math.round((idx / totalSites) * 100);
     progressFill.style.width = percent + '%';
-    progressText.textContent = `Processing ${idx + 1}/${totalSites}: ${site.name}`;
+    progressText.textContent = `📈 Processing ${idx + 1}/${totalSites}: ${site.name}`;
     
     try {
       const token = await getToken();
@@ -339,26 +362,31 @@ async function exportDaily() {
         
         websiteDataMap.set(site.name, {
           type: site.type,
+          url: site.url,
           data: siteDateMap
         });
       }
     } catch (e) {
       console.warn(`Failed for ${site.name}:`, e);
     }
+    
+    completed++;
   }
   
-  progressWrap.style.display = 'none';
+  progressFill.style.width = '100%';
+  progressText.textContent = '📝 Creating Excel file...';
   
   if (websiteDataMap.size === 0) {
-    alert('No daily data available for export');
+    progressWrap.style.display = 'none';
+    alert('❌ No daily data available for export. Try a different date range.');
     return;
   }
   
   const sortedDates = Array.from(allDatesSet).sort();
   
   const metricChoice = prompt(
-    'Which metric do you want to export?\n\n' +
-    '1 = Clicks\n' +
+    '📊 Select metric to export:\n\n' +
+    '1 = Clicks (most popular)\n' +
     '2 = Impressions\n' +
     '3 = CTR (%)\n' +
     '4 = Avg Position\n\n' +
@@ -375,14 +403,13 @@ async function exportDaily() {
   }
   
   const excelData = [];
-  const headerRow = { 'Website / Date': 'Website / Date' };
+  
+  // Header row with dates
+  const headerRow = { 'Website / Date': 'Website / Date', 'Type': 'Type' };
   sortedDates.forEach(date => { headerRow[date] = metricLabel; });
   excelData.push(headerRow);
   
-  const typeRow = { 'Website / Date': 'Type' };
-  sortedDates.forEach(date => { typeRow[date] = ''; });
-  excelData.push(typeRow);
-  
+  // Data rows for each website
   const sortedWebsites = Array.from(websiteDataMap.keys()).sort();
   
   for (const website of sortedWebsites) {
@@ -401,179 +428,46 @@ async function exportDaily() {
   }
   
   const ws = XLSX.utils.json_to_sheet(excelData);
-  ws['!cols'] = [{ wch: 25 }, { wch: 12 }, ...sortedDates.map(() => ({ wch: 12 }))];
+  ws['!cols'] = [{ wch: 30 }, { wch: 12 }, ...sortedDates.map(() => ({ wch: 14 }))];
   
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, `${metricLabel} - Daily`);
-  XLSX.writeFile(wb, `asset-scout-${metricLabel}-daily-${start}_to_${end}.xlsx`);
+  XLSX.writeFile(wb, `asset-scout-${metricLabel.toLowerCase()}-daily-${start}_to_${end}.xlsx`);
   
-  alert(`✅ Exported ${sortedWebsites.length} websites × ${sortedDates.length} dates\nMetric: ${metricLabel}`);
-  progressWrap.style.display = originalDisplay;
+  progressWrap.style.display = 'none';
+  alert(`✅ Export successful!\n\n📊 ${sortedWebsites.length} websites\n📅 ${sortedDates.length} days\n📈 Metric: ${metricLabel}`);
 }
-async function showModal(site) {
-  const modal = document.getElementById('modal');
-  document.getElementById('modalTitle').textContent = '📊 ' + site.name;
-  modal.style.display = 'block';
-  const { start, end } = getDates();
-  const kw = await fetchKeywords(site.url, start, end);
-  
-  // Fetch time series for this specific site
-  let siteTimeData = [];
-  try {
-    const token = await getToken();
-    const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        startDate: start,
-        endDate: end,
-        type: 'web',
-        aggregationType: 'byProperty',
-        dataState: 'all',
-        dimensions: ['date'],
-        rowLimit: 100
-      })
-    });
-    if (r.ok) {
-      const d = await r.json();
-      siteTimeData = (d.rows || []).map(row => ({
-        date: row.keys[0],
-        clicks: Math.round(row.clicks),
-        impressions: Math.round(row.impressions)
-      }));
-    }
-  } catch(e) { console.warn(e); }
-  
-  const modalHTML = `
-    <div class="stats-grid" style="margin-bottom:24px">
-      <div class="stat" style="--accent-color:var(--blue)">
-        <h3>Total Clicks</h3>
-        <div class="val">${fmtE(site.clicks)}</div>
-        <div class="sub">${start} to ${end}</div>
-      </div>
-      <div class="stat" style="--accent-color:var(--purple)">
-        <h3>Total Impressions</h3>
-        <div class="val">${fmtE(site.impressions)}</div>
-        <div class="sub">search appearances</div>
-      </div>
-      <div class="stat" style="--accent-color:var(--green)">
-        <h3>CTR</h3>
-        <div class="val">${site.ctr.toFixed(2)}%</div>
-        <div class="sub">click-through rate</div>
-      </div>
-      <div class="stat" style="--accent-color:var(--amber)">
-        <h3>Avg Position</h3>
-        <div class="val">${site.position > 0 ? site.position.toFixed(1) : '—'}</div>
-        <div class="sub">lower is better</div>
-      </div>
-    </div>
-    
-    ${siteTimeData.length > 0 ? `
-    <div class="ts-card" style="margin-bottom:20px">
-      <div class="ts-header">
-        <h3>📈 Daily Performance Trend</h3>
-        <span style="font-size:11px;color:var(--text3)">Last ${siteTimeData.length} days</span>
-      </div>
-      <div style="height:200px; position:relative">
-        <canvas id="siteMiniChart"></canvas>
-      </div>
-    </div>
-    ` : ''}
-    
-    <div class="ts-card" style="margin-bottom:20px">
-      <div class="ts-header">
-        <h3>🔍 Top Keywords (${kw.length})</h3>
-        <div class="metric-toggles">
-          <span style="font-size:11px;color:var(--text3)">sorted by clicks</span>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>🔑 Keyword</th>
-                <th>👆 Clicks</th>
-                <th>👁️ Impressions</th>
-                <th>📈 CTR</th>
-                <th>🎯 Position</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${kw.length ? kw.sort((a,b)=>b.clicks - a.clicks).slice(0,20).map(k => {
-                const posClass = k.position <= 3 ? 'tag-green' : (k.position <= 10 ? 'tag-amber' : 'tag-purple');
-                return `
-                  <tr style="cursor:default">
-                    <td><strong style="color:var(--blue2); word-break:break-word">${esc(k.keyword)}</strong></td>
-                    <td><span class="tag tag-blue">${fmtE(k.clicks)}</span></td>
-                    <td><span class="tag tag-purple">${fmtE(k.impressions)}</span></td>
-                    <td><span class="tag tag-green">${k.ctr.toFixed(2)}%</span></td>
-                    <td><span class="tag ${posClass}">${k.position.toFixed(1)}</span></td>
-                  </tr>
-                `;
-              }).join('') : '<tr><td colspan="5" class="loading-cell">📭 No keyword data available for this period</td></tr>'}
-              ${kw.length > 20 ? `<tr><td colspan="5" style="text-align:center; color:var(--text3); font-size:12px; padding:12px">+ ${kw.length - 20} more keywords (API limit)</td></tr>` : ''}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    
-    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px">
-      <button onclick="document.getElementById('modal').style.display='none'" class="btn btn-indigo">✖ Close</button>
-    </div>
-  `;
-  
-  document.getElementById('modalBody').innerHTML = modalHTML;
-  
-  // Create mini chart if data exists
-  if(siteTimeData.length > 0 && typeof Chart !== 'undefined') {
-    setTimeout(() => {
-      const canvas = document.getElementById('siteMiniChart');
-      if(canvas) {
-        const ctx = canvas.getContext('2d');
-        const isDark = html.getAttribute('data-theme') === 'dark';
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: siteTimeData.map(d => d.date.slice(5)),
-            datasets: [{
-              label: 'Clicks',
-              data: siteTimeData.map(d => d.clicks),
-              borderColor: '#3b82f6',
-              backgroundColor: '#3b82f620',
-              borderWidth: 2,
-              fill: true,
-              tension: 0.3,
-              pointRadius: 2
-            }, {
-              label: 'Impressions',
-              data: siteTimeData.map(d => d.impressions),
-              borderColor: '#8b5cf6',
-              backgroundColor: '#8b5cf620',
-              borderWidth: 2,
-              fill: true,
-              tension: 0.3,
-              pointRadius: 2
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-              legend: { position: 'top', labels: { color: isDark ? '#94a3b8' : '#475569' } },
-              tooltip: { mode: 'index', intersect: false }
-            },
-            scales: {
-              y: { grid: { color: isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)' }, ticks: { color: isDark ? '#4a5f7a' : '#94a3b8' } },
-              x: { grid: { display: false }, ticks: { color: isDark ? '#4a5f7a' : '#94a3b8', maxRotation: 45 } }
-            }
-          }
-        });
-      }
-    }, 50);
+document.getElementById('exportBtn').onclick = () => {
+  if (!allData.length) {
+    alert('No data to export. Please load data first.');
+    return;
   }
-}
+  document.getElementById('exportModal').style.display = 'block';
+};
+
+document.getElementById('closeExportModal').onclick = () => {
+  document.getElementById('exportModal').style.display = 'none';
+};
+
+document.getElementById('exportSummaryBtn').onclick = () => {
+  exportSummary();
+  document.getElementById('exportModal').style.display = 'none';
+};
+
+document.getElementById('exportDailyBtn').onclick = () => {
+  exportDaily();
+  document.getElementById('exportModal').style.display = 'none';
+};
+
+// Close modal when clicking outside
+window.onclick = e => {
+  if (e.target === document.getElementById('modal')) {
+    document.getElementById('modal').style.display = 'none';
+  }
+  if (e.target === document.getElementById('exportModal')) {
+    document.getElementById('exportModal').style.display = 'none';
+  }
+};
 window.onclick = e => { if (e.target === document.getElementById('modal')) document.getElementById('modal').style.display = 'none'; if (e.target === document.getElementById('exportModal')) document.getElementById('exportModal').style.display = 'none'; };
 function fmt(n){return n.toLocaleString('en-US');}
 function fmtE(n){return n.toLocaleString('en-US');}
