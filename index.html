@@ -613,29 +613,73 @@ function exportSummary(){
 async function exportDaily(){
   if(!allData.length) return;
   const{start,end}=getDates();
-  const dailyData=[];
-  const originalText=document.getElementById('progressText').textContent;
-  document.getElementById('progressText').textContent='Preparing daily export for top 10 sites...';
+  const dailyData = [];
+  const originalText = document.getElementById('progressText').textContent;
+  const progressFill = document.getElementById('progressFill');
+  const progressWrap = document.getElementById('progressWrap');
   
-  for(const site of allData.slice(0,10)){
+  progressWrap.style.display = 'block';
+  document.getElementById('progressText').textContent = 'Fetching daily data for all websites...';
+  
+  let completed = 0;
+  const totalSites = allData.length;
+  
+  for(let idx = 0; idx < allData.length; idx++){
+    const site = allData[idx];
+    progressFill.style.width = Math.round((idx / totalSites) * 100) + '%';
+    document.getElementById('progressText').textContent = `Fetching daily data: ${idx + 1} / ${totalSites} sites - ${site.name}`;
+    
     try{
-      const token=await getToken();
-      const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`,{
-        method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
-        body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all',dimensions:['date'],rowLimit:500})
+      const token = await getToken();
+      const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`,{
+        method: 'POST',
+        headers: {Authorization: `Bearer ${token}`, 'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          startDate: start,
+          endDate: end,
+          type: 'web',
+          aggregationType: 'byProperty',
+          dataState: 'all',
+          dimensions: ['date'],
+          rowLimit: 500
+        })
       });
+      
       if(r.ok){
-        const d=await r.json();
-        (d.rows||[]).forEach(row=>{
+        const d = await r.json();
+        (d.rows || []).forEach(row => {
           dailyData.push({
-            'Date':row.keys[0],'Website':site.name,'Type':site.type,
-            'Clicks':Math.round(row.clicks),'Impressions':Math.round(row.impressions),
-            'CTR %':(row.ctr*100).toFixed(2),'Avg Position':row.position.toFixed(1)
+            'Date': row.keys[0],
+            'Website': site.name,
+            'Type': site.type,
+            'Clicks': Math.round(row.clicks),
+            'Impressions': Math.round(row.impressions),
+            'CTR %': (row.ctr * 100).toFixed(2),
+            'Avg Position': row.position.toFixed(1)
           });
         });
       }
-    } catch(e){console.warn(site.name,e);}
+    } catch(e){
+      console.warn(`Failed to fetch daily data for ${site.name}:`, e);
+    }
   }
+  
+  progressWrap.style.display = 'none';
+  
+  if(dailyData.length){
+    // Sort by date and then by website name
+    dailyData.sort((a,b) => a.Date.localeCompare(b.Date) || a.Website.localeCompare(b.Website));
+    
+    const ws = XLSX.utils.json_to_sheet(dailyData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Daily Breakdown');
+    XLSX.writeFile(wb, `asset-scout-daily-${start}_to_${end}.xlsx`);
+    alert(`Exported ${dailyData.length} rows of daily data for ${totalSites} websites`);
+  } else {
+    alert('No daily data available for export');
+  }
+  document.getElementById('progressText').textContent = originalText;
+}
   
   if(dailyData.length){
     const ws=XLSX.utils.json_to_sheet(dailyData);
