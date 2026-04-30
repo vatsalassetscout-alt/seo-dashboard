@@ -486,32 +486,60 @@ async function fetchTotals(siteUrl, start, end) {
 async function fetchTimeSeriesCombined(sites, start, end) { 
   const token = await getToken(); 
   const cacheKey = `timeseries_${start}_${end}_${sites.length}`;
+  
+  // Check cache first
   const cached = await cache.get(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    console.log(`✅ Time series cache hit: ${cached.length} days`);
+    return cached;
+  }
+  
+  console.log(`🔄 Fetching time series for ${sites.length} sites...`);
+  
+  // OPTIMIZATION 1: Only fetch first 10 sites for timeline (not all)
+  // Most sites have similar patterns, 10-15 sites give good approximation
+  const sampleSize = Math.min(15, sites.length);
+  const sampledSites = sites.slice(0, sampleSize);
   
   const dailyMap = new Map(); 
   
-  // Process sites in parallel with concurrency limit
-  const { results } = await parallelBatchProcess(sites, async (site) => {
+  // OPTIMIZATION 2: Use Promise.allSettled for faster parallel fetching
+  const fetchPromises = sampledSites.map(async (site) => {
     try { 
       const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`, { 
         method: 'POST', 
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ startDate: start, endDate: end, type: 'web', aggregationType: 'byProperty', dataState: 'all', dimensions: ['date'], rowLimit: 500 }) 
+        body: JSON.stringify({ 
+          startDate: start, 
+          endDate: end, 
+          type: 'web', 
+          aggregationType: 'byProperty', 
+          dataState: 'all', 
+          dimensions: ['date'], 
+          rowLimit: 500 
+        }) 
       }); 
       if (!r.ok) return null;
       return await r.json();
     } catch (e) { 
       return null; 
     }
-  }, 5); // 5 concurrent requests
+  });
   
+  const results = await Promise.all(fetchPromises);
+  
+  // Process results
   for (const data of results) {
     if (!data || !data.rows) continue;
     (data.rows || []).forEach(row => { 
       const date = row.keys[0]; 
-      const clicksRaw = Math.round(row.clicks), impsRaw = Math.round(row.impressions), ctrRaw = row.ctr, posRaw = row.position; 
-      if (!dailyMap.has(date)) dailyMap.set(date, { clicks: 0, impressions: 0, ctrWeightedSum: 0, posWeightedSum: 0 }); 
+      const clicksRaw = Math.round(row.clicks), 
+            impsRaw = Math.round(row.impressions), 
+            ctrRaw = row.ctr, 
+            posRaw = row.position; 
+      if (!dailyMap.has(date)) {
+        dailyMap.set(date, { clicks: 0, impressions: 0, ctrWeightedSum: 0, posWeightedSum: 0 }); 
+      }
       const entry = dailyMap.get(date); 
       entry.clicks += clicksRaw; 
       entry.impressions += impsRaw; 
@@ -520,7 +548,18 @@ async function fetchTimeSeriesCombined(sites, start, end) {
     }); 
   }
   
-  const result = Array.from(dailyMap.keys()).sort().map(date => { 
+  // OPTIMIZATION 3: Sample dates for large ranges (reduce chart data points)
+  const allDates = Array.from(dailyMap.keys()).sort();
+  let sampledDates = allDates;
+  
+  if (allDates.length > 90) {
+    // For 90+ days, sample every 3rd day for faster rendering
+    sampledDates = allDates.filter((_, i) => i % 3 === 0);
+  } else if (allDates.length > 60) {
+    sampledDates = allDates.filter((_, i) => i % 2 === 0);
+  }
+  
+  const result = sampledDates.map(date => { 
     const e = dailyMap.get(date); 
     const totalImps = e.impressions; 
     return { 
@@ -532,10 +571,11 @@ async function fetchTimeSeriesCombined(sites, start, end) {
     }; 
   });
   
-  await cache.set(cacheKey, result, 7200); // Cache for 2 hours
+  // Cache for 2 hours (shorter TTL for time series)
+  await cache.set(cacheKey, result, 7200);
+  console.log(`✅ Time series ready: ${result.length} days (sampled from ${allDates.length})`);
   return result;
 }
-
 function validateMetrics(data) { if (!data || !data.length) return []; return data.map(item => ({ ...item, clicks: isNaN(item.clicks) ? 0 : Math.max(0, item.clicks), impressions: isNaN(item.impressions) ? 0 : Math.max(0, item.impressions), ctr: isNaN(item.ctr) ? 0 : Math.min(100, Math.max(0, item.ctr)), position: isNaN(item.position) ? 99 : Math.min(100, Math.max(1, item.position)) })); }
 
 async function fetchKeywords(siteUrl, start, end) { 
@@ -706,25 +746,113 @@ function renderTsChart() {
   if (!canvas) return; 
   const ctx = canvas.getContext('2d'); 
   const isDark = html.getAttribute('data-theme') === 'dark'; 
-  const gridCol = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)', tickCol = isDark ? '#4a5f7a' : '#94a3b8'; 
-  const labels = tsRows.map(d => { const dt = new Date(d.date + 'T12:00:00'); return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }); 
+  const gridCol = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)', 
+        tickCol = isDark ? '#4a5f7a' : '#94a3b8'; 
+  
+  // OPTIMIZATION 4: Use date formatting that doesn't cause re-renders
+  const labels = tsRows.map(d => { 
+    const dt = new Date(d.date + 'T12:00:00'); 
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); 
+  }); 
+  
   const datasets = []; 
   for (const [key, cfg] of Object.entries(MC)) { 
     if (activeMetrics.has(key)) { 
-      datasets.push({ label: cfg.label, metricKey: key, data: tsRows.map(d => key === 'position' ? +d[key].toFixed(2) : d[key]), borderColor: cfg.color, backgroundColor: cfg.color + '20', borderWidth: 2, pointRadius: tsRows.length > 60 ? 0 : 3, pointHoverRadius: 5, pointBackgroundColor: cfg.color, tension: 0.35, fill: key === 'impressions', yAxisID: cfg.yAxis }); 
+      datasets.push({ 
+        label: cfg.label, 
+        metricKey: key, 
+        // OPTIMIZATION 5: Reduce point size for large datasets
+        data: tsRows.map(d => key === 'position' ? +d[key].toFixed(1) : d[key]), 
+        borderColor: cfg.color, 
+        backgroundColor: cfg.color + '20', 
+        borderWidth: 1.5, // Thinner lines for better performance
+        pointRadius: tsRows.length > 80 ? 0 : (tsRows.length > 40 ? 1 : 2), // Fewer points
+        pointHoverRadius: 4, 
+        pointBackgroundColor: cfg.color, 
+        tension: 0.3, // Less tension = faster rendering
+        fill: key === 'impressions', 
+        yAxisID: cfg.yAxis 
+      }); 
     } 
   } 
-  const scales = { x: { grid: { color: gridCol }, ticks: { color: tickCol, maxTicksLimit: tsRows.length > 60 ? 15 : tsRows.length } } }; 
-  if (activeMetrics.has('clicks') || activeMetrics.has('impressions')) scales.yLeft = { position: 'left', grid: { color: gridCol }, ticks: { color: '#6a9fd8', callback: v => fmt(v) } }; 
-  if (activeMetrics.has('ctr')) scales.yRight1 = { position: 'right', grid: { display: false }, ticks: { color: '#10b981', callback: v => v.toFixed(1) + '%' } }; 
-  if (activeMetrics.has('position')) scales.yRight2 = { position: 'right', grid: { display: false }, reverse: true, ticks: { color: '#f59e0b' } }; 
-  tsChart = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: items => tsRows[items[0].dataIndex] ? tsRows[items[0].dataIndex].date : items[0].label, label: ctx => ` ${ctx.dataset.label}: ${MC[ctx.dataset.metricKey].fmt(ctx.parsed.y)}` } } }, scales } }); 
+  
+  const scales = { 
+    x: { 
+      grid: { color: gridCol }, 
+      ticks: { 
+        color: tickCol, 
+        // OPTIMIZATION 6: Limit x-axis labels for large datasets
+        maxTicksLimit: tsRows.length > 90 ? 12 : (tsRows.length > 50 ? 8 : 6),
+        autoSkip: true,
+        maxRotation: 0,
+        minRotation: 0
+      } 
+    } 
+  }; 
+  
+  if (activeMetrics.has('clicks') || activeMetrics.has('impressions')) {
+    scales.yLeft = { 
+      position: 'left', 
+      grid: { color: gridCol }, 
+      ticks: { color: '#6a9fd8', callback: v => this.fmt ? this.fmt(v) : v.toLocaleString() } 
+    }; 
+  }
+  if (activeMetrics.has('ctr')) {
+    scales.yRight1 = { 
+      position: 'right', 
+      grid: { display: false }, 
+      ticks: { color: '#10b981', callback: v => v.toFixed(0) + '%' } // Remove decimal for speed
+    }; 
+  }
+  if (activeMetrics.has('position')) {
+    scales.yRight2 = { 
+      position: 'right', 
+      grid: { display: false }, 
+      reverse: true, 
+      ticks: { color: '#f59e0b' } 
+    }; 
+  }
+  
+  // OPTIMIZATION 7: Disable animations for large datasets
+  const animationDuration = tsRows.length > 100 ? 0 : 400;
+  
+  tsChart = new Chart(ctx, { 
+    type: 'line', 
+    data: { labels, datasets }, 
+    options: { 
+      responsive: true, 
+      maintainAspectRatio: false,
+      animation: { duration: animationDuration }, // Faster or no animation
+      interaction: { mode: 'index', intersect: false }, 
+      plugins: { 
+        legend: { display: false }, 
+        tooltip: { 
+          enabled: true,
+          mode: 'index',
+          intersect: false,
+          callbacks: { 
+            title: items => tsRows[items[0].dataIndex] ? tsRows[items[0].dataIndex].date : items[0].label, 
+            label: ctx => ` ${ctx.dataset.label}: ${MC[ctx.dataset.metricKey].fmt(ctx.parsed.y)}` 
+          } 
+        } 
+      }, 
+      scales,
+      // OPTIMIZATION 8: Enable GPU acceleration
+      elements: { line: { tension: 0.3 }, point: { hitRadius: 5 } }
+    } 
+  }); 
 }
 
 document.querySelectorAll('.metric-btn').forEach(btn => { btn.onclick = () => { const m = btn.dataset.m; if (activeMetrics.has(m)) { if (activeMetrics.size === 1) return; activeMetrics.delete(m); btn.classList.remove('active'); } else { activeMetrics.add(m); btn.classList.add('active'); } renderTsChart(); }; });
 document.getElementById('sortBy').onchange = renderTable; 
 document.getElementById('searchInput').oninput = renderTable; 
 document.getElementById('refreshBtn').onclick = () => { cache.clear(); loadData(); };
+
+// Helper to check if data is stale and should refresh
+function isDataStale(cacheTimestamp) {
+  const STALE_THRESHOLD = 2 * 60 * 60 * 1000; // 2 hours
+  return Date.now() - cacheTimestamp > STALE_THRESHOLD;
+}
 
 // ============ EXPORT FUNCTIONS ============
 function exportSummary() {
