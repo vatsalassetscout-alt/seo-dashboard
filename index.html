@@ -60,23 +60,19 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .logo {
     display: flex;
     align-items: center;
+    justify-content: center;     /* ← yeh add karo */
     gap: 12px;
     flex-wrap: wrap;
-    position: relative;
-    justify-content: flex-start;  /* text left side rahega */
+    width: 100%;                  /* ← yeh bhi add karo */
 }
-
 .logo-img {
     height: 44px;
     width: auto;
     display: block;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    /* margin-left: 100px;  ← REMOVE karo */
     filter: var(--logo-filter);
     transition: filter .25s ease;
     object-fit: contain;
-    margin-left: 20000px;
 }
 
 .logo-text {
