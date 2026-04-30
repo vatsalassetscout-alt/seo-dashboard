@@ -680,17 +680,6 @@ async function exportDaily(){
   }
   document.getElementById('progressText').textContent = originalText;
 }
-  
-  if(dailyData.length){
-    const ws=XLSX.utils.json_to_sheet(dailyData);
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,'Daily Breakdown');
-    XLSX.writeFile(wb,`asset-scout-daily-${start}_to_${end}.xlsx`);
-  } else {
-    alert('No daily data available for export');
-  }
-  document.getElementById('progressText').textContent=originalText;
-}
 
 // Updated export button handler
 document.getElementById('exportBtn').onclick=()=>{if(!allData.length){alert('No data to export');return;}document.getElementById('exportModal').style.display='block';};
