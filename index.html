@@ -46,10 +46,9 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .wrap{max-width:1440px;margin:0 auto;padding:20px 24px}
 .header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 14px;
+    justify-content: space-between;
+    position: relative; /* important */
     padding: 18px 24px;
     background: var(--s1);
     border: 1px solid var(--border);
@@ -58,21 +57,46 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
     box-shadow: 0 1px 4px var(--shadow);
 }
 
+/* LEFT SECTION */
 .logo {
     display: flex;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
 }
 
+/* CENTER LOGO IMAGE */
 .logo-img {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     height: 44px;
     width: auto;
-    display: block;
-    margin-left:300px;     
     filter: var(--logo-filter);
     transition: filter .25s ease;
     object-fit: contain;
+}
+
+/* TEXT stays left */
+.logo-text h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+}
+
+
+.logo-text h1 em {
+    font-style: normal;
+    color: var(--text2);
+    font-weight: 400;
+    font-size: 0.7em;
+}
+
+/* RIGHT SIDE stays same */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 .logo-text h1{font-size:26px;font-weight:700;letter-spacing:-0.5px;color:var(--text);line-height:1.2;}
 .logo-text h1 em{font-style:normal;color:var(--text2);font-weight:400;font-size:0.7em;}
