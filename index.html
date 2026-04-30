@@ -214,7 +214,7 @@ tbody tr:last-child td{border-bottom:none}
 <div class="wrap">
   <div class="header"><div class="logo"><div class="logo-text"><h1>SEO Dashboard</h1></div><img class="logo-img" src="https://assetscout.in/assets/images/Assetscout%20Logo%20Black.webp" alt="Asset Scout" onerror="this.style.display='none'"></div><div class="header-right"><div class="pill off" id="statusPill"><span class="dot"></span><span id="statusText">Not Connected</span></div><button id="themeToggleBtn" class="theme-toggle" title="Toggle light/dark theme">🌙</button><button id="logoutBtn" class="btn btn-red" style="display:none">Sign Out</button></div></div>
   <div id="loginWrap" class="login-wrap"><div class="login-box"><div class="vercel-notice" id="vercelNotice" style="display:none">✓ <strong>Deployment detected.</strong> Redirect URI: <strong id="autoRedirectUri"></strong>.<br>Add this exact URL to your Google OAuth app Authorized redirect URIs.</div><h2>🔌 Connect Google Search Console</h2><p>Connect your Google Search Console account to view SEO data across all your properties.</p><div class="step"><div class="step-head"><div class="snum">1</div>Sign in with Google</div><button id="genBtn" class="btn btn-blue" style="width:100%;padding:12px;font-size:14px">🔗 Connect Google Search Console</button><div class="msg" id="genMsg"></div><button id="openBtn" style="display:none" disabled>hidden</button><small>You will be redirected to Google. After approving, you will be brought back here automatically.</small></div><div class="step"><div class="step-head"><div class="snum">2</div>Paste redirect URL <span style="font-weight:400;color:var(--text3);font-size:12px">(only if not redirected automatically)</span></div><input type="text" id="codeUrl" class="url-input" placeholder="https://your-app.vercel.app/?code=4/0AX4XfW..."><small>Paste the full URL from the address bar after Google redirects you.</small><button id="connectBtn" class="btn btn-green" style="width:100%;margin-top:10px" disabled>✓ Connect &amp; Save Session</button><div class="msg" id="connectMsg"></div></div></div></div>
-  <div id="dashboard" style="display:none"><div class="controls"><div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="custom">Custom range</option></select></div><div class="date-range-wrap" id="dateRangeWrap" style="display:none"><div class="date-field" id="fromField"><label>From</label><div class="date-trigger" id="fromTrigger" onclick="openCalendar('from')"><span style="font-size:13px">📅</span><span id="fromLabel">Select date</span></div><div class="cal-popup" id="fromCal"></div></div><span class="date-sep">→</span><div class="date-field" id="toField"><label>To</label><div class="date-trigger" id="toTrigger" onclick="openCalendar('to')"><span style="font-size:13px">📅</span><span id="toLabel">Select date</span></div><div class="cal-popup" id="toCal"></div></div><div style="display:flex;flex-direction:column;gap:5px"><label>&nbsp;</label><button id="applyCustomRangeBtn" class="btn btn-blue">Apply Range</button></div></div><div class="cg"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div><div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter sites..."></div><div class="cg"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-indigo">🔄 Refresh</button></div><div class="cg"><label>&nbsp;</label><button id="exportBtn" class="btn btn-green">📎 Excel</button></div></div><div class="stats-grid"><div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div><div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">impression-weighted</div></div></div><div class="ts-card"><div class="ts-header"><h3>📈 Combined Performance Over Time (All Websites)</h3><div class="metric-toggles"><button class="metric-btn mb-clicks active" data-m="clicks"><span class="mdot" style="background:#3b82f6"></span>Clicks</button><button class="metric-btn mb-impressions active" data-m="impressions"><span class="mdot" style="background:#8b5cf6"></span>Impressions</button><button class="metric-btn mb-ctr active" data-m="ctr"><span class="mdot" style="background:#10b981"></span>CTR</button><button class="metric-btn mb-position active" data-m="position"><span class="mdot" style="background:#f59e0b"></span>Position</button></div></div><div class="ts-canvas-wrap" id="tsWrap"><canvas id="tsChart"></canvas></div></div><div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div><div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div></div><div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">Loading...</div></div><div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>🌐 Website</th><th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions <span class="sort-arrow">⇅</span></th><th data-sort="ctr">CTR <span class="sort-arrow">⇅</span></th><th data-sort="position">Avg Position <span class="sort-arrow">⇅</span></th></tr></thead><tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td></tr></tbody></table></div></div></div></div>
+  <div id="dashboard" style="display:none"><div class="controls"><div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="custom">Custom range</option></select></div><div class="date-range-wrap" id="dateRangeWrap" style="display:none"><div class="date-field" id="fromField"><label>From</label><div class="date-trigger" id="fromTrigger" onclick="openCalendar('from')"><span style="font-size:13px">📅</span><span id="fromLabel">Select date</span></div><div class="cal-popup" id="fromCal"></div></div><span class="date-sep">→</span><div class="date-field" id="toField"><label>To</label><div class="date-trigger" id="toTrigger" onclick="openCalendar('to')"><span style="font-size:13px">📅</span><span id="toLabel">Select date</span></div><div class="cal-popup" id="toCal"></div></div><div style="display:flex;flex-direction:column;gap:5px"><label>&nbsp;</label><button id="applyCustomRangeBtn" class="btn btn-blue">Apply Range</button></div></div><div class="cg"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div><div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter sites..."></div><div class="cg"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-indigo">🔄 Refresh</button></div><div class="cg"><label>&nbsp;</label><button id="exportBtn" class="btn btn-green">📎 Excel</button></div></div><div class="stats-grid"><div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div><div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">impression-weighted</div></div></div><div class="ts-card"><div class="ts-header"><h3>📈 Combined Performance Over Time (All Websites)</h3><div class="metric-toggles"><button class="metric-btn mb-clicks active" data-m="clicks"><span class="mdot" style="background:#3b82f6"></span>Clicks</button><button class="metric-btn mb-impressions active" data-m="impressions"><span class="mdot" style="background:#8b5cf6"></span>Impressions</button><button class="metric-btn mb-ctr active" data-m="ctr"><span class="mdot" style="background:#10b981"></span>CTR</button><button class="metric-btn mb-position active" data-m="position"><span class="mdot" style="background:#f59e0b"></span>Position</button></div></div><div class="ts-canvas-wrap" id="tsWrap"><canvas id="tsChart"></canvas></div></div><div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div><div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div></div><div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">Loading...</div></div><div class="table-wrap"><div class="table-scroll"><table><thead> ch<th>🌐 Website</th><th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions <span class="sort-arrow">⇅</span></th><th data-sort="ctr">CTR <span class="sort-arrow">⇅</span></th><th data-sort="position">Avg Position <span class="sort-arrow">⇅</span></th></tr></thead><tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td></tr>:</tbody></table></div></div></div></div>
 <div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">Site Details</h2><span class="x" id="closeModal">&times;</span></div><div class="modal-body" id="modalBody"></div></div></div>
 <div class="modal" id="exportModal" style="display:none"><div class="modal-box" style="max-width:400px"><div class="modal-head"><h2>Export Options</h2><span class="x" id="closeExportModal">&times;</span></div><div class="modal-body" style="text-align:center"><button id="exportSummaryBtn" class="btn btn-blue" style="margin:10px;width:80%">📊 Summary (Total per site)</button><button id="exportDailyBtn" class="btn btn-green" style="margin:10px;width:80%">📅 Daily Breakdown (per day per site)</button></div></div></div>
 
@@ -273,18 +273,64 @@ function validateMetrics(data) { if (!data || !data.length) return []; return da
 async function fetchKeywords(siteUrl, start, end) { const token = await getToken(); const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ startDate: start, endDate: end, type: 'web', aggregationType: 'byProperty', dataState: 'all', dimensions: ['query'], rowLimit: 50 }) }); if (!r.ok) return []; const d = await r.json(); return (d.rows || []).map(row => ({ keyword: row.keys[0], clicks: Math.round(row.clicks), impressions: Math.round(row.impressions), ctr: row.ctr * 100, position: row.position })); }
 async function loadData() { const { start, end } = getDates(); if (!start || !end) { document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">Invalid dates<\/td><\/tr>'; return; } const pw = document.getElementById('progressWrap'); pw.style.display = 'block'; document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">Fetching sites...<\/td><\/tr>'; let sites; try { sites = await fetchSites(); } catch (e) { document.getElementById('tbody').innerHTML = `<tr><td colspan="5" class="loading-cell" style="color:var(--red)">Error: ${e.message}<\/td><\/tr>`; pw.style.display = 'none'; return; } if (!sites.length) { document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">No properties found.<\/td><\/tr>'; pw.style.display = 'none'; return; } allData = []; failedSites = []; let done = 0; const results = []; for (const site of sites) { const res = await fetchTotals(site.siteUrl, start, end); if (res) results.push(res); else failedSites.push(site.siteUrl); done++; document.getElementById('progressFill').style.width = Math.round(done / sites.length * 100) + '%'; document.getElementById('progressText').textContent = `${done}/${sites.length} properties`; allData = results.slice(); renderStats(); renderTable(); renderCharts(); } allData = results; renderStats(); renderTable(); renderCharts(); document.getElementById('progressText').textContent = 'Fetching combined timeline for ALL sites...'; try { tsRows = await fetchTimeSeriesCombined(results, start, end); tsRows = validateMetrics(tsRows); renderTsChart(); } catch (e) { tsRows = []; renderTsChart(); } pw.style.display = 'none'; }
 function renderStats() { const totalClicks = allData.reduce((s, r) => s + (r.clicks || 0), 0); const totalImpressions = allData.reduce((s, r) => s + (r.impressions || 0), 0); let weightedCtrSum = 0, weightedPosSum = 0; allData.forEach(site => { weightedCtrSum += (site.ctr / 100) * site.impressions; weightedPosSum += site.position * site.impressions; }); const avgCtr = totalImpressions > 0 ? (weightedCtrSum / totalImpressions) * 100 : 0; const avgPosition = totalImpressions > 0 ? weightedPosSum / totalImpressions : 0; document.getElementById('s-clicks').textContent = allData.length ? fmt(totalClicks) : '—'; document.getElementById('s-impr').textContent = allData.length ? fmt(totalImpressions) : '—'; document.getElementById('s-ctr').textContent = allData.length ? avgCtr.toFixed(2) + '%' : '—'; document.getElementById('s-pos').textContent = allData.length ? avgPosition.toFixed(1) : '—'; }
-function renderTable() { const sortBy = document.getElementById('sortBy').value, q = document.getElementById('searchInput').value.toLowerCase(); let rows = [...allData]; if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q)); rows.sort((a, b) => sortBy === 'clicks' ? b.clicks - a.clicks : sortBy === 'impressions' ? b.impressions - a.impressions : sortBy === 'ctr' ? b.ctr - a.ctr : a.position - b.position); const tbody = document.getElementById('tbody'); tbody.innerHTML = ''; if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">No results<\/td><\/tr>'; return; } rows.forEach(site => { const tr = tbody.insertRow(); tr.className = 'site-row'; tr.onclick = () => showModal(site); const pt = site.position === 0 ? 'tag-red' : site.position <= 3 ? 'tag-green' : site.position <= 10 ? 'tag-amber' : 'tag-purple'; tr.innerHTML = `<td><div class="site-name-cell"><span class="site-domain">${esc(site.name)}</span><span class="site-type">${site.type}</span></div><\/td><td><span class="tag tag-blue">${fmtE(site.clicks)}</span><\/td><td><span class="tag tag-purple">${fmtE(site.impressions)}</span><\/td><td><span class="tag tag-green">${site.ctr.toFixed(2)}%<\/span><\/td><td><span class="tag ${pt}">${site.position > 0 ? site.position.toFixed(1) : '—'}<\/span><\/td>`; }); }
+function renderTable() { const sortBy = document.getElementById('sortBy').value, q = document.getElementById('searchInput').value.toLowerCase(); let rows = [...allData]; if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q)); rows.sort((a, b) => sortBy === 'clicks' ? b.clicks - a.clicks : sortBy === 'impressions' ? b.impressions - a.impressions : sortBy === 'ctr' ? b.ctr - a.ctr : a.position - b.position); const tbody = document.getElementById('tbody'); tbody.innerHTML = ''; if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">No results<\/td><\/tr>'; return; } rows.forEach(site => { const tr = tbody.insertRow(); tr.className = 'site-row'; tr.onclick = () => showModal(site); const pt = site.position === 0 ? 'tag-red' : site.position <= 3 ? 'tag-green' : site.position <= 10 ? 'tag-amber' : 'tag-purple'; tr.innerHTML = `<tr><div class="site-name-cell"><span class="site-domain">${esc(site.name)}</span><span class="site-type">${site.type}</span></div><\/td><td><span class="tag tag-blue">${fmtE(site.clicks)}</span><\/td><td><span class="tag tag-purple">${fmtE(site.impressions)}</span><\/td><td><span class="tag tag-green">${site.ctr.toFixed(2)}%<\/span><\/td><td><span class="tag ${pt}">${site.position > 0 ? site.position.toFixed(1) : '—'}<\/span><\/td>`; }); }
+async function showModal(site) {
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  modalTitle.textContent = `📊 ${site.name} — SEO Insights`;
+  modalBody.innerHTML = `<div style="text-align:center; padding:20px;">Loading detailed data for ${site.name}...</div>`;
+  modal.style.display = 'block';
+  try {
+    const { start, end } = getDates();
+    if (!start || !end) throw new Error('Invalid date range');
+    const keywords = await fetchKeywords(site.url, start, end);
+    const summaryHtml = `
+      <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:22px;">
+        <div class="stat" style="--accent-color:var(--blue); padding:14px;"><h3>Total Clicks</h3><div class="val" style="font-size:26px;">${fmtE(site.clicks)}</div><div class="sub">selected period</div></div>
+        <div class="stat" style="--accent-color:var(--purple); padding:14px;"><h3>Impressions</h3><div class="val" style="font-size:26px;">${fmtE(site.impressions)}</div><div class="sub">selected period</div></div>
+        <div class="stat" style="--accent-color:var(--green); padding:14px;"><h3>CTR</h3><div class="val" style="font-size:26px;">${site.ctr.toFixed(2)}%</div><div class="sub">click-through rate</div></div>
+        <div class="stat" style="--accent-color:var(--amber); padding:14px;"><h3>Avg Position</h3><div class="val" style="font-size:26px;">${site.position.toFixed(1)}</div><div class="sub">average ranking</div></div>
+      </div>
+      <h3 style="font-size:14px; margin:16px 0 8px;">🔍 Top 50 Keywords (by clicks)</h3>
+      <div class="table-scroll" style="max-height:320px;"><table style="min-width:500px;"><thead><tr><th>Keyword</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th></tr></thead><tbody>
+      ${keywords.length ? keywords.map(kw => `<tr><td style="max-width:260px; word-break:break-word;">${esc(kw.keyword)}</td><td>${fmtE(kw.clicks)}</td><td>${fmtE(kw.impressions)}</td><td>${kw.ctr.toFixed(1)}%</td><td>${kw.position.toFixed(1)}</td></tr>`).join('') : '<tr><td colspan="5" style="text-align:center;">No keyword data available for this range</td></tr>'}
+      </tbody>}</table></div>
+      <div style="margin-top:18px; background:var(--s2); padding:12px; border-radius:8px; font-size:12px; color:var(--text3);"><span>💡 Insight: ${keywords.length ? `Top keyword "${keywords[0].keyword}" drives ${keywords[0].clicks} clicks at position ${keywords[0].position.toFixed(1)}.` : 'No keyword data retrieved.'} ${site.position < 10 ? '🏆 Strong average position under 10 — great visibility.' : site.position < 20 ? '📈 Moderate ranking, potential to improve.' : '⚠️ Lower positions — consider content optimization.'}</span></div>
+    `;
+    modalBody.innerHTML = summaryHtml;
+  } catch (err) {
+    modalBody.innerHTML = `<div style="color:var(--red); padding:20px; text-align:center;">⚠️ Failed to load detailed data: ${err.message}</div>`;
+  }
+}
 function renderCharts() { const top10c = [...allData].sort((a, b) => b.clicks - a.clicks).slice(0, 10), top10r = [...allData].sort((a, b) => b.ctr - a.ctr).slice(0, 10); if (clicksChart) clicksChart.destroy(); if (ctrChart) ctrChart.destroy(); if (!top10c.length) return; const short = n => n.length > 20 ? n.slice(0, 17) + '...' : n, isDark = html.getAttribute('data-theme') === 'dark', sc = { grid: { color: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.06)' }, ticks: { color: isDark ? '#4a5f7a' : '#94a3b8', font: { size: 11 } } }; clicksChart = new Chart(document.getElementById('clicksChart'), { type: 'bar', data: { labels: top10c.map(s => short(s.name)), datasets: [{ data: top10c.map(s => s.clicks), backgroundColor: 'rgba(59,130,246,.8)', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${fmtE(ctx.parsed.y)}` } } }, scales: { x: sc, y: sc } } }); ctrChart = new Chart(document.getElementById('ctrChart'), { type: 'bar', data: { labels: top10r.map(s => short(s.name)), datasets: [{ data: top10r.map(s => parseFloat(s.ctr.toFixed(2))), backgroundColor: 'rgba(16,185,129,.8)', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y.toFixed(2)}%` } } }, scales: { x: sc, y: sc } } }); }
 const MC = { clicks: { label: 'Clicks', color: '#3b82f6', yAxis: 'yLeft', fmt: v => fmtE(v) }, impressions: { label: 'Impressions', color: '#8b5cf6', yAxis: 'yLeft', fmt: v => fmtE(v) }, ctr: { label: 'CTR', color: '#10b981', yAxis: 'yRight1', fmt: v => v.toFixed(2) + '%' }, position: { label: 'Avg Position', color: '#f59e0b', yAxis: 'yRight2', fmt: v => v.toFixed(1) } };
 function renderTsChart() { if (tsChart) tsChart.destroy(); const wrapDiv = document.getElementById('tsWrap'); if (!wrapDiv) return; if (!tsRows || !tsRows.length) { wrapDiv.innerHTML = '<div class="ts-empty">No combined time-series data for this range.</div>'; return; } if (!document.getElementById('tsChart')) wrapDiv.innerHTML = '<canvas id="tsChart"></canvas>'; const canvas = document.getElementById('tsChart'); if (!canvas) return; const ctx = canvas.getContext('2d'); const isDark = html.getAttribute('data-theme') === 'dark'; const gridCol = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)', tickCol = isDark ? '#4a5f7a' : '#94a3b8'; const labels = tsRows.map(d => { const dt = new Date(d.date + 'T12:00:00'); return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }); const datasets = []; for (const [key, cfg] of Object.entries(MC)) { if (activeMetrics.has(key)) { datasets.push({ label: cfg.label, metricKey: key, data: tsRows.map(d => key === 'position' ? +d[key].toFixed(2) : d[key]), borderColor: cfg.color, backgroundColor: cfg.color + '20', borderWidth: 2, pointRadius: tsRows.length > 60 ? 0 : 3, pointHoverRadius: 5, pointBackgroundColor: cfg.color, tension: 0.35, fill: key === 'impressions', yAxisID: cfg.yAxis }); } } const scales = { x: { grid: { color: gridCol }, ticks: { color: tickCol, maxTicksLimit: tsRows.length > 60 ? 15 : tsRows.length } } }; if (activeMetrics.has('clicks') || activeMetrics.has('impressions')) scales.yLeft = { position: 'left', grid: { color: gridCol }, ticks: { color: '#6a9fd8', callback: v => fmt(v) } }; if (activeMetrics.has('ctr')) scales.yRight1 = { position: 'right', grid: { display: false }, ticks: { color: '#10b981', callback: v => v.toFixed(1) + '%' } }; if (activeMetrics.has('position')) scales.yRight2 = { position: 'right', grid: { display: false }, reverse: true, ticks: { color: '#f59e0b' } }; tsChart = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { title: items => tsRows[items[0].dataIndex] ? tsRows[items[0].dataIndex].date : items[0].label, label: ctx => ` ${ctx.dataset.label}: ${MC[ctx.dataset.metricKey].fmt(ctx.parsed.y)}` } } }, scales } }); }
 document.querySelectorAll('.metric-btn').forEach(btn => { btn.onclick = () => { const m = btn.dataset.m; if (activeMetrics.has(m)) { if (activeMetrics.size === 1) return; activeMetrics.delete(m); btn.classList.remove('active'); } else { activeMetrics.add(m); btn.classList.add('active'); } renderTsChart(); }; });
 document.getElementById('sortBy').onchange = renderTable; document.getElementById('searchInput').oninput = renderTable; document.getElementById('refreshBtn').onclick = loadData;
+
+// FIXED EXPORT FUNCTIONS - Now matches dashboard totals
 function exportSummary() {
   if (!allData.length) {
     alert('No data to export. Please load data first.');
     return;
   }
-  const ws = XLSX.utils.json_to_sheet(allData.map(s => ({
+  
+  // Get current filtered data based on search
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let exportData = [...allData];
+  if (q) {
+    exportData = exportData.filter(r => r.name.toLowerCase().includes(q));
+  }
+  
+  // Show warning if filtering is active
+  if (q && exportData.length !== allData.length) {
+    if (!confirm(`⚠️ Search filter is active. Only ${exportData.length} of ${allData.length} websites will be exported.\n\nClick OK to continue with filtered export, Cancel to export all websites.`)) {
+      exportData = [...allData];
+    }
+  }
+  
+  const ws = XLSX.utils.json_to_sheet(exportData.map(s => ({
     'Website': s.name,
     'Type': s.type,
     'Clicks': s.clicks,
@@ -292,11 +338,15 @@ function exportSummary() {
     'CTR %': parseFloat(s.ctr.toFixed(2)),
     'Avg Position': parseFloat(s.position.toFixed(1))
   })));
+  
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Summary');
   XLSX.writeFile(wb, `asset-scout-summary-${new Date().toISOString().split('T')[0]}.xlsx`);
-  alert('✅ Summary exported successfully!');
+  
+  const totalClicks = exportData.reduce((sum, s) => sum + s.clicks, 0);
+  alert(`✅ Exported ${exportData.length} websites with total ${totalClicks.toLocaleString()} clicks.`);
 }
+
 async function exportDaily() {
   if (!allData.length) {
     alert('No data to export. Please load data first.');
@@ -309,25 +359,34 @@ async function exportDaily() {
     return;
   }
   
+  // Check if search filter is active
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let sitesToExport = [...allData];
+  if (q) {
+    sitesToExport = sitesToExport.filter(r => r.name.toLowerCase().includes(q));
+    if (sitesToExport.length !== allData.length) {
+      if (!confirm(`⚠️ Search filter is active. Only ${sitesToExport.length} of ${allData.length} websites will be exported.\n\nClick OK to continue with filtered export, Cancel to export all websites.`)) {
+        sitesToExport = [...allData];
+      }
+    }
+  }
+  
   const progressFill = document.getElementById('progressFill');
   const progressWrap = document.getElementById('progressWrap');
   const progressText = document.getElementById('progressText');
-  const originalDisplay = progressWrap.style.display;
   
   progressWrap.style.display = 'block';
-  progressText.textContent = '📊 Fetching daily data for all websites...';
+  progressText.textContent = '📊 Fetching daily data...';
   progressFill.style.width = '0%';
   
   const allDatesSet = new Set();
   const websiteDataMap = new Map();
-  let completed = 0;
-  const totalSites = allData.length;
   
-  for (let idx = 0; idx < allData.length; idx++) {
-    const site = allData[idx];
-    const percent = Math.round((idx / totalSites) * 100);
+  for (let idx = 0; idx < sitesToExport.length; idx++) {
+    const site = sitesToExport[idx];
+    const percent = Math.round((idx / sitesToExport.length) * 100);
     progressFill.style.width = percent + '%';
-    progressText.textContent = `📈 Processing ${idx + 1}/${totalSites}: ${site.name}`;
+    progressText.textContent = `📈 Processing ${idx + 1}/${sitesToExport.length}: ${site.name}`;
     
     try {
       const token = await getToken();
@@ -369,8 +428,6 @@ async function exportDaily() {
     } catch (e) {
       console.warn(`Failed for ${site.name}:`, e);
     }
-    
-    completed++;
   }
   
   progressFill.style.width = '100%';
@@ -403,13 +460,10 @@ async function exportDaily() {
   }
   
   const excelData = [];
-  
-  // Header row with dates
   const headerRow = { 'Website / Date': 'Website / Date', 'Type': 'Type' };
   sortedDates.forEach(date => { headerRow[date] = metricLabel; });
   excelData.push(headerRow);
   
-  // Data rows for each website
   const sortedWebsites = Array.from(websiteDataMap.keys()).sort();
   
   for (const website of sortedWebsites) {
@@ -435,8 +489,14 @@ async function exportDaily() {
   XLSX.writeFile(wb, `asset-scout-${metricLabel.toLowerCase()}-daily-${start}_to_${end}.xlsx`);
   
   progressWrap.style.display = 'none';
-  alert(`✅ Export successful!\n\n📊 ${sortedWebsites.length} websites\n📅 ${sortedDates.length} days\n📈 Metric: ${metricLabel}`);
+  const totalClicks = Array.from(websiteDataMap.values()).reduce((sum, site) => {
+    let siteClicks = 0;
+    site.data.forEach(dayData => { siteClicks += dayData.Clicks || 0; });
+    return sum + siteClicks;
+  }, 0);
+  alert(`✅ Export successful!\n\n📊 ${sortedWebsites.length} websites\n📅 ${sortedDates.length} days\n📈 Metric: ${metricLabel}\n💰 Total clicks in export: ${totalClicks.toLocaleString()}`);
 }
+
 document.getElementById('exportBtn').onclick = () => {
   if (!allData.length) {
     alert('No data to export. Please load data first.');
@@ -459,19 +519,11 @@ document.getElementById('exportDailyBtn').onclick = () => {
   document.getElementById('exportModal').style.display = 'none';
 };
 
-// Close modal when clicking outside
-window.onclick = e => {
-  if (e.target === document.getElementById('modal')) {
-    document.getElementById('modal').style.display = 'none';
-  }
-  if (e.target === document.getElementById('exportModal')) {
-    document.getElementById('exportModal').style.display = 'none';
-  }
-};
 window.onclick = e => { if (e.target === document.getElementById('modal')) document.getElementById('modal').style.display = 'none'; if (e.target === document.getElementById('exportModal')) document.getElementById('exportModal').style.display = 'none'; };
 function fmt(n){return n.toLocaleString('en-US');}
 function fmtE(n){return n.toLocaleString('en-US');}
 function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+document.getElementById('closeModal').onclick = () => document.getElementById('modal').style.display = 'none';
 (async () => { if (!hasSession()) return; const saved = localStorage.getItem('gsc_access'); if (saved) accessToken = saved; try { accessToken = await getToken(); showDashboard(); loadData(); } catch (e) { console.warn(e); logout(); } })();
 </script>
 </body>
