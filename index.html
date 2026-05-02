@@ -78,6 +78,11 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:1
 .vercel-notice{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.25);border-left:3px solid var(--blue);border-radius:8px;padding:12px 15px;margin-bottom:18px;font-size:12px;color:var(--text2);line-height:1.8}
 .vercel-notice strong{color:var(--blue)}
 .controls{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;box-shadow:0 1px 4px var(--shadow)}
+/* PROGRESS BAR REPOSITIONED - now below filter bar */
+.progress-wrap{display:none;margin:0 0 20px 0;background:var(--s1);border-radius:8px;padding:8px 12px;border:1px solid var(--border);}
+.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:5px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;transition:width .3s;width:0}
+.progress-text{font-size:11px;color:var(--text3);font-family:var(--mono)}
 .cg{display:flex;flex-direction:column;gap:5px}
 .cg label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.9px}
 select,input[type=text]{padding:7px 11px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:7px;font-size:13px;font-family:var(--sans);min-width:140px;transition:border-color .2s,background .25s}
@@ -135,10 +140,6 @@ select:focus,input:focus{outline:none;border-color:var(--blue)}
 .chart-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:0 1px 4px var(--shadow)}
 .chart-card h3{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--text2)}
 canvas{max-height:260px}
-.progress-wrap{display:none;margin-bottom:14px}
-.progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:5px}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));border-radius:2px;transition:width .3s;width:0}
-.progress-text{font-size:11px;color:var(--text3);font-family:var(--mono)}
 .table-wrap{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 4px var(--shadow)}
 .table-scroll{overflow-x:auto}
 table{width:100%;border-collapse:collapse}
@@ -193,644 +194,97 @@ tbody tr:last-child td{border-bottom:none}
 <div class="wrap">
   <div class="header"><div class="logo"><div class="logo-text"><h1>SEO Dashboard <em></em></h1></div><img class="logo-img" src="https://assetscout.in/assets/images/Assetscout%20Logo%20Black.webp" alt="Asset Scout" onerror="this.style.display='none'"></div><div class="header-right"><div class="pill off" id="statusPill"><span class="dot"></span><span id="statusText">Not Connected</span></div><button id="themeToggleBtn" class="theme-toggle" title="Toggle light/dark theme">🌙</button><button id="logoutBtn" class="btn btn-red" style="display:none">Sign Out</button></div></div>
   <div id="loginWrap" class="login-wrap"><div class="login-box"><div class="vercel-notice" id="vercelNotice" style="display:none">✓ <strong>Deployment detected.</strong> Redirect URI: <strong id="autoRedirectUri"></strong>.<br>Add this exact URL to your Google OAuth app Authorized redirect URIs.</div><h2>🔌 Connect Google Search Console</h2><p>Connect your Google Search Console account to view SEO data across all your properties.</p><div class="step"><div class="step-head"><div class="snum">1</div>Sign in with Google</div><button id="genBtn" class="btn btn-blue" style="width:100%;padding:12px;font-size:14px">🔗 Connect Google Search Console</button><div class="msg" id="genMsg"></div><button id="openBtn" style="display:none" disabled>hidden</button><small>You will be redirected to Google. After approving, you will be brought back here automatically.</small></div><div class="step"><div class="step-head"><div class="snum">2</div>Paste redirect URL <span style="font-weight:400;color:var(--text3);font-size:12px">(only if not redirected automatically)</span></div><input type="text" id="codeUrl" class="url-input" placeholder="https://your-app.vercel.app/?code=4/0AX4XfW..."><small>Paste the full URL from the address bar after Google redirects you.</small><button id="connectBtn" class="btn btn-green" style="width:100%;margin-top:10px" disabled>✓ Connect &amp; Save Session</button><div class="msg" id="connectMsg"></div></div></div></div>
-  <div id="dashboard" style="display:none"><div class="controls"><div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="custom">Custom range</option></select></div><div class="date-range-wrap" id="dateRangeWrap" style="display:none"><div class="date-field" id="fromField"><label>From</label><div class="date-trigger" id="fromTrigger" onclick="openCalendar('from')"><span style="font-size:13px">📅</span><span id="fromLabel">Select date</span></div><div class="cal-popup" id="fromCal"></div></div><span class="date-sep">→</span><div class="date-field" id="toField"><label>To</label><div class="date-trigger" id="toTrigger" onclick="openCalendar('to')"><span style="font-size:13px">📅</span><span id="toLabel">Select date</span></div><div class="cal-popup" id="toCal"></div></div><div style="display:flex;flex-direction:column;gap:5px"><label>&nbsp;</label><button id="applyCustomRangeBtn" class="btn btn-blue">Apply Range</button></div></div><div class="cg"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div><div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter sites..."></div><div class="cg"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-indigo">🔄 Refresh</button></div><div class="cg"><label>&nbsp;</label><button id="exportBtn" class="btn btn-green">📎 Excel</button></div></div><div class="stats-grid"><div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div><div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">impression-weighted</div></div></div><div class="ts-card"><div class="ts-header"><div id="loadingBar" style="height:3px; background:linear-gradient(90deg,#3b82f6,#8b5cf6,#10b981); width:0%; transition:width 0.3s; margin:15px 0; border-radius:3px;"></div><h3>📈 Combined Performance Over Time (All Websites)</h3><div class="metric-toggles"><button class="metric-btn mb-clicks active" data-m="clicks"><span class="mdot" style="background:#3b82f6"></span>Clicks</button><button class="metric-btn mb-impressions active" data-m="impressions"><span class="mdot" style="background:#8b5cf6"></span>Impressions</button><button class="metric-btn mb-ctr active" data-m="ctr"><span class="mdot" style="background:#10b981"></span>CTR</button><button class="metric-btn mb-position active" data-m="position"><span class="mdot" style="background:#f59e0b"></span>Position</button></div></div><div class="ts-canvas-wrap" id="tsWrap"><canvas id="tsChart"></canvas></div></div><div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div><div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div></div><div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">Loading...</div></div><div class="table-wrap"><div class="table-scroll"> <table> <thead> <tr><th>🌐 Website</th><th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions <span class="sort-arrow">⇅</span></th><th data-sort="ctr">CTR <span class="sort-arrow">⇅</span></th><th data-sort="position">Avg Position <span class="sort-arrow">⇅</span></th></tr> </thead> <tbody id="tbody"> <tr><td colspan="5" class="loading-cell">Complete login to view data…</td></tr> </tbody> </table> </div></div></div></div>
+  <div id="dashboard" style="display:none"><div class="controls"><div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="custom">Custom range</option></select></div><div class="date-range-wrap" id="dateRangeWrap" style="display:none"><div class="date-field" id="fromField"><label>From</label><div class="date-trigger" id="fromTrigger" onclick="openCalendar('from')"><span style="font-size:13px">📅</span><span id="fromLabel">Select date</span></div><div class="cal-popup" id="fromCal"></div></div><span class="date-sep">→</span><div class="date-field" id="toField"><label>To</label><div class="date-trigger" id="toTrigger" onclick="openCalendar('to')"><span style="font-size:13px">📅</span><span id="toLabel">Select date</span></div><div class="cal-popup" id="toCal"></div></div><div style="display:flex;flex-direction:column;gap:5px"><label>&nbsp;</label><button id="applyCustomRangeBtn" class="btn btn-blue">Apply Range</button></div></div><div class="cg"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div><div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter sites..."></div><div class="cg"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-indigo">🔄 Refresh</button></div><div class="cg"><label>&nbsp;</label><button id="exportBtn" class="btn btn-green">📎 Excel</button></div></div>
+    <!-- Progress bar moved below filters (exactly after controls) -->
+    <div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">Loading data...</div></div>
+    <div class="stats-grid"><div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div><div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">impression-weighted</div></div></div><div class="ts-card"><div class="ts-header"><h3>📈 Combined Performance Over Time (All Websites)</h3><div class="metric-toggles"><button class="metric-btn mb-clicks active" data-m="clicks"><span class="mdot" style="background:#3b82f6"></span>Clicks</button><button class="metric-btn mb-impressions active" data-m="impressions"><span class="mdot" style="background:#8b5cf6"></span>Impressions</button><button class="metric-btn mb-ctr active" data-m="ctr"><span class="mdot" style="background:#10b981"></span>CTR</button><button class="metric-btn mb-position active" data-m="position"><span class="mdot" style="background:#f59e0b"></span>Position</button></div></div><div class="ts-canvas-wrap" id="tsWrap"><canvas id="tsChart"></canvas></div></div><div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div><div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div></div><div class="table-wrap"><div class="table-scroll"> <table><thead><tr><th>🌐 Website</th><th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions <span class="sort-arrow">⇅</span></th><th data-sort="ctr">CTR <span class="sort-arrow">⇅</span></th><th data-sort="position">Avg Position <span class="sort-arrow">⇅</span></th></tr></thead><tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td></tr></tbody></table></div></div></div></div>
 <div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">Site Details</h2><span class="x" id="closeModal">&times;</span></div><div class="modal-body" id="modalBody"></div></div></div>
 <div class="modal" id="exportModal" style="display:none"><div class="modal-box" style="max-width:400px"><div class="modal-head"><h2>Export Options</h2><span class="x" id="closeExportModal">&times;</span></div><div class="modal-body" style="text-align:center"><button id="exportSummaryBtn" class="btn btn-blue" style="margin:10px;width:80%">📊 Summary (Total per site)</button><button id="exportDailyBtn" class="btn btn-green" style="margin:10px;width:80%">📅 Daily Breakdown (per day per site)</button></div></div></div>
 <div class="metrics-sidebar" id="metricsSidebar"><h4>📈 Quick Metrics</h4><div id="quickMetrics"></div></div>
 <div class="cache-indicator" id="cacheIndicator">🤖 AI Cache: Ready</div>
 
 <script>
-// ============================================
-// AI/ML ENHANCED DASHBOARD - FULL ACCURACY
-// With Individual Site Time Series & View Selector
-// ============================================
+// ============ FULL ACCURATE DASHBOARD (NO ALERTS, DAILY EXPORT FIX + REPOSITIONED PROGRESS) ============
 
 let allData = [], failedSites = [], clicksChart, ctrChart, tsChart, tsRows = [], activeMetrics = new Set(['clicks', 'impressions', 'ctr', 'position']);
 let calState = { from: null, to: null }, calViewMonth = { from: new Date(), to: new Date() };
-let currentSiteTimeSeries = null;
-let currentSiteView = 'daily'; // daily, weekly, monthly
-let currentSiteChart = null;
+let currentSiteTimeSeries = null, currentSiteView = 'daily', currentSiteChart = null;
 
-// ============ AI/ML CACHE SYSTEM ============
-class AICache {
-  constructor() {
-    this.dbName = 'AISeoCache';
-    this.version = 3;
-    this.storeName = 'aiResponses';
-    this.db = null;
-    this.stats = { hits: 0, misses: 0, predictions: 0 };
-    this.init();
-  }
-
-  async init() {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.version);
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => { this.db = request.result; this.updateIndicator(); resolve(); };
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(this.storeName)) {
-          const store = db.createObjectStore(this.storeName, { keyPath: 'key' });
-          store.createIndex('timestamp', 'timestamp');
-          store.createIndex('ttl', 'ttl');
-          store.createIndex('dateRange', 'dateRange');
-        }
-      };
-    });
-  }
-
-  getKey(url, params) { return btoa(url + JSON.stringify(params)).slice(0, 200); }
-
-  async get(key) {
-    if (!this.db) await this.init();
-    return new Promise((resolve) => {
-      const tx = this.db.transaction([this.storeName], 'readonly');
-      const req = tx.objectStore(this.storeName).get(key);
-      req.onsuccess = () => {
-        const entry = req.result;
-        if (entry && Date.now() < entry.ttl) {
-          this.stats.hits++;
-          this.updateIndicator();
-          resolve(entry.data);
-        } else {
-          if (entry) this.delete(key);
-          this.stats.misses++;
-          this.updateIndicator();
-          resolve(null);
-        }
-      };
-      req.onerror = () => resolve(null);
-    });
-  }
-
-  async set(key, data, ttlSeconds = 7200) {
-    if (!this.db) await this.init();
-    return new Promise((resolve) => {
-      const tx = this.db.transaction([this.storeName], 'readwrite');
-      const entry = { key, data, timestamp: Date.now(), ttl: Date.now() + (ttlSeconds * 1000) };
-      tx.objectStore(this.storeName).put(entry);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => resolve();
-    });
-  }
-
-  async delete(key) {
-    if (!this.db) return;
-    const tx = this.db.transaction([this.storeName], 'readwrite');
-    tx.objectStore(this.storeName).delete(key);
-  }
-
-  async clear() {
-    if (!this.db) await this.init();
-    return new Promise((resolve) => {
-      const tx = this.db.transaction([this.storeName], 'readwrite');
-      tx.objectStore(this.storeName).clear();
-      tx.oncomplete = () => { this.stats = { hits: 0, misses: 0, predictions: 0 }; this.updateIndicator(); resolve(); };
-    });
-  }
-
-  updateIndicator() {
-    const ind = document.getElementById('cacheIndicator');
-    if (ind) {
-      const total = this.stats.hits + this.stats.misses;
-      const rate = total > 0 ? Math.round((this.stats.hits / total) * 100) : 0;
-      ind.innerHTML = `🤖 AI Cache: ${rate}% hit rate (${this.stats.hits} hits)`;
-    }
-  }
-}
-
+// AI Cache (unchanged)
+class AICache { constructor() { this.dbName = 'AISeoCache'; this.version = 3; this.storeName = 'aiResponses'; this.db = null; this.stats = { hits:0, misses:0 }; this.init(); } async init(){ return new Promise((res,rej)=>{ const req = indexedDB.open(this.dbName, this.version); req.onsuccess = ()=>{ this.db=req.result; this.updateIndicator(); res(); }; req.onupgradeneeded = (e)=>{ const db=e.target.result; if(!db.objectStoreNames.contains(this.storeName)) db.createObjectStore(this.storeName,{keyPath:'key'}); }; req.onerror=()=>rej(); }); } getKey(url,p){ return btoa(url+JSON.stringify(p)).slice(0,200); } async get(k){ if(!this.db) await this.init(); return new Promise((res)=>{ const tx = this.db.transaction([this.storeName],'readonly'); const req = tx.objectStore(this.storeName).get(k); req.onsuccess=()=>{ const e=req.result; if(e && Date.now()<e.ttl){ this.stats.hits++; this.updateIndicator(); res(e.data); } else { if(e) this.delete(k); this.stats.misses++; this.updateIndicator(); res(null); } }; req.onerror=()=>res(null); }); } async set(k,d,ttl=7200){ if(!this.db) await this.init(); return new Promise((res)=>{ const tx = this.db.transaction([this.storeName],'readwrite'); tx.objectStore(this.storeName).put({key:k,data:d,timestamp:Date.now(),ttl:Date.now()+ttl*1000}); tx.oncomplete=()=>res(); tx.onerror=()=>res(); }); } async delete(k){ if(!this.db) return; const tx = this.db.transaction([this.storeName],'readwrite'); tx.objectStore(this.storeName).delete(k); } updateIndicator(){ const ind = document.getElementById('cacheIndicator'); if(ind){ const tot = this.stats.hits+this.stats.misses; const rate = tot?Math.round((this.stats.hits/tot)*100):0; ind.innerHTML = `🤖 AI Cache: ${rate}% hit rate (${this.stats.hits} hits)`; } } }
 const cache = new AICache();
 
-// ============ PARALLEL PROCESSING ============
-async function parallelBatch(items, processor, concurrency = 10) {
-  const results = [];
-  for (let i = 0; i < items.length; i += concurrency) {
-    const batch = items.slice(i, i + concurrency);
-    const batchResults = await Promise.all(batch.map((item, idx) => processor(item, i + idx)));
-    results.push(...batchResults);
-  }
-  return results;
-}
-
-// ============ THEME ============
+// global helpers
 const html = document.documentElement, themeBtn = document.getElementById('themeToggleBtn');
-function applyTheme(t) { html.setAttribute('data-theme', t); themeBtn.textContent = t === 'dark' ? '🌙' : '☀️'; localStorage.setItem('theme', t); if (allData.length) { renderCharts(); renderTsChart(); } }
-themeBtn.onclick = () => applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-applyTheme(localStorage.getItem('theme') || 'dark');
+function applyTheme(t){ html.setAttribute('data-theme',t); themeBtn.textContent=t==='dark'?'🌙':'☀️'; localStorage.setItem('theme',t); if(allData.length){ renderCharts(); renderTsChart(); } }
+themeBtn.onclick = () => applyTheme(html.getAttribute('data-theme')==='dark'?'light':'dark');
+applyTheme(localStorage.getItem('theme')||'dark');
 
-// ============ AUTH ============
-const CLIENT_ID = '293203533603-8esforfqiosq1jmj5ab5f49v1pj38i96.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
-const REDIRECT_URI = window.location.origin;
-const SCOPE = 'https://www.googleapis.com/auth/webmasters.readonly';
-const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-const GSC_BASE = 'https://www.googleapis.com/webmasters/v3';
+// AUTH (unchanged)
+const CLIENT_ID='293203533603-8esforfqiosq1jmj5ab5f49v1pj38i96.apps.googleusercontent.com', CLIENT_SECRET='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', REDIRECT_URI=window.location.origin, SCOPE='https://www.googleapis.com/auth/webmasters.readonly', TOKEN_URL='https://oauth2.googleapis.com/token', GSC_BASE='https://www.googleapis.com/webmasters/v3';
+if(!['localhost','127.0.0.1'].includes(window.location.hostname)){ const vn=document.getElementById('vercelNotice'); if(vn){ vn.style.display='block'; document.getElementById('autoRedirectUri').textContent=REDIRECT_URI; } }
+(()=>{ const code=new URLSearchParams(window.location.search).get('code'); if(code){ document.getElementById('codeUrl').value=window.location.href; document.getElementById('connectBtn').disabled=false; window.history.replaceState({},'',window.location.pathname); } })();
+let accessToken=null,refreshTimer=null;
+function saveTokens(d){ if(d.refresh_token) localStorage.setItem('gsc_refresh',d.refresh_token); accessToken=d.access_token; const exp=Date.now()+(d.expires_in||3600)*1000-60000; localStorage.setItem('gsc_access',d.access_token); localStorage.setItem('gsc_expires',String(exp)); if(refreshTimer) clearTimeout(refreshTimer); refreshTimer=setTimeout(silentRefresh,Math.max((d.expires_in||3600)-300,10)*1000); }
+async function silentRefresh(){ const rt=localStorage.getItem('gsc_refresh'); if(!rt) return; try{ const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',refresh_token:rt,client_id:CLIENT_ID,client_secret:CLIENT_SECRET})}); const d=await r.json(); if(d.access_token) saveTokens(d); }catch(e){} }
+async function getToken(){ const exp=parseInt(localStorage.getItem('gsc_expires')||'0'); if(Date.now()<exp && accessToken) return accessToken; const rt=localStorage.getItem('gsc_refresh'); if(!rt){ logout(); throw new Error('No refresh token'); } const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',refresh_token:rt,client_id:CLIENT_ID,client_secret:CLIENT_SECRET})}); const d=await r.json(); if(!d.access_token){ logout(); throw new Error('Token refresh failed'); } saveTokens(d); return d.access_token; }
+function hasSession(){ return !!localStorage.getItem('gsc_refresh'); }
+document.getElementById('genBtn').onclick = ()=> window.location.href=`https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}&access_type=offline&prompt=consent`;
+document.getElementById('connectBtn').onclick = async ()=>{ const raw=document.getElementById('codeUrl').value.trim(); const m=raw.match(/[?&]code=([^&]+)/); if(!m){ setMsg('connectMsg','err','No code'); return; } try{ const r=await fetch(TOKEN_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({code:decodeURIComponent(m[1]),client_id:CLIENT_ID,client_secret:CLIENT_SECRET,redirect_uri:REDIRECT_URI,grant_type:'authorization_code'})}); const d=await r.json(); if(d.access_token && d.refresh_token){ saveTokens(d); setMsg('connectMsg','ok','Connected!'); setTimeout(()=>{ showDashboard(); loadData(); },1000); } else setMsg('connectMsg','err','Missing refresh token'); } catch(e){ setMsg('connectMsg','err',e.message); } };
+function setMsg(id,cls,txt){ const el=document.getElementById(id); if(el){ el.className='msg '+cls; el.textContent=txt; } }
+function showDashboard(){ document.getElementById('loginWrap').style.display='none'; document.getElementById('dashboard').style.display='block'; document.getElementById('logoutBtn').style.display=''; document.getElementById('statusPill').className='pill on'; document.getElementById('statusText').textContent='Connected'; }
+function logout(){ clearTimeout(refreshTimer); ['gsc_refresh','gsc_access','gsc_expires'].forEach(k=>localStorage.removeItem(k)); accessToken=null; allData=[]; document.getElementById('loginWrap').style.display='flex'; document.getElementById('dashboard').style.display='none'; document.getElementById('logoutBtn').style.display='none'; document.getElementById('statusPill').className='pill off'; document.getElementById('statusText').textContent='Not Connected'; cache.clear(); }
+document.getElementById('logoutBtn').onclick=logout;
 
-if (!['localhost', '127.0.0.1'].includes(window.location.hostname)) { 
-  const vn = document.getElementById('vercelNotice');
-  if(vn) { vn.style.display = 'block'; document.getElementById('autoRedirectUri').textContent = REDIRECT_URI; }
-}
+function toYMD(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function presetDates(days){ const end=new Date(); end.setDate(end.getDate()-1); const start=new Date(end); start.setDate(end.getDate()-(days-1)); return { start:toYMD(start), end:toYMD(end) }; }
+function getDates(){ const p=document.getElementById('preset').value; if(p==='custom') return { start:calState.from||'', end:calState.to||'' }; return presetDates(parseInt(p)); }
 
-(() => { const code = new URLSearchParams(window.location.search).get('code'); if (code) { document.getElementById('codeUrl').value = window.location.href; document.getElementById('connectBtn').disabled = false; window.history.replaceState({}, '', window.location.pathname); } })();
+// fetch methods (unchanged)
+async function fetchSites(){ const token=await getToken(); const cacheKey=`sites_${token.substring(0,20)}`; const cached=await cache.get(cacheKey); if(cached) return cached.siteEntry||[]; const r=await fetch(`${GSC_BASE}/sites`,{headers:{Authorization:`Bearer ${token}`}}); const data=await r.json(); await cache.set(cacheKey,data,7200); return data.siteEntry||[]; }
+async function fetchTotals(siteUrl,start,end){ try{ const token=await getToken(); const cacheKey=`totals_${siteUrl}_${start}_${end}`; const cached=await cache.get(cacheKey); if(cached) return cached; const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all'})}); if(r.status!==200) return null; const d=await r.json(); const row=(d.rows&&d.rows[0])||{clicks:0,impressions:0,ctr:0,position:0}; const name=siteUrl.replace(/^sc-domain:/,'').replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,''); const result={url:siteUrl,name,type:siteUrl.startsWith('sc-domain:')?'Domain':'URL',clicks:Math.round(row.clicks),impressions:Math.round(row.impressions),ctr:row.ctr*100,position:row.position}; await cache.set(cacheKey,result,21600); return result; }catch(e){ return null; } }
+async function fetchTimeSeriesCombined(sites,start,end){ const token=await getToken(); const cacheKey=`timeseries_full_${start}_${end}_${sites.length}`; const cached=await cache.get(cacheKey); if(cached) return cached; const dailyMap=new Map(); const fetchPromises=sites.map(async(site)=>{ try{ const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all',dimensions:['date'],rowLimit:500})}); if(!r.ok) return null; return await r.json(); }catch(e){ return null; } }); const results=await Promise.all(fetchPromises); for(const data of results){ if(!data||!data.rows) continue; for(const row of data.rows){ const date=row.keys[0]; if(!dailyMap.has(date)) dailyMap.set(date,{clicks:0,impressions:0,ctrWeightedSum:0,posWeightedSum:0}); const e=dailyMap.get(date); e.clicks+=Math.round(row.clicks); e.impressions+=Math.round(row.impressions); e.ctrWeightedSum+=row.ctr*row.impressions; e.posWeightedSum+=row.position*row.impressions; } } const result=Array.from(dailyMap.keys()).sort().map(date=>{ const e=dailyMap.get(date); const imps=e.impressions; return {date,clicks:e.clicks,impressions:imps,ctr:imps>0?(e.ctrWeightedSum/imps)*100:0,position:imps>0?e.posWeightedSum/imps:0}; }); await cache.set(cacheKey,result,7200); return result; }
+async function fetchSiteTimeSeries(siteUrl,start,end){ const token=await getToken(); const cacheKey=`site_ts_${siteUrl}_${start}_${end}`; const cached=await cache.get(cacheKey); if(cached) return cached; try{ const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all',dimensions:['date'],rowLimit:500})}); if(!r.ok) return []; const d=await r.json(); const result=(d.rows||[]).map(row=>({date:row.keys[0],clicks:Math.round(row.clicks),impressions:Math.round(row.impressions),ctr:row.ctr*100,position:row.position})); await cache.set(cacheKey,result,7200); return result; }catch(e){ return []; } }
+async function fetchKeywords(siteUrl,start,end){ const token=await getToken(); const cacheKey=`keywords_${siteUrl}_${start}_${end}`; const cached=await cache.get(cacheKey); if(cached) return cached; const r=await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({startDate:start,endDate:end,type:'web',aggregationType:'byProperty',dataState:'all',dimensions:['query'],rowLimit:50})}); if(!r.ok) return []; const d=await r.json(); const result=(d.rows||[]).map(row=>({keyword:row.keys[0],clicks:Math.round(row.clicks),impressions:Math.round(row.impressions),ctr:row.ctr*100,position:row.position})); await cache.set(cacheKey,result,43200); return result; }
 
-let accessToken = null, refreshTimer = null;
-function saveTokens(d) { if (d.refresh_token) localStorage.setItem('gsc_refresh', d.refresh_token); accessToken = d.access_token; const exp = Date.now() + (d.expires_in || 3600) * 1000 - 60000; localStorage.setItem('gsc_access', d.access_token); localStorage.setItem('gsc_expires', String(exp)); if (refreshTimer) clearTimeout(refreshTimer); refreshTimer = setTimeout(silentRefresh, Math.max((d.expires_in || 3600) - 300, 10) * 1000); }
-async function silentRefresh() { const rt = localStorage.getItem('gsc_refresh'); if (!rt) return; try { const r = await fetch(TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: rt, client_id: CLIENT_ID, client_secret: CLIENT_SECRET }) }); const d = await r.json(); if (d.access_token) saveTokens(d); } catch (e) { } }
-async function getToken() { const exp = parseInt(localStorage.getItem('gsc_expires') || '0'); if (Date.now() < exp && accessToken) return accessToken; const rt = localStorage.getItem('gsc_refresh'); if (!rt) { logout(); throw new Error('No refresh token'); } const r = await fetch(TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: rt, client_id: CLIENT_ID, client_secret: CLIENT_SECRET }) }); const d = await r.json(); if (!d.access_token) { logout(); throw new Error('Token refresh failed'); } saveTokens(d); return d.access_token; }
-function hasSession() { return !!localStorage.getItem('gsc_refresh'); }
-document.getElementById('genBtn').onclick = () => { window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(SCOPE)}&access_type=offline&prompt=consent`; };
-document.getElementById('codeUrl').oninput = () => { document.getElementById('connectBtn').disabled = !document.getElementById('codeUrl').value.includes('code='); };
-document.getElementById('connectBtn').onclick = async () => { const raw = document.getElementById('codeUrl').value.trim(); const m = raw.match(/[?&]code=([^&]+)/); if (!m) { setMsg('connectMsg', 'err', 'Could not find code= in URL'); return; } setMsg('connectMsg', 'info', 'Exchanging code...'); document.getElementById('connectBtn').disabled = true; try { const r = await fetch(TOKEN_URL, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ code: decodeURIComponent(m[1]), client_id: CLIENT_ID, client_secret: CLIENT_SECRET, redirect_uri: REDIRECT_URI, grant_type: 'authorization_code' }) }); const d = await r.json(); if (d.access_token && d.refresh_token) { saveTokens(d); setMsg('connectMsg', 'ok', 'Connected!'); setTimeout(() => { showDashboard(); loadData(); }, 1000); } else if (d.access_token) { setMsg('connectMsg', 'err', 'No refresh token.'); document.getElementById('connectBtn').disabled = false; } else { setMsg('connectMsg', 'err', d.error_description || 'error'); document.getElementById('connectBtn').disabled = false; } } catch (e) { setMsg('connectMsg', 'err', e.message); document.getElementById('connectBtn').disabled = false; } };
-function setMsg(id, cls, txt) { const el = document.getElementById(id); if(el) { el.className = 'msg ' + cls; el.textContent = txt; } }
-function showDashboard() { document.getElementById('loginWrap').style.display = 'none'; document.getElementById('dashboard').style.display = 'block'; document.getElementById('logoutBtn').style.display = ''; document.getElementById('statusPill').className = 'pill on'; document.getElementById('statusText').textContent = 'Connected'; }
-function logout() { clearTimeout(refreshTimer); ['gsc_refresh', 'gsc_access', 'gsc_expires'].forEach(k => localStorage.removeItem(k)); accessToken = null; allData = []; document.getElementById('loginWrap').style.display = 'flex'; document.getElementById('dashboard').style.display = 'none'; document.getElementById('logoutBtn').style.display = 'none'; document.getElementById('statusPill').className = 'pill off'; document.getElementById('statusText').textContent = 'Not Connected'; document.getElementById('codeUrl').value = ''; document.getElementById('connectBtn').disabled = true; if(document.getElementById('connectMsg')) document.getElementById('connectMsg').textContent = ''; cache.clear(); }
-document.getElementById('logoutBtn').onclick = logout;
-function toYMD(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-function presetDates(days) { const end = new Date(); end.setDate(end.getDate() - 1); const start = new Date(end); start.setDate(end.getDate() - (days - 1)); return { start: toYMD(start), end: toYMD(end) }; }
-function getDates() { const p = document.getElementById('preset').value; if (p === 'custom') return { start: calState.from || '', end: calState.to || '' }; return presetDates(parseInt(p)); }
+async function parallelBatch(items, processor, concurrency=10){ const results=[]; for(let i=0;i<items.length;i+=concurrency){ const batch=items.slice(i,i+concurrency); const batchResults=await Promise.all(batch.map((item,idx)=>processor(item,i+idx))); results.push(...batchResults); } return results; }
 
-// ============ CALENDAR ============
-function openCalendar(type) { const popup = document.getElementById(type === 'from' ? 'fromCal' : 'toCal'); if(popup) popup.classList.toggle('open'); renderCalendar(type); }
-function renderCalendar(type) { const popup = document.getElementById(type === 'from' ? 'fromCal' : 'toCal'); if(!popup) return; const vm = calViewMonth[type]; const year = vm.getFullYear(), month = vm.getMonth(); const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate(); const todayStr = toYMD(new Date()); let html = `<div class="cal-nav"><button class="cal-nav-btn" onclick="changeMonth('${type}', -1)">‹</button><span class="cal-month-year">${['January','February','March','April','May','June','July','August','September','October','November','December'][month]} ${year}</span><button class="cal-nav-btn" onclick="changeMonth('${type}', 1)">›</button></div><div class="cal-grid">`; ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d => { html += `<div class="cal-dh">${d}</div>`; }); for (let i = 0; i < firstDay; i++) html += '<div class="cal-day cal-empty"></div>'; for (let d = 1; d <= daysInMonth; d++) { const ds = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; const isFuture = ds > todayStr; let cls = 'cal-day'; if (isFuture) cls += ' cal-dis'; if (ds === todayStr) cls += ' cal-today'; if (ds === calState[type]) cls += ' cal-sel'; html += `<div class="${cls}" onclick="if(!${isFuture}) selectDate('${type}','${ds}')">${d}</div>`; } html += `</div><div class="cal-footer"><span class="cal-range-lbl">${calState.from && calState.to ? calState.from + ' to ' + calState.to : 'Pick range'}</span><button class="cal-clear-btn" onclick="clearDates()">Clear</button></div>`; popup.innerHTML = html; }
-window.changeMonth = (type, delta) => { const vm = calViewMonth[type]; calViewMonth[type] = new Date(vm.getFullYear(), vm.getMonth() + delta, 1); renderCalendar(type); };
-window.selectDate = (type, ds) => { calState[type] = ds; document.getElementById(type === 'from' ? 'fromLabel' : 'toLabel').textContent = ds; if(document.getElementById(type === 'from' ? 'fromCal' : 'toCal')) document.getElementById(type === 'from' ? 'fromCal' : 'toCal').classList.remove('open'); if (calState.from && calState.to) loadData(); };
-window.clearDates = () => { calState = { from: null, to: null }; if(document.getElementById('fromLabel')) document.getElementById('fromLabel').textContent = 'Select date'; if(document.getElementById('toLabel')) document.getElementById('toLabel').textContent = 'Select date'; if(document.getElementById('fromCal')) document.getElementById('fromCal').classList.remove('open'); if(document.getElementById('toCal')) document.getElementById('toCal').classList.remove('open'); };
-document.getElementById('applyCustomRangeBtn').onclick = () => { if (calState.from && calState.to) loadData(); else alert('Please select both From and To dates'); };
-document.getElementById('preset').onchange = () => { const isCustom = document.getElementById('preset').value === 'custom'; document.getElementById('dateRangeWrap').style.display = isCustom ? 'flex' : 'none'; if (!isCustom && accessToken) loadData(); };
+async function loadData(){ const {start,end}=getDates(); if(!start||!end) return; const pw=document.getElementById('progressWrap'); pw.style.display='block'; document.getElementById('progressFill').style.width='0%'; document.getElementById('progressText').textContent='Fetching sites...'; let sites; try{ sites=await fetchSites(); }catch(e){ document.getElementById('progressWrap').style.display='none'; return; } if(!sites.length){ pw.style.display='none'; return; } allData=[]; let completed=0; const results=await parallelBatch(sites.map(s=>s.siteUrl), async (siteUrl,idx)=>{ const res=await fetchTotals(siteUrl,start,end); completed++; const percent=Math.round((completed/sites.length)*100); document.getElementById('progressFill').style.width=percent+'%'; document.getElementById('progressText').textContent=`📊 ${completed}/${sites.length} properties (${percent}%)`; return res; },10); allData=results.filter(r=>r!==null); renderStats(); renderTable(); renderCharts(); document.getElementById('progressText').textContent='📈 Fetching accurate timeline data...'; try{ tsRows=await fetchTimeSeriesCombined(allData,start,end); renderTsChart(); }catch(e){ tsRows=[]; renderTsChart(); } pw.style.display='none'; }
 
-// ============ API FUNCTIONS ============
-async function fetchSites() { 
-  const token = await getToken(); 
-  const cacheKey = `sites_${token.substring(0, 20)}`;
-  const cached = await cache.get(cacheKey);
-  if (cached) return cached.siteEntry || [];
-  const r = await fetch(`${GSC_BASE}/sites`, { headers: { Authorization: `Bearer ${token}` } }); 
-  if (!r.ok) throw new Error('fetch sites failed'); 
-  const data = await r.json();
-  await cache.set(cacheKey, data, 7200);
-  return data.siteEntry || []; 
-}
+function renderStats(){ const totalClicks=allData.reduce((s,r)=>s+(r.clicks||0),0), totalImpressions=allData.reduce((s,r)=>s+(r.impressions||0),0); let weightedCtrSum=0, weightedPosSum=0; allData.forEach(s=>{ weightedCtrSum+=(s.ctr/100)*s.impressions; weightedPosSum+=s.position*s.impressions; }); const avgCtr=totalImpressions>0?(weightedCtrSum/totalImpressions)*100:0, avgPos=totalImpressions>0?weightedPosSum/totalImpressions:0; document.getElementById('s-clicks').textContent=allData.length?fmt(totalClicks):'—'; document.getElementById('s-impr').textContent=allData.length?fmt(totalImpressions):'—'; document.getElementById('s-ctr').textContent=allData.length?avgCtr.toFixed(2)+'%':'—'; document.getElementById('s-pos').textContent=allData.length?avgPos.toFixed(1):'—'; const qm=document.getElementById('quickMetrics'); if(qm&&allData.length) qm.innerHTML=`<div class="metric-item"><div class="metric-color" style="background:#3b82f6"></div><span class="metric-name">Total Clicks: ${fmt(totalClicks)}</span></div><div class="metric-item"><div class="metric-color" style="background:#8b5cf6"></div><span class="metric-name">Total Impressions: ${fmt(totalImpressions)}</span></div><div class="metric-item"><div class="metric-color" style="background:#10b981"></div><span class="metric-name">Avg CTR: ${avgCtr.toFixed(2)}%</span></div><div class="metric-item"><div class="metric-color" style="background:#f59e0b"></div><span class="metric-name">Avg Position: ${avgPos.toFixed(1)}</span></div>`; }
+function renderTable(){ const sortBy=document.getElementById('sortBy').value, q=document.getElementById('searchInput').value.toLowerCase(); let rows=[...allData]; if(q) rows=rows.filter(r=>r.name.toLowerCase().includes(q)); rows.sort((a,b)=>sortBy==='clicks'?b.clicks-a.clicks:sortBy==='impressions'?b.impressions-a.impressions:sortBy==='ctr'?b.ctr-a.ctr:a.position-b.position); const tbody=document.getElementById('tbody'); tbody.innerHTML=''; if(!rows.length){ tbody.innerHTML='<tr><td colspan="5" class="loading-cell">No results</td></tr>'; return; } rows.forEach(site=>{ const tr=tbody.insertRow(); tr.className='site-row'; tr.onclick=()=>showModal(site); const pt=site.position===0?'tag-red':site.position<=3?'tag-green':site.position<=10?'tag-amber':'tag-purple'; tr.innerHTML=`<td><div class="site-name-cell"><span class="site-domain">${esc(site.name)}</span><span class="site-type">${site.type}</span></div></td><td><span class="tag tag-blue">${fmtE(site.clicks)}</span></td><td><span class="tag tag-purple">${fmtE(site.impressions)}</span></td><td><span class="tag tag-green">${site.ctr.toFixed(2)}%</span></td><td><span class="tag ${pt}">${site.position>0?site.position.toFixed(1):'—'}</span></td>`; }); }
+async function showModal(site){ const modal=document.getElementById('modal'), modalBody=document.getElementById('modalBody'); document.getElementById('modalTitle').textContent=`📊 ${site.name} — SEO Insights`; modalBody.innerHTML=`<div style="text-align:center; padding:20px;">Loading...</div>`; modal.style.display='block'; try{ const {start,end}=getDates(); const rawSeries=await fetchSiteTimeSeries(site.url,start,end); currentSiteTimeSeries=rawSeries; renderModalContent(site,rawSeries); }catch(err){ modalBody.innerHTML=`<div style="color:var(--red); padding:20px;">⚠️ Failed to load: ${err.message}</div>`; } }
+function aggregateBy(data,period){ if(period==='daily') return data; const grouped=new Map(); for(const item of data){ const date=new Date(item.date); let key; if(period==='weekly'){ const weekStart=new Date(date); weekStart.setDate(date.getDate()-date.getDay()); key=toYMD(weekStart); } else key=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`; if(!grouped.has(key)) grouped.set(key,{date:key,clicks:0,impressions:0,ctrWeightedSum:0,posWeightedSum:0}); const e=grouped.get(key); e.clicks+=item.clicks; e.impressions+=item.impressions; e.ctrWeightedSum+=(item.ctr/100)*item.impressions; e.posWeightedSum+=item.position*item.impressions; } return Array.from(grouped.values()).map(entry=>({date:entry.date,clicks:entry.clicks,impressions:entry.impressions,ctr:entry.impressions>0?(entry.ctrWeightedSum/entry.impressions)*100:0,position:entry.impressions>0?entry.posWeightedSum/entry.impressions:0})); }
+function renderModalContent(site,series){ const aggregated=aggregateBy(series,currentSiteView); const modalBody=document.getElementById('modalBody'); modalBody.innerHTML=`<div class="modal-stats-grid"><div class="modal-stat"><h4>Total Clicks</h4><div class="value" style="color:#3b82f6">${fmtE(site.clicks)}</div></div><div class="modal-stat"><h4>Impressions</h4><div class="value" style="color:#8b5cf6">${fmtE(site.impressions)}</div></div><div class="modal-stat"><h4>CTR</h4><div class="value" style="color:#10b981">${site.ctr.toFixed(2)}%</div></div><div class="modal-stat"><h4>Avg Position</h4><div class="value" style="color:#f59e0b">${site.position.toFixed(1)}</div></div></div><div class="modal-view-selector"><button class="view-btn ${currentSiteView==='daily'?'active':''}" onclick="window.changeSiteView('daily')">Daily</button><button class="view-btn ${currentSiteView==='weekly'?'active':''}" onclick="window.changeSiteView('weekly')">Weekly</button><button class="view-btn ${currentSiteView==='monthly'?'active':''}" onclick="window.changeSiteView('monthly')">Monthly</button></div><div class="modal-chart-wrap"><canvas id="siteTimeSeriesChart"></canvas></div><h3 style="font-size:14px; margin:20px 0 8px;">🔍 Top Keywords</h3><div class="table-scroll" style="max-height:300px;"><table style="min-width:500px;"><thead><tr><th>Keyword</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th></tr></thead><tbody id="modalKeywords"></tbody></table></div><div style="margin-top:18px; background:var(--s2); padding:12px; border-radius:8px;"><span>💡 Insight: ${site.position<10?'🏆 Strong average position under 10!':site.position<20?'📈 Moderate ranking, room for improvement.':'⚠️ Lower positions — consider content optimization.'}</span></div>`; renderSiteChart(aggregated); loadModalKeywords(site); }
+async function loadModalKeywords(site){ const {start,end}=getDates(); const keywords=await fetchKeywords(site.url,start,end); const tbody=document.getElementById('modalKeywords'); if(tbody) tbody.innerHTML=keywords.length?keywords.map(kw=>`<tr><td style="max-width:260px;">${esc(kw.keyword)}</td><td>${fmtE(kw.clicks)}</td><td>${fmtE(kw.impressions)}</td><td>${kw.ctr.toFixed(1)}%</td><td>${kw.position.toFixed(1)}</td></tr>`).join(''):'<tr><td colspan="5">No keyword data</td></tr>'; }
+function renderSiteChart(data){ const canvas=document.getElementById('siteTimeSeriesChart'); if(!canvas) return; if(currentSiteChart) currentSiteChart.destroy(); const isDark=html.getAttribute('data-theme')==='dark'; const labels=data.map(d=>currentSiteView==='monthly'?d.date:new Date(d.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})); currentSiteChart=new Chart(canvas,{type:'line',data:{labels,datasets:[{label:'Clicks',data:data.map(d=>d.clicks),borderColor:'#3b82f6',borderWidth:2,fill:false,tension:0.3,yAxisID:'y'},{label:'Impressions',data:data.map(d=>d.impressions),borderColor:'#8b5cf6',borderWidth:2,fill:false,tension:0.3,yAxisID:'y'},{label:'CTR (%)',data:data.map(d=>d.ctr),borderColor:'#10b981',borderWidth:2,fill:false,tension:0.3,yAxisID:'y1'},{label:'Position',data:data.map(d=>d.position),borderColor:'#f59e0b',borderWidth:2,fill:false,tension:0.3,yAxisID:'y2'}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:{grid:{color:isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.06)'}},y:{position:'left',title:{display:true,text:'Clicks / Impressions'}},y1:{position:'right',title:{display:true,text:'CTR (%)'},grid:{display:false}},y2:{position:'right',title:{display:true,text:'Position'},reverse:true,grid:{display:false}}}}); }
+window.changeSiteView = (view)=>{ currentSiteView=view; if(currentSiteTimeSeries){ const aggregated=aggregateBy(currentSiteTimeSeries,view); renderSiteChart(aggregated); document.querySelectorAll('.view-btn').forEach(btn=>{ btn.classList.remove('active'); if(btn.innerText.toLowerCase()===view) btn.classList.add('active'); }); } };
+function renderCharts() { const top10c=[...allData].sort((a,b)=>b.clicks-a.clicks).slice(0,10); const top10r=[...allData].sort((a,b)=>b.ctr-a.ctr).slice(0,10); if(clicksChart) clicksChart.destroy(); if(ctrChart) ctrChart.destroy(); if(!top10c.length) return; const short=n=>n.length>20?n.slice(0,17)+'...':n; const isDark=html.getAttribute('data-theme')==='dark'; const sc={grid:{color:isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.06)'},ticks:{color:isDark?'#4a5f7a':'#94a3b8'}}; clicksChart=new Chart(document.getElementById('clicksChart'),{type:'bar',data:{labels:top10c.map(s=>short(s.name)),datasets:[{data:top10c.map(s=>s.clicks),backgroundColor:'rgba(59,130,246,.8)',borderRadius:5}]},options:{responsive:true,plugins:{tooltip:{callbacks:{label:ctx=>` ${fmtE(ctx.parsed.y)}`}}},scales:{x:sc,y:sc}}}); ctrChart=new Chart(document.getElementById('ctrChart'),{type:'bar',data:{labels:top10r.map(s=>short(s.name)),datasets:[{data:top10r.map(s=>parseFloat(s.ctr.toFixed(2))),backgroundColor:'rgba(16,185,129,.8)',borderRadius:5}]},options:{responsive:true,plugins:{tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(2)}%`}}},scales:{x:sc,y:sc}}}); }
+const MC={clicks:{label:'Clicks',color:'#3b82f6',yAxis:'y',fmt:v=>fmtE(v)},impressions:{label:'Impressions',color:'#8b5cf6',yAxis:'y',fmt:v=>fmtE(v)},ctr:{label:'CTR',color:'#10b981',yAxis:'y1',fmt:v=>v.toFixed(2)+'%'},position:{label:'Avg Position',color:'#f59e0b',yAxis:'y2',fmt:v=>v.toFixed(1)}};
+function renderTsChart(){ if(tsChart) tsChart.destroy(); const canvas=document.getElementById('tsChart'); if(!tsRows||!tsRows.length){ if(canvas){ const ctx=canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); } return; } const isDark=html.getAttribute('data-theme')==='dark'; const labels=tsRows.map(d=>new Date(d.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})); const datasets=[]; for(const [key,cfg] of Object.entries(MC)) if(activeMetrics.has(key)) datasets.push({label:cfg.label,metricKey:key,data:tsRows.map(d=>d[key]),borderColor:cfg.color,borderWidth:1.5,pointRadius:tsRows.length>90?0:2,tension:0.3,yAxisID:cfg.yAxis}); tsChart=new Chart(canvas,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${MC[ctx.dataset.metricKey].fmt(ctx.parsed.y)}`}}},scales:{x:{grid:{color:isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.06)'}},y:{grid:{color:isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.06)'}},y1:{position:'right',grid:{display:false}},y2:{position:'right',grid:{display:false},reverse:true}}}}); }
+document.querySelectorAll('.metric-btn').forEach(btn=>{ btn.onclick=()=>{ const m=btn.dataset.m; if(activeMetrics.has(m)){ if(activeMetrics.size===1) return; activeMetrics.delete(m); btn.classList.remove('active'); }else{ activeMetrics.add(m); btn.classList.add('active'); } renderTsChart(); };});
+document.getElementById('sortBy').onchange=renderTable; document.getElementById('searchInput').oninput=renderTable; document.getElementById('refreshBtn').onclick=()=>{ cache.clear(); loadData(); };
+function exportSummary(){ if(!allData.length) return alert('No data'); const q=document.getElementById('searchInput').value.toLowerCase(); let exportData=[...allData]; if(q) exportData=exportData.filter(r=>r.name.toLowerCase().includes(q)); const ws=XLSX.utils.json_to_sheet(exportData.map(s=>({'Website':s.name,'Type':s.type,'Clicks':s.clicks,'Impressions':s.impressions,'CTR %':parseFloat(s.ctr.toFixed(2)),'Avg Position':parseFloat(s.position.toFixed(1))}))); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Summary'); XLSX.writeFile(wb,`seo-summary-${new Date().toISOString().split('T')[0]}.xlsx`); }
+// DAILY EXPORT: fetches accurate daily breakdown for all sites within date range
+async function exportDaily() { if(!allData.length) return alert('No data to export. Please load data first.'); const {start,end}=getDates(); if(!start||!end) return alert('Invalid date range.'); const progressDiv=document.getElementById('progressWrap'); progressDiv.style.display='block'; document.getElementById('progressFill').style.width='0%'; document.getElementById('progressText').textContent='🌍 Fetching daily data across sites...'; const dailyRows=[]; for(let i=0;i<allData.length;i++){ const site=allData[i]; const percent=Math.round(((i+1)/allData.length)*100); document.getElementById('progressFill').style.width=percent+'%'; document.getElementById('progressText').textContent=`📅 ${site.name} (${i+1}/${allData.length})`; const series=await fetchSiteTimeSeries(site.url,start,end); for(const day of series){ dailyRows.push({ 'Website':site.name, 'Date':day.date, 'Clicks':day.clicks, 'Impressions':day.impressions, 'CTR %':parseFloat(day.ctr.toFixed(2)), 'Avg Position':parseFloat(day.position.toFixed(1)) }); } } const ws=XLSX.utils.json_to_sheet(dailyRows); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Daily Breakdown'); XLSX.writeFile(wb,`seo-daily-${start}_to_${end}.xlsx`); progressDiv.style.display='none'; alert(`✅ Daily export complete! ${dailyRows.length} rows exported.`); }
+document.getElementById('exportBtn').onclick=()=>{ if(!allData.length) alert('No data to export.'); else document.getElementById('exportModal').style.display='block'; };
+document.getElementById('closeExportModal').onclick=()=>document.getElementById('exportModal').style.display='none';
+document.getElementById('exportSummaryBtn').onclick=()=>{ exportSummary(); document.getElementById('exportModal').style.display='none'; };
+document.getElementById('exportDailyBtn').onclick=async ()=>{ document.getElementById('exportModal').style.display='none'; await exportDaily(); };
+window.onclick=e=>{ if(e.target===document.getElementById('modal')) document.getElementById('modal').style.display='none'; if(e.target===document.getElementById('exportModal')) document.getElementById('exportModal').style.display='none'; };
+function fmt(n){return n.toLocaleString('en-US');} function fmtE(n){return n.toLocaleString('en-US');} function esc(t){const d=document.createElement('div'); d.textContent=t; return d.innerHTML;}
+document.getElementById('closeModal').onclick=()=>document.getElementById('modal').style.display='none';
 
-async function fetchTotals(siteUrl, start, end) { 
-  try { 
-    const token = await getToken(); 
-    const cacheKey = `totals_${siteUrl}_${start}_${end}`;
-    const cached = await cache.get(cacheKey);
-    if (cached) return cached;
-    const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, { 
-      method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ startDate: start, endDate: end, type: 'web', aggregationType: 'byProperty', dataState: 'all' }) 
-    }); 
-    if (r.status !== 200) return null; 
-    const d = await r.json(); 
-    const row = (d.rows && d.rows[0]) || { clicks: 0, impressions: 0, ctr: 0, position: 0 }; 
-    const name = siteUrl.replace(/^sc-domain:/, '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''); 
-    const result = { url: siteUrl, name, type: siteUrl.startsWith('sc-domain:') ? 'Domain' : 'URL', clicks: Math.round(row.clicks), impressions: Math.round(row.impressions), ctr: row.ctr * 100, position: row.position }; 
-    await cache.set(cacheKey, result, 21600);
-    return result; 
-  } catch (e) { return null; } 
-}
+// Calendar (simplified)
+window.openCalendar=function(type){ const popup=document.getElementById(type==='from'?'fromCal':'toCal'); if(popup) popup.classList.toggle('open'); renderCalendar(type); };
+function renderCalendar(type){ const popup=document.getElementById(type==='from'?'fromCal':'toCal'); if(!popup) return; const vm=calViewMonth[type]; const year=vm.getFullYear(), month=vm.getMonth(); const firstDay=new Date(year,month,1).getDay(); const daysInMonth=new Date(year,month+1,0).getDate(); const todayStr=toYMD(new Date()); let html=`<div class="cal-nav"><button class="cal-nav-btn" onclick="window.changeMonth('${type}',-1)">‹</button><span class="cal-month-year">${['January','February','March','April','May','June','July','August','September','October','November','December'][month]} ${year}</span><button class="cal-nav-btn" onclick="window.changeMonth('${type}',1)">›</button></div><div class="cal-grid">`; ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(d=>html+=`<div class="cal-dh">${d}</div>`); for(let i=0;i<firstDay;i++) html+='<div class="cal-day cal-empty"></div>'; for(let d=1;d<=daysInMonth;d++){ const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; const isFuture=ds>todayStr; let cls='cal-day'; if(isFuture) cls+=' cal-dis'; if(ds===todayStr) cls+=' cal-today'; if(ds===calState[type]) cls+=' cal-sel'; html+=`<div class="${cls}" onclick="if(!${isFuture}) window.selectDate('${type}','${ds}')">${d}</div>`; } html+=`</div><div class="cal-footer"><span class="cal-range-lbl">${calState.from&&calState.to?calState.from+' to '+calState.to:'Pick range'}</span><button class="cal-clear-btn" onclick="window.clearDates()">Clear</button></div>`; popup.innerHTML=html; }
+window.changeMonth=(type,delta)=>{ const vm=calViewMonth[type]; calViewMonth[type]=new Date(vm.getFullYear(),vm.getMonth()+delta,1); renderCalendar(type); };
+window.selectDate=(type,ds)=>{ calState[type]=ds; document.getElementById(type==='from'?'fromLabel':'toLabel').textContent=ds; document.getElementById(type==='from'?'fromCal':'toCal').classList.remove('open'); if(calState.from&&calState.to) loadData(); };
+window.clearDates=()=>{ calState={from:null,to:null}; document.getElementById('fromLabel').textContent='Select date'; document.getElementById('toLabel').textContent='Select date'; if(document.getElementById('fromCal')) document.getElementById('fromCal').classList.remove('open'); if(document.getElementById('toCal')) document.getElementById('toCal').classList.remove('open'); };
+document.getElementById('applyCustomRangeBtn').onclick=()=>{ if(calState.from&&calState.to) loadData(); else alert('Select both dates'); };
+document.getElementById('preset').onchange=()=>{ const isCustom=document.getElementById('preset').value==='custom'; document.getElementById('dateRangeWrap').style.display=isCustom?'flex':'none'; if(!isCustom&&accessToken) loadData(); };
 
-// ACCURATE TIME SERIES - ALL SITES, NO SAMPLING
-async function fetchTimeSeriesCombined(sites, start, end) { 
-  const token = await getToken(); 
-  const cacheKey = `timeseries_full_${start}_${end}_${sites.length}`;
-  const cached = await cache.get(cacheKey);
-  if (cached) {
-    console.log(`✅ Time series cache hit: ${cached.length} days`);
-    return cached;
-  }
-  
-  console.log(`🔄 Fetching ACCURATE time series for ${sites.length} sites...`);
-  const dailyMap = new Map(); 
-  
-  // Fetch ALL sites (no sampling for accuracy)
-  const fetchPromises = sites.map(async (site) => {
-    try { 
-      const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`, { 
-        method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ startDate: start, endDate: end, type: 'web', aggregationType: 'byProperty', dataState: 'all', dimensions: ['date'], rowLimit: 500 }) 
-      }); 
-      if (!r.ok) return null;
-      return await r.json();
-    } catch (e) { return null; }
-  });
-  
-  const results = await Promise.all(fetchPromises);
-  
-  for (const data of results) {
-    if (!data || !data.rows) continue;
-    for (const row of data.rows) { 
-      const date = row.keys[0]; 
-      if (!dailyMap.has(date)) dailyMap.set(date, { clicks: 0, impressions: 0, ctrWeightedSum: 0, posWeightedSum: 0 }); 
-      const entry = dailyMap.get(date); 
-      entry.clicks += Math.round(row.clicks); 
-      entry.impressions += Math.round(row.impressions); 
-      entry.ctrWeightedSum += row.ctr * row.impressions; 
-      entry.posWeightedSum += row.position * row.impressions; 
-    } 
-  }
-  
-  const result = Array.from(dailyMap.keys()).sort().map(date => { 
-    const e = dailyMap.get(date); 
-    const totalImps = e.impressions; 
-    return { 
-      date, clicks: e.clicks, impressions: totalImps, 
-      ctr: totalImps > 0 ? (e.ctrWeightedSum / totalImps) * 100 : 0, 
-      position: totalImps > 0 ? e.posWeightedSum / totalImps : 0 
-    }; 
-  });
-  
-  await cache.set(cacheKey, result, 7200);
-  console.log(`✅ Accurate time series ready: ${result.length} days from ${sites.length} sites`);
-  return result;
-}
-
-// INDIVIDUAL SITE TIME SERIES
-async function fetchSiteTimeSeries(siteUrl, start, end) {
-  const token = await getToken();
-  const cacheKey = `site_ts_${siteUrl}_${start}_${end}`;
-  const cached = await cache.get(cacheKey);
-  if (cached) return cached;
-  
-  try {
-    const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
-      method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ startDate: start, endDate: end, type: 'web', aggregationType: 'byProperty', dataState: 'all', dimensions: ['date'], rowLimit: 500 })
-    });
-    if (!r.ok) return [];
-    const d = await r.json();
-    const result = (d.rows || []).map(row => ({
-      date: row.keys[0],
-      clicks: Math.round(row.clicks),
-      impressions: Math.round(row.impressions),
-      ctr: row.ctr * 100,
-      position: row.position
-    }));
-    await cache.set(cacheKey, result, 7200);
-    return result;
-  } catch (e) {
-    return [];
-  }
-}
-
-// Aggregate data by week or month
-function aggregateBy(data, period) {
-  if (period === 'daily') return data;
-  
-  const grouped = new Map();
-  for (const item of data) {
-    const date = new Date(item.date);
-    let key;
-    if (period === 'weekly') {
-      const weekStart = new Date(date);
-      weekStart.setDate(date.getDate() - date.getDay());
-      key = toYMD(weekStart);
-    } else {
-      key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-    }
-    
-    if (!grouped.has(key)) {
-      grouped.set(key, { date: key, clicks: 0, impressions: 0, ctrWeightedSum: 0, posWeightedSum: 0 });
-    }
-    const entry = grouped.get(key);
-    entry.clicks += item.clicks;
-    entry.impressions += item.impressions;
-    entry.ctrWeightedSum += (item.ctr / 100) * item.impressions;
-    entry.posWeightedSum += item.position * item.impressions;
-  }
-  
-  return Array.from(grouped.values()).map(entry => ({
-    date: entry.date,
-    clicks: entry.clicks,
-    impressions: entry.impressions,
-    ctr: entry.impressions > 0 ? (entry.ctrWeightedSum / entry.impressions) * 100 : 0,
-    position: entry.impressions > 0 ? entry.posWeightedSum / entry.impressions : 0
-  }));
-}
-
-async function fetchKeywords(siteUrl, start, end) { 
-  const token = await getToken(); 
-  const cacheKey = `keywords_${siteUrl}_${start}_${end}`;
-  const cached = await cache.get(cacheKey);
-  if (cached) return cached;
-  const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, { 
-    method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, 
-    body: JSON.stringify({ startDate: start, endDate: end, type: 'web', aggregationType: 'byProperty', dataState: 'all', dimensions: ['query'], rowLimit: 50 }) 
-  }); 
-  if (!r.ok) return []; 
-  const d = await r.json(); 
-  const result = (d.rows || []).map(row => ({ keyword: row.keys[0], clicks: Math.round(row.clicks), impressions: Math.round(row.impressions), ctr: row.ctr * 100, position: row.position })); 
-  await cache.set(cacheKey, result, 43200);
-  return result; 
-}
-
-// ============ LOAD DATA ============
-async function loadData() { 
-  const { start, end } = getDates(); 
-  if (!start || !end) { 
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">Invalid dates</td></tr>'; 
-    return; 
-  } 
-  const pw = document.getElementById('progressWrap'); 
-  pw.style.display = 'block'; 
-  document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">Fetching sites...</td></tr>'; 
-  
-  let sites; 
-  try { sites = await fetchSites(); } 
-  catch (e) { 
-    document.getElementById('tbody').innerHTML = `<tr><td colspan="5" class="loading-cell" style="color:var(--red)">Error: ${e.message}</td></tr>`; 
-    pw.style.display = 'none'; return; 
-  } 
-  if (!sites.length) { 
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">No properties found.</td></tr>'; 
-    pw.style.display = 'none'; return; 
-  }
-  
-  allData = []; 
-  const siteUrls = sites.map(s => s.siteUrl);
-  let completed = 0;
-  
-  const results = await parallelBatch(siteUrls, async (siteUrl, idx) => {
-    const res = await fetchTotals(siteUrl, start, end);
-    completed++;
-    const percent = Math.round((completed / siteUrls.length) * 100);
-    document.getElementById('progressFill').style.width = percent + '%';
-    document.getElementById('progressText').textContent = `📊 ${completed}/${siteUrls.length} properties (${percent}%)`;
-    return res;
-  }, 10);
-  
-  allData = results.filter(r => r !== null);
-  
-  renderStats(); 
-  renderTable(); 
-  renderCharts(); 
-  
-  document.getElementById('progressText').textContent = '📈 Fetching accurate timeline data...';
-  try { 
-    tsRows = await fetchTimeSeriesCombined(allData, start, end); 
-    renderTsChart(); 
-  } catch (e) { 
-    tsRows = []; 
-    renderTsChart(); 
-  } 
-  pw.style.display = 'none';
-}
-// Update progress - just call this one line
-const setProgress = (percent) => document.getElementById('loadingBar') && (document.getElementById('loadingBar').style.width = percent + '%');
-
-// Show/hide - call these
-const showProgress = () => { let el = document.getElementById('loadingBar'); if(el) el.style.display = 'block'; setProgress(0); };
-const hideProgress = () => { let el = document.getElementById('loadingBar'); if(el) el.style.display = 'none'; };
-// Start loading
-showProgress();
-
-// Update progress
-setProgress(50); // 50% done
-
-// End loading  
-hideProgress();
-function renderStats() { 
-  const totalClicks = allData.reduce((s, r) => s + (r.clicks || 0), 0); 
-  const totalImpressions = allData.reduce((s, r) => s + (r.impressions || 0), 0); 
-  let weightedCtrSum = 0, weightedPosSum = 0; 
-  allData.forEach(site => { weightedCtrSum += (site.ctr / 100) * site.impressions; weightedPosSum += site.position * site.impressions; }); 
-  const avgCtr = totalImpressions > 0 ? (weightedCtrSum / totalImpressions) * 100 : 0; 
-  const avgPosition = totalImpressions > 0 ? weightedPosSum / totalImpressions : 0; 
-  document.getElementById('s-clicks').textContent = allData.length ? fmt(totalClicks) : '—'; 
-  document.getElementById('s-impr').textContent = allData.length ? fmt(totalImpressions) : '—'; 
-  document.getElementById('s-ctr').textContent = allData.length ? avgCtr.toFixed(2) + '%' : '—'; 
-  document.getElementById('s-pos').textContent = allData.length ? avgPosition.toFixed(1) : '—'; 
-  
-  // Update quick metrics sidebar
-  const qm = document.getElementById('quickMetrics');
-  if(qm && allData.length) {
-    qm.innerHTML = `
-      <div class="metric-item"><div class="metric-color" style="background:#3b82f6"></div><span class="metric-name">Total Clicks: ${fmt(totalClicks)}</span></div>
-      <div class="metric-item"><div class="metric-color" style="background:#8b5cf6"></div><span class="metric-name">Total Impressions: ${fmt(totalImpressions)}</span></div>
-      <div class="metric-item"><div class="metric-color" style="background:#10b981"></div><span class="metric-name">Avg CTR: ${avgCtr.toFixed(2)}%</span></div>
-      <div class="metric-item"><div class="metric-color" style="background:#f59e0b"></div><span class="metric-name">Avg Position: ${avgPosition.toFixed(1)}</span></div>
-      <div class="metric-item"><div class="metric-color" style="background:#ef4444"></div><span class="metric-name">Sites: ${allData.length}</span></div>
-    `;
-  }
-}
-
-function renderTable() { 
-  const sortBy = document.getElementById('sortBy').value, q = document.getElementById('searchInput').value.toLowerCase(); 
-  let rows = [...allData]; 
-  if (q) rows = rows.filter(r => r.name.toLowerCase().includes(q)); 
-  rows.sort((a, b) => sortBy === 'clicks' ? b.clicks - a.clicks : sortBy === 'impressions' ? b.impressions - a.impressions : sortBy === 'ctr' ? b.ctr - a.ctr : a.position - b.position); 
-  const tbody = document.getElementById('tbody'); 
-  tbody.innerHTML = ''; 
-  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" class="loading-cell">No results</td></tr>'; return; } 
-  rows.forEach(site => { 
-    const tr = tbody.insertRow(); 
-    tr.className = 'site-row'; 
-    tr.onclick = () => showModal(site); 
-    const pt = site.position === 0 ? 'tag-red' : site.position <= 3 ? 'tag-green' : site.position <= 10 ? 'tag-amber' : 'tag-purple'; 
-    tr.innerHTML = `<td><div class="site-name-cell"><span class="site-domain">${esc(site.name)}</span><span class="site-type">${site.type}</span></div></td><td><span class="tag tag-blue">${fmtE(site.clicks)}</span></td><td><span class="tag tag-purple">${fmtE(site.impressions)}</span></td><td><span class="tag tag-green">${site.ctr.toFixed(2)}%</span></td><td><span class="tag ${pt}">${site.position > 0 ? site.position.toFixed(1) : '—'}</span></td>`; 
-  }); 
-}
-
-// ============ MODAL WITH INDIVIDUAL TIME SERIES ============
-async function showModal(site) {
-  const modal = document.getElementById('modal');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalBody = document.getElementById('modalBody');
-  modalTitle.textContent = `📊 ${site.name} — SEO Insights`;
-  modalBody.innerHTML = `<div style="text-align:center; padding:20px;">Loading detailed data...</div>`;
-  modal.style.display = 'block';
-  
-  try {
-    const { start, end } = getDates();
-    if (!start || !end) throw new Error('Invalid date range');
-    
-    // Fetch individual site time series
-    const rawSeries = await fetchSiteTimeSeries(site.url, start, end);
-    currentSiteTimeSeries = rawSeries;
-    
-    // Render modal content
-    renderModalContent(site, rawSeries);
-    
-  } catch (err) {
-    modalBody.innerHTML = `<div style="color:var(--red); padding:20px;">⚠️ Failed to load: ${err.message}</div>`;
-  }
-}
-
-function renderModalContent(site, series) {
-  const aggregated = aggregateBy(series, currentSiteView);
-  const modalBody = document.getElementById('modalBody');
-  
-  const metricsHtml = `
-    <div class="modal-stats-grid">
-      <div class="modal-stat"><h4>Total Clicks</h4><div class="value" style="color:#3b82f6">${fmtE(site.clicks)}</div></div>
-      <div class="modal-stat"><h4>Impressions</h4><div class="value" style="color:#8b5cf6">${fmtE(site.impressions)}</div></div>
-      <div class="modal-stat"><h4>CTR</h4><div class="value" style="color:#10b981">${site.ctr.toFixed(2)}%</div></div>
-      <div class="modal-stat"><h4>Avg Position</h4><div class="value" style="color:#f59e0b">${site.position.toFixed(1)}</div></div>
-    </div>
-    
-    <div class="modal-view-selector">
-      <button class="view-btn ${currentSiteView === 'daily' ? 'active' : ''}" onclick="changeSiteView('daily')">Daily</button>
-      <button class="view-btn ${currentSiteView === 'weekly' ? 'active' : ''}" onclick="changeSiteView('weekly')">Weekly</button>
-      <button class="view-btn ${currentSiteView === 'monthly' ? 'active' : ''}" onclick="changeSiteView('monthly')">Monthly</button>
-    </div>
-    
-    <div class="modal-chart-wrap">
-      <canvas id="siteTimeSeriesChart"></canvas>
-    </div>
-    
-    <h3 style="font-size:14px; margin:20px 0 8px;">🔍 Top Keywords</h3>
-    <div class="table-scroll" style="max-height:300px;"><table style="min-width:500px;"><thead><tr><th>Keyword</th><th>Clicks</th><th>Impressions</th><th>CTR</th><th>Position</th></tr></thead><tbody id="modalKeywords"></tbody></table></div>
-    <div style="margin-top:18px; background:var(--s2); padding:12px; border-radius:8px; font-size:12px;">
-      <span>💡 Insight: ${site.position < 10 ? '🏆 Strong average position under 10!' : site.position < 20 ? '📈 Moderate ranking, room for improvement.' : '⚠️ Lower positions — consider content optimization.'}</span>
-    </div>
-  `;
-  
-  modalBody.innerHTML = metricsHtml;
-  
-  // Render individual site chart
-  renderSiteChart(aggregated);
-  
-  // Load keywords
-  loadModalKeywords(site);
-}
-
-async function loadModalKeywords(site) {
-  const { start, end } = getDates();
-  const keywords = await fetchKeywords(site.url, start, end);
-  const tbody = document.getElementById('modalKeywords');
-  if(tbody) {
-    tbody.innerHTML = keywords.length ? keywords.map(kw => `
-      <tr><td style="max-width:260px; word-break:break-word;">${esc(kw.keyword)}</td><td>${fmtE(kw.clicks)}</td><td>${fmtE(kw.impressions)}</td><td>${kw.ctr.toFixed(1)}%</td><td>${kw.position.toFixed(1)}</td></tr>
-    `).join('') : '<tr><td colspan="5" style="text-align:center;">No keyword data available</td></tr>';
-  }
-}
-
-function renderSiteChart(data) {
-  const canvas = document.getElementById('siteTimeSeriesChart');
-  if (!canvas) return;
-  
-  if (currentSiteChart) currentSiteChart.destroy();
-  
-  const ctx = canvas.getContext('2d');
-  const isDark = html.getAttribute('data-theme') === 'dark';
-  const gridCol = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)';
-  
-  const labels = data.map(d => {
-    if (currentSiteView === 'monthly') return d.date;
-    const dt = new Date(d.date);
-    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  });
-  
-  currentSiteChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [
-        { label: 'Clicks', data: data.map(d => d.clicks), borderColor: '#3b82f6', backgroundColor: '#3b82f620', borderWidth: 2, fill: false, tension: 0.3, yAxisID: 'y' },
-        { label: 'Impressions', data: data.map(d => d.impressions), borderColor: '#8b5cf6', backgroundColor: '#8b5cf620', borderWidth: 2, fill: false, tension: 0.3, yAxisID: 'y' },
-        { label: 'CTR (%)', data: data.map(d => d.ctr), borderColor: '#10b981', backgroundColor: '#10b98120', borderWidth: 2, fill: false, tension: 0.3, yAxisID: 'y1' },
-        { label: 'Position', data: data.map(d => d.position), borderColor: '#f59e0b', backgroundColor: '#f59e0b20', borderWidth: 2, fill: false, tension: 0.3, yAxisID: 'y2' }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      scales: {
-        x: { grid: { color: gridCol }, ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 10 } },
-        y: { position: 'left', title: { display: true, text: 'Clicks / Impressions', color: '#3b82f6' }, grid: { color: gridCol } },
-        y1: { position: 'right', title: { display: true, text: 'CTR (%)', color: '#10b981' }, grid: { display: false } },
-        y2: { position: 'right', title: { display: true, text: 'Position', color: '#f59e0b' }, reverse: true, grid: { display: false } }
-      }
-    }
-  });
-}
-
-window.changeSiteView = async (view) => {
-  currentSiteView = view;
-  if (currentSiteTimeSeries) {
-    const aggregated = aggregateBy(currentSiteTimeSeries, view);
-    renderSiteChart(aggregated);
-    
-    // Update button active states
-    document.querySelectorAll('.view-btn').forEach(btn => {
-      btn.classList.remove('active');
-      if(btn.innerText.toLowerCase() === view) btn.classList.add('active');
-    });
-  }
-};
-
-function renderCharts() { 
-  const top10c = [...allData].sort((a, b) => b.clicks - a.clicks).slice(0, 10);
-  const top10r = [...allData].sort((a, b) => b.ctr - a.ctr).slice(0, 10); 
-  if (clicksChart) clicksChart.destroy(); 
-  if (ctrChart) ctrChart.destroy(); 
-  if (!top10c.length) return; 
-  const short = n => n.length > 20 ? n.slice(0, 17) + '...' : n;
-  const isDark = html.getAttribute('data-theme') === 'dark';
-  const sc = { grid: { color: isDark ? 'rgba(255,255,255,.04)' : 'rgba(0,0,0,.06)' }, ticks: { color: isDark ? '#4a5f7a' : '#94a3b8', font: { size: 11 } } }; 
-  clicksChart = new Chart(document.getElementById('clicksChart'), { type: 'bar', data: { labels: top10c.map(s => short(s.name)), datasets: [{ data: top10c.map(s => s.clicks), backgroundColor: 'rgba(59,130,246,.8)', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${fmtE(ctx.parsed.y)}` } } }, scales: { x: sc, y: sc } } }); 
-  ctrChart = new Chart(document.getElementById('ctrChart'), { type: 'bar', data: { labels: top10r.map(s => short(s.name)), datasets: [{ data: top10r.map(s => parseFloat(s.ctr.toFixed(2))), backgroundColor: 'rgba(16,185,129,.8)', borderRadius: 5 }] }, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y.toFixed(2)}%` } } }, scales: { x: sc, y: sc } } }); 
-}
-
-const MC = { clicks: { label: 'Clicks', color: '#3b82f6', yAxis: 'y', fmt: v => fmtE(v) }, impressions: { label: 'Impressions', color: '#8b5cf6', yAxis: 'y', fmt: v => fmtE(v) }, ctr: { label: 'CTR', color: '#10b981', yAxis: 'y1', fmt: v => v.toFixed(2) + '%' }, position: { label: 'Avg Position', color: '#f59e0b', yAxis: 'y2', fmt: v => v.toFixed(1) } };
-
-function renderTsChart() { 
-  if (tsChart) tsChart.destroy(); 
-  const wrapDiv = document.getElementById('tsWrap'); 
-  if (!wrapDiv) return; 
-  if (!tsRows || !tsRows.length) { wrapDiv.innerHTML = '<div class="ts-empty">No time-series data available.</div>'; return; } 
-  if (!document.getElementById('tsChart')) wrapDiv.innerHTML = '<canvas id="tsChart"></canvas>'; 
-  const canvas = document.getElementById('tsChart'); 
-  if (!canvas) return; 
-  const ctx = canvas.getContext('2d'); 
-  const isDark = html.getAttribute('data-theme') === 'dark'; 
-  const gridCol = isDark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)';
-  const labels = tsRows.map(d => { const dt = new Date(d.date); return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }); 
-  const datasets = []; 
-  for (const [key, cfg] of Object.entries(MC)) { 
-    if (activeMetrics.has(key)) { 
-      datasets.push({ label: cfg.label, metricKey: key, data: tsRows.map(d => d[key]), borderColor: cfg.color, backgroundColor: cfg.color + '20', borderWidth: 1.5, pointRadius: tsRows.length > 90 ? 0 : 2, pointHoverRadius: 4, tension: 0.3, yAxisID: cfg.yAxis }); 
-    } 
-  } 
-  const scales = { x: { grid: { color: gridCol }, ticks: { color: isDark ? '#4a5f7a' : '#94a3b8', maxTicksLimit: 12, autoSkip: true } } }; 
-  scales.y = { position: 'left', grid: { color: gridCol }, ticks: { color: '#3b82f6', callback: v => fmt(v) } };
-  scales.y1 = { position: 'right', grid: { display: false }, ticks: { color: '#10b981', callback: v => v.toFixed(1) + '%' } };
-  scales.y2 = { position: 'right', grid: { display: false }, reverse: true, ticks: { color: '#f59e0b' } };
-  tsChart = new Chart(ctx, { type: 'line', data: { labels, datasets }, options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 }, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${MC[ctx.dataset.metricKey].fmt(ctx.parsed.y)}` } } }, scales } }); 
-}
-
-document.querySelectorAll('.metric-btn').forEach(btn => { btn.onclick = () => { const m = btn.dataset.m; if (activeMetrics.has(m)) { if (activeMetrics.size === 1) return; activeMetrics.delete(m); btn.classList.remove('active'); } else { activeMetrics.add(m); btn.classList.add('active'); } renderTsChart(); }; });
-document.getElementById('sortBy').onchange = renderTable; 
-document.getElementById('searchInput').oninput = renderTable; 
-document.getElementById('refreshBtn').onclick = () => { cache.clear(); loadData(); };
-
-// ============ EXPORT ============
-function exportSummary() {
-  if (!allData.length) { alert('No data to export.'); return; }
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  let exportData = [...allData];
-  if (q) exportData = exportData.filter(r => r.name.toLowerCase().includes(q));
-  if (q && exportData.length !== allData.length && !confirm(`⚠️ Filter active. Only ${exportData.length} of ${allData.length} sites will be exported.`)) exportData = [...allData];
-  const ws = XLSX.utils.json_to_sheet(exportData.map(s => ({ 'Website': s.name, 'Type': s.type, 'Clicks': s.clicks, 'Impressions': s.impressions, 'CTR %': parseFloat(s.ctr.toFixed(2)), 'Avg Position': parseFloat(s.position.toFixed(1)) })));
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Summary');
-  XLSX.writeFile(wb, `seo-summary-${new Date().toISOString().split('T')[0]}.xlsx`);
-  alert(`✅ Exported ${exportData.length} sites with ${exportData.reduce((s, r) => s + r.clicks, 0).toLocaleString()} total clicks.`);
-}
-
-document.getElementById('exportBtn').onclick = () => { if (!allData.length) alert('No data to export.'); else document.getElementById('exportModal').style.display = 'block'; };
-document.getElementById('closeExportModal').onclick = () => document.getElementById('exportModal').style.display = 'none';
-document.getElementById('exportSummaryBtn').onclick = () => { exportSummary(); document.getElementById('exportModal').style.display = 'none'; };
-document.getElementById('exportDailyBtn').onclick = () => { alert('Daily export feature - fetches complete daily breakdown'); document.getElementById('exportModal').style.display = 'none'; };
-window.onclick = e => { if (e.target === document.getElementById('modal')) document.getElementById('modal').style.display = 'none'; if (e.target === document.getElementById('exportModal')) document.getElementById('exportModal').style.display = 'none'; };
-function fmt(n){return n.toLocaleString('en-US');}
-function fmtE(n){return n.toLocaleString('en-US');}
-function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
-document.getElementById('closeModal').onclick = () => document.getElementById('modal').style.display = 'none';
-
-// Auto-init
-(async () => { if (!hasSession()) return; const saved = localStorage.getItem('gsc_access'); if (saved) accessToken = saved; try { accessToken = await getToken(); showDashboard(); loadData(); } catch (e) { console.warn(e); logout(); } })();
+(async()=>{ if(!hasSession()) return; try{ accessToken=await getToken(); showDashboard(); loadData(); }catch(e){ logout(); } })();
 </script>
 </body>
 </html>
