@@ -1022,11 +1022,11 @@ window.onclick = e => {
 // Calendar functions
 function openCalendar(type) {
   const preset = document.getElementById('preset').value;
+  // For Single Day mode, always open the From calendar
   if (preset === '1') {
-    // In single day mode, clicking either field opens calendar for the day picker
     const popup = document.getElementById('fromCal');
     if (popup) popup.classList.toggle('open');
-    renderCalendar('single');
+    renderCalendar('from');
   } else {
     const popup = document.getElementById(type === 'from' ? 'fromCal' : 'toCal');
     if (popup) popup.classList.toggle('open');
@@ -1069,13 +1069,17 @@ window.changeMonth = (type, delta) => {
 
 window.selectDate = (type, ds) => {
   const preset = document.getElementById('preset').value;
-  if (type === 'single' || preset === '1') {
-    // Single day selection
+  if (preset === '1') {
+    // Single day mode - set both dates to the same value
     calState.from = ds;
     calState.to = ds;
     document.getElementById('fromLabel').textContent = ds;
     document.getElementById('toLabel').textContent = ds;
-    document.getElementById('fromCal').classList.remove('open');
+    // Close both calendars
+    const fromCal = document.getElementById('fromCal');
+    const toCal = document.getElementById('toCal');
+    if (fromCal) fromCal.classList.remove('open');
+    if (toCal) toCal.classList.remove('open');
     localStorage.setItem('selectedSingleDate', ds);
     loadData();
   } else {
@@ -1116,9 +1120,19 @@ document.getElementById('applyCustomRangeBtn').onclick = () => {
 };
   
 document.getElementById('preset').onchange = () => {
-  const isCustom = document.getElementById('preset').value === 'custom';
-  document.getElementById('dateRangeWrap').style.display = isCustom ? 'flex' : 'none';
-  if (!isCustom && accessToken) loadData();
+  const presetValue = document.getElementById('preset').value;
+  const isCustomOrSingle = presetValue === 'custom' || presetValue === '1';
+  document.getElementById('dateRangeWrap').style.display = isCustomOrSingle ? 'flex' : 'none';
+  
+  // Reset calendar state when switching to Single Day
+  if (presetValue === '1') {
+    calState.from = null;
+    calState.to = null;
+    document.getElementById('fromLabel').textContent = 'Select date';
+    document.getElementById('toLabel').textContent = 'Select date';
+  }
+  
+  if (!isCustomOrSingle && accessToken) loadData();
 };
 
 function escapeHtml(str) {
