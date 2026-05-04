@@ -36,6 +36,7 @@
   --stat-sub:#94a3b8;
   --logo-filter: none;
 }
+  
 :root{--blue:#3b82f6;--blue2:#60a5fa;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--mono:'JetBrains Mono',monospace;--sans:'Outfit',sans-serif;--r:10px;}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;transition:background .25s,color .25s}
@@ -100,6 +101,52 @@ select,input[type=text]{padding:7px 11px;border:1px solid var(--border);backgrou
 .mb-clicks{border-color:#3b82f6}.mb-clicks.active{background:rgba(59,130,246,.12);color:#3b82f6}
 .mb-impressions{border-color:#8b5cf6}.mb-impressions.active{background:rgba(139,92,246,.12);color:#8b5cf6}
 .ts-canvas-wrap{height:260px}
+.stats-info-section .stat {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.stats-info-section .stat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px var(--shadow);
+}
+#noDataDropdown {
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.no-data-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.no-data-item:last-child {
+  border-bottom: none;
+}
+.no-data-item:hover {
+  background: var(--s2);
+}
+.no-data-type {
+  background: rgba(239,68,68,0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  color: var(--red);
+}
+.stats-info-section {
+  grid-template-columns: 1fr !important;
+}
 .charts-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:18px;margin-bottom:22px}
 .chart-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:20px}
 .table-wrap{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
@@ -137,7 +184,35 @@ td{padding:11px 16px;border-bottom:1px solid var(--border);font-size:13px}
     <div class="info-chip" id="websiteStatsChip">🌐 <strong id="totalSitesCount">0</strong> websites fetched · <span id="dataSuccessCount">0</span> with data · <span id="failedSitesListSpan">No failures</span></div>
     <div class="stats-grid"><div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div></div><div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div></div><div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div></div><div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div></div></div>
     <div class="ts-card"><div class="ts-header"><h3>📈 Combined Performance</h3><div class="metric-toggles"><button class="metric-btn mb-clicks active" data-m="clicks"><span class="mdot" style="background:#3b82f6"></span>Clicks</button><button class="metric-btn mb-impressions active" data-m="impressions"><span class="mdot" style="background:#8b5cf6"></span>Impressions</button><button class="metric-btn mb-ctr active" data-m="ctr"><span class="mdot" style="background:#10b981"></span>CTR</button><button class="metric-btn mb-position active" data-m="position"><span class="mdot" style="background:#f59e0b"></span>Position</button></div></div><div class="ts-canvas-wrap"><canvas id="tsChart"></canvas></div></div>
-    <div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div><div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div></div>
+    <div class="charts-row">
+  <div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div>
+  <div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div>
+</div>
+
+<!-- NEW: Website Statistics Section Below Charts -->
+<div class="stats-info-section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 22px;">
+  <div class="stat" style="--accent-color: var(--blue); cursor: pointer;" onclick="toggleNoDataDropdown()">
+    <h3>📊 Websites with Data</h3>
+    <div class="val" id="websitesWithDataCount">0</div>
+    <div class="sub">successfully fetched</div>
+  </div>
+  <div class="stat" style="--accent-color: var(--red); cursor: pointer;" onclick="toggleNoDataDropdown()">
+    <h3>⚠️ Websites with NO Data</h3>
+    <div class="val" id="websitesNoDataCount">0</div>
+    <div class="sub">click to view list</div>
+  </div>
+</div>
+
+<!-- Dropdown for websites with no data -->
+<div id="noDataDropdown" style="display: none; background: var(--s1); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 22px; overflow: hidden;">
+  <div style="padding: 12px 16px; background: var(--s2); border-bottom: 1px solid var(--border); font-weight: 600;">
+    🚫 Websites with No Data Available
+    <span style="float: right; cursor: pointer; font-size: 18px;" onclick="toggleNoDataDropdown()">✕</span>
+  </div>
+  <div id="noDataList" style="max-height: 300px; overflow-y: auto; padding: 12px;">
+    <div style="text-align: center; padding: 20px; color: var(--text3);">Loading...</div>
+  </div>
+</div>
     <div class="table-wrap"><div class="table-scroll"><table><thead><tr><th>🌐 Website</th><th class="active" data-sort="clicks">Clicks</th><th>Impressions</th><th>CTR</th><th>Avg Position</th></tr></thead><tbody id="tbody"><tr><td colspan="5" class="loading-cell">Loading...</td></tr></tbody></table></div></div>
   </div>
 </div>
@@ -180,14 +255,76 @@ async function fetchSites() { const token = await getValidToken(); const r = awa
 async function fetchTotals(siteUrl, start, end) { try { const token = await getValidToken(); const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, { method:'POST', headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}, body: JSON.stringify({ startDate: start, endDate: end, type:'web', aggregationType:'byProperty' }) }); if(r.status !== 200) return null; const d = await r.json(); const row = d.rows?.[0] || {}; const name = siteUrl.replace(/^sc-domain:/,'').replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,''); return { url: siteUrl, name, type: siteUrl.startsWith('sc-domain:')?'Domain':'URL', clicks: Math.round(row.clicks||0), impressions: Math.round(row.impressions||0), ctr: (row.ctr||0)*100, position: row.position||0 }; } catch(e){ return null; } }
 async function fetchTimeSeriesCombined(sites, start, end) { const daily = new Map(); for(const site of sites) { try { const token = await getValidToken(); const r = await fetch(`${GSC_BASE}/sites/${encodeURIComponent(site.url)}/searchAnalytics/query`, { method:'POST', headers:{'Authorization':`Bearer ${token}`}, body: JSON.stringify({ startDate: start, endDate: end, type:'web', aggregationType:'byProperty', dimensions:['date'], rowLimit:500 }) }); if(r.ok) { const d = await r.json(); for(const row of (d.rows||[])) { const date = row.keys[0]; if(!daily.has(date)) daily.set(date, { clicks:0, impressions:0, ctrSum:0, posSum:0 }); const e = daily.get(date); e.clicks += row.clicks; e.impressions += row.impressions; e.ctrSum += (row.ctr * row.impressions); e.posSum += (row.position * row.impressions); } } } catch(e){} } const res = Array.from(daily.keys()).sort().map(date => { const e = daily.get(date); const imps = e.impressions; return { date, clicks: Math.round(e.clicks), impressions: imps, ctr: imps>0 ? (e.ctrSum/imps)*100 : 0, position: imps>0 ? e.posSum/imps : 0 }; }); return res; }
 
-async function loadData() { const { start, end } = getDates(); if(!start||!end) return; const pw = document.getElementById('progressWrap'); pw.style.display = 'block'; let sites = await fetchSites(); failedSitesUrls = []; let rawResults = []; for(let i=0;i<sites.length;i++) { const res = await fetchTotals(sites[i].siteUrl, start, end); if(res) rawResults.push(res); else failedSitesUrls.push(sites[i].siteUrl); const percent = Math.round(((i+1)/sites.length)*100); document.getElementById('progressFill').style.width = percent+'%'; document.getElementById('progressText').innerHTML = `✅ ${i+1}/${sites.length} properties`; } allData = rawResults; // Update website stats chip
+async function loadData() { const { start, end } = getDates(); if(!start||!end) return; const pw = document.getElementById('progressWrap'); pw.style.display = 'block'; let sites = await fetchSites(); window.allSitesList = sites; failedSitesUrls = sites.filter(s => !results.find(r => r?.url === s.siteUrl)).map(s => s.siteUrl); for(let i=0;i<sites.length;i++) { const res = await fetchTotals(sites[i].siteUrl, start, end); if(res) rawResults.push(res); else failedSitesUrls.push(sites[i].siteUrl); const percent = Math.round(((i+1)/sites.length)*100); document.getElementById('progressFill').style.width = percent+'%'; document.getElementById('progressText').innerHTML = `✅ ${i+1}/${sites.length} properties`; } allData = rawResults; // Update website stats chip
   document.getElementById('totalSitesCount').innerText = sites.length;
   document.getElementById('dataSuccessCount').innerText = allData.length;
   const failedCount = failedSitesUrls.length;
   let failedHtml = failedCount === 0 ? '✅ All sites fetched' : `⚠️ ${failedCount} failed: ${failedSitesUrls.slice(0,3).map(u=>u.replace(/^sc-domain:/,'')).join(', ')}${failedCount>3?'...':''}`;
   document.getElementById('failedSitesListSpan').innerHTML = failedHtml;
   renderStats(); renderTable(); renderCharts(); pw.style.display = 'none'; try { tsRows = await fetchTimeSeriesCombined(allData, start, end); renderTsChart(); } catch(e) { tsRows = []; renderTsChart(); } }
-function renderStats() { const totalClicks = allData.reduce((s,r)=>s+r.clicks,0); const totalImpressions = allData.reduce((s,r)=>s+r.impressions,0); let wCtr=0, wPos=0; allData.forEach(s=>{ wCtr += (s.ctr/100)*s.impressions; wPos += s.position*s.impressions; }); const avgCtr = totalImpressions>0?(wCtr/totalImpressions)*100:0; const avgPos = totalImpressions>0?wPos/totalImpressions:0; document.getElementById('s-clicks').innerText = totalClicks.toLocaleString(); document.getElementById('s-impr').innerText = totalImpressions.toLocaleString(); document.getElementById('s-ctr').innerText = avgCtr.toFixed(2)+'%'; document.getElementById('s-pos').innerText = avgPos.toFixed(1); }
+function renderStats() { 
+  const totalClicks = allData.reduce((s,r)=>s+r.clicks,0); 
+  const totalImpressions = allData.reduce((s,r)=>s+r.impressions,0); 
+  let wCtr=0, wPos=0; 
+  allData.forEach(s=>{ wCtr += (s.ctr/100)*s.impressions; wPos += s.position*s.impressions; }); 
+  const avgCtr = totalImpressions>0?(wCtr/totalImpressions)*100:0; 
+  const avgPos = totalImpressions>0?wPos/totalImpressions:0; 
+  document.getElementById('s-clicks').innerHTML = totalClicks.toLocaleString(); 
+  document.getElementById('s-impr').innerHTML = totalImpressions.toLocaleString(); 
+  document.getElementById('s-ctr').innerHTML = avgCtr.toFixed(2)+'%'; 
+  document.getElementById('s-pos').innerHTML = avgPos.toFixed(1); 
+  
+  // Update website statistics
+  updateWebsiteStats();
+}
+
+// NEW FUNCTION: Update website stats (with data vs without data)
+function updateWebsiteStats() {
+  // Get total sites from the sites list (we need to store original sites)
+  if (!window.allSitesList) return;
+  
+  const sitesWithData = allData.length;
+  const totalSites = window.allSitesList.length;
+  const sitesWithoutData = totalSites - sitesWithData;
+  
+  document.getElementById('websitesWithDataCount').innerHTML = `${sitesWithData} / ${totalSites}`;
+  document.getElementById('websitesNoDataCount').innerHTML = sitesWithoutData;
+  
+  // Build the list of websites with no data
+  const noDataWebsites = window.allSitesList.filter(site => {
+    return !allData.find(data => data.url === site.siteUrl);
+  });
+  
+  // Render the no-data dropdown list
+  const noDataListDiv = document.getElementById('noDataList');
+  if (noDataListDiv && noDataWebsites.length > 0) {
+    noDataListDiv.innerHTML = noDataWebsites.map(site => {
+      const siteName = site.siteUrl.replace(/^sc-domain:/,'').replace(/^https?:\/\/(www\.)?/,'').replace(/\/$/,'');
+      const siteType = site.siteUrl.startsWith('sc-domain:') ? 'Domain' : 'URL';
+      return `
+        <div class="no-data-item">
+          <div>
+            <strong>${escapeHtml(siteName)}</strong>
+            <div style="font-size: 10px; color: var(--text3); margin-top: 2px;">${site.siteUrl.substring(0, 60)}${site.siteUrl.length > 60 ? '...' : ''}</div>
+          </div>
+          <span class="no-data-type">${siteType}</span>
+        </div>
+      `;
+    }).join('');
+  } else if (noDataListDiv) {
+    noDataListDiv.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--green);">✅ All websites have data! Great job!</div>';
+  }
+}
+
+// Toggle dropdown function
+function toggleNoDataDropdown() {
+  const dropdown = document.getElementById('noDataDropdown');
+  if (dropdown.style.display === 'none') {
+    dropdown.style.display = 'block';
+  } else {
+    dropdown.style.display = 'none';
+  }
+}
 function renderTable() { const rows = [...allData].filter(r=>r.name.toLowerCase().includes(document.getElementById('searchInput').value.toLowerCase())).sort((a,b)=>{ const s=document.getElementById('sortBy').value; if(s==='clicks') return b.clicks-a.clicks; if(s==='impressions') return b.impressions-a.impressions; if(s==='ctr') return b.ctr-a.ctr; return a.position-b.position; }); const tbody = document.getElementById('tbody'); tbody.innerHTML = ''; rows.forEach(site=>{ const tr = tbody.insertRow(); tr.className='site-row'; tr.onclick=()=>showModal(site); tr.innerHTML = `<td><strong>${escapeHtml(site.name)}</strong><br><span style="font-size:10px;color:var(--text3)">${site.type}</span></td><td><span class="tag tag-blue">${site.clicks.toLocaleString()}</span></td><td><span class="tag tag-purple">${site.impressions.toLocaleString()}</span></td><td><span class="tag tag-green">${site.ctr.toFixed(2)}%</span></td><td><span class="tag">${site.position.toFixed(1)}</span></td>`; }); }
 function renderCharts() { if(clicksChart) clicksChart.destroy(); if(ctrChart) ctrChart.destroy(); const topClicks = [...allData].sort((a,b)=>b.clicks-a.clicks).slice(0,10); const topCTR = [...allData].sort((a,b)=>b.ctr-a.ctr).slice(0,10); if(!topClicks.length) return; const isDark=html.getAttribute('data-theme')==='dark'; clicksChart = new Chart(document.getElementById('clicksChart'), { type:'bar', data:{ labels:topClicks.map(s=>s.name.length>20?s.name.slice(0,17)+'...':s.name), datasets:[{ data:topClicks.map(s=>s.clicks), backgroundColor:'#3b82f6' }] }, options:{ responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}} } }); ctrChart = new Chart(document.getElementById('ctrChart'), { type:'bar', data:{ labels:topCTR.map(s=>s.name.length>20?s.name.slice(0,17)+'...':s.name), datasets:[{ data:topCTR.map(s=>parseFloat(s.ctr.toFixed(2))), backgroundColor:'#10b981' }] }, options:{ responsive:true } }); }
 function renderTsChart() { if(tsChart) tsChart.destroy(); if(!tsRows.length){ const wrap=document.getElementById('tsWrap'); if(wrap) wrap.innerHTML='<div class="ts-empty">No timeline data</div>'; return; } const isDark=html.getAttribute('data-theme')==='dark'; const labels = tsRows.map(d=>new Date(d.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})); const datasets = []; if(activeMetrics.has('clicks')) datasets.push({label:'Clicks', data:tsRows.map(d=>d.clicks), borderColor:'#3b82f6', yAxisID:'y'}); if(activeMetrics.has('impressions')) datasets.push({label:'Impressions', data:tsRows.map(d=>d.impressions), borderColor:'#8b5cf6', yAxisID:'y'}); if(activeMetrics.has('ctr')) datasets.push({label:'CTR (%)', data:tsRows.map(d=>d.ctr), borderColor:'#10b981', yAxisID:'y1'}); if(activeMetrics.has('position')) datasets.push({label:'Position', data:tsRows.map(d=>d.position), borderColor:'#f59e0b', yAxisID:'y2'}); tsChart = new Chart(document.getElementById('tsChart'), { type:'line', data:{labels, datasets}, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{position:'left'}, y1:{position:'right', grid:{display:false}}, y2:{position:'right', reverse:true, grid:{display:false}} } } }); }
