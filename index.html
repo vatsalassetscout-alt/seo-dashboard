@@ -188,6 +188,66 @@ tbody tr:last-child td{border-bottom:none}
   padding: 2px 6px; 
   border-radius: 4px; 
 }
+.site-summary-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:10px 14px;
+  margin:16px 0;
+  font-size:13px;
+  color:var(--text2);
+}
+
+.summary-left{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.summary-right{
+  position:relative;
+}
+
+.no-data-btn{
+  background:var(--s2);
+  border:1px solid var(--border);
+  padding:6px 10px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.no-data-btn:hover{
+  border-color:var(--amber);
+}
+
+.no-data-dropdown{
+  display:none;
+  position:absolute;
+  right:0;
+  top:36px;
+  background:var(--s1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  width:220px;
+  max-height:200px;
+  overflow:auto;
+  padding:10px;
+  z-index:100;
+}
+
+.no-data-dropdown.open{
+  display:block;
+}
+
+.no-data-item{
+  font-size:12px;
+  padding:6px;
+  border-bottom:1px solid var(--border);
+}  
 .cache-indicator{position:fixed;bottom:16px;left:16px;background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);z-index:99;cursor:help}
 #exportModal .modal-box{max-width:400px;text-align:center}
 @media(max-width:768px){.charts-row{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}.wrap{padding:14px}.ts-canvas-wrap{height:200px}.cal-popup{left:auto;right:0}.logo-img{height:36px}.logo-text h1{font-size:22px}.metrics-sidebar{display:none}}
@@ -199,7 +259,25 @@ tbody tr:last-child td{border-bottom:none}
   <div id="loginWrap" class="login-wrap"><div class="login-box"><div class="vercel-notice" id="vercelNotice" style="display:none">✓ <strong>Deployment detected.</strong> Redirect URI: <strong id="autoRedirectUri"></strong>.<br>Add this exact URL to your Google OAuth app Authorized redirect URIs.</div><h2>🔌 Connect Google Search Console</h2><p>Connect your Google Search Console account to view SEO data across all your properties.</p><div class="step"><div class="step-head"><div class="snum">1</div>Sign in with Google</div><button id="genBtn" class="btn btn-blue" style="width:100%;padding:12px;font-size:14px">🔗 Connect Google Search Console</button><div class="msg" id="genMsg"></div><small>You will be redirected to Google. After approving, you will be brought back here automatically.</small></div><div class="step"><div class="step-head"><div class="snum">2</div>Paste redirect URL <span style="font-weight:400;color:var(--text3);font-size:12px">(only if not redirected automatically)</span></div><input type="text" id="codeUrl" class="url-input" placeholder="https://your-app.vercel.app/?code=4/0AX4XfW..."><small>Paste the full URL from the address bar after Google redirects you.</small><button id="connectBtn" class="btn btn-green" style="width:100%;margin-top:10px" disabled>✓ Connect &amp; Save Session</button><div class="msg" id="connectMsg"></div></div></div></div>
   <div id="dashboard" style="display:none"><div class="controls"><div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="1">Single Day</option><option value="custom">Custom range</option></select></div><div class="date-range-wrap" id="dateRangeWrap" style="display:none"><div class="date-field" id="fromField"><label>From</label><div class="date-trigger" id="fromTrigger" onclick="openCalendar('from')"><span style="font-size:13px">📅</span><span id="fromLabel">Select date</span></div><div class="cal-popup" id="fromCal"></div></div><span class="date-sep">→</span><div class="date-field" id="toField"><label>To</label><div class="date-trigger" id="toTrigger" onclick="openCalendar('to')"><span style="font-size:13px">📅</span><span id="toLabel">Select date</span></div><div class="cal-popup" id="toCal"></div></div><div style="display:flex;flex-direction:column;gap:5px"><label>&nbsp;</label><button id="applyCustomRangeBtn" class="btn btn-blue">Apply Range</button></div></div><div class="cg"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div><div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter sites..."></div><div class="cg"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-indigo">🔄 Refresh</button></div><div class="cg"><label>&nbsp;</label><button id="exportBtn" class="btn btn-green">📎 Excel</button></div></div>
   <div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">Loading data...</div></div>
-  <div class="stats-grid"><div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div><div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">impression-weighted</div></div></div><div class="ts-card"><div class="ts-header"><h3>📈 Combined Performance Over Time (All Websites)</h3><div class="metric-toggles"><button class="metric-btn mb-clicks active" data-m="clicks"><span class="mdot" style="background:#3b82f6"></span>Clicks</button><button class="metric-btn mb-impressions active" data-m="impressions"><span class="mdot" style="background:#8b5cf6"></span>Impressions</button><button class="metric-btn mb-ctr active" data-m="ctr"><span class="mdot" style="background:#10b981"></span>CTR</button><button class="metric-btn mb-position active" data-m="position"><span class="mdot" style="background:#f59e0b"></span>Position</button></div></div><div class="ts-canvas-wrap" id="tsWrap"><canvas id="tsChart"></canvas></div></div><div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div><div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div></div><div class="table-wrap"><div class="table-scroll"> <table><thead>汽<th>🌐 Website</th><th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions <span class="sort-arrow">⇅</span></th><th data-sort="ctr">CTR <span class="sort-arrow">⇅</span></th><th data-sort="position">Avg Position <span class="sort-arrow">⇅</span></th> </thead><tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td> </tbody> </table</div></div></div></div>
+ <div class="stats-grid"><div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div><div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">impression-weighted</div></div></div><div class="ts-card"><div class="ts-header"><h3>📈 Combined Performance Over Time (All Websites)</h3><div class="metric-toggles"><button class="metric-btn mb-clicks active" data-m="clicks"><span class="mdot" style="background:#3b82f6"></span>Clicks</button><button class="metric-btn mb-impressions active" data-m="impressions"><span class="mdot" style="background:#8b5cf6"></span>Impressions</button><button class="metric-btn mb-ctr active" data-m="ctr"><span class="mdot" style="background:#10b981"></span>CTR</button><button class="metric-btn mb-position active" data-m="position"><span class="mdot" style="background:#f59e0b"></span>Position</button></div></div><div class="ts-canvas-wrap" id="tsWrap"><canvas id="tsChart"></canvas></div></div><div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div><div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div></div><div class="table-wrap"><div class="table-scroll"> <table><thead>汽<th>🌐 Website</th><th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions <span class="sort-arrow">⇅</span></th><th data-sort="ctr">CTR <span class="sort-arrow">⇅</span></th><th data-sort="position">Avg Position <span class="sort-arrow">⇅</span></th> </thead><tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td> </tbody> </table</div></div></div></div>
+<!-- WEBSITE DATA SUMMARY BAR -->
+<div class="site-summary-bar">
+  <div class="summary-left">
+    📦 <span id="totalSites">0 websites</span>
+    • <span id="sitesWithData">0 with data</span>
+    • <span id="sitesNoData">0 issues</span>
+  </div>
+
+  <div class="summary-right">
+    <button id="noDataBtn" class="no-data-btn">
+      ⚠ Sites with no data ▼
+    </button>
+
+    <div id="noDataDropdown" class="no-data-dropdown">
+      <div id="noDataList">No issues 🎉</div>
+    </div>
+  </div>
+</div>
 <div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">Site Details</h2><span class="x" id="closeModal">&times;</span></div><div class="modal-body" id="modalBody"></div></div></div>
 <div class="modal" id="exportModal" style="display:none"><div class="modal-box" style="max-width:400px"><div class="modal-head"><h2>Export Options</h2><span class="x" id="closeExportModal">&times;</span></div><div class="modal-body" style="text-align:center"><button id="exportSummaryBtn" class="btn btn-blue" style="margin:10px;width:80%">📊 Summary (Total per site)</button><button id="exportDailyBtn" class="btn btn-green" style="margin:10px;width:80%">📅 Daily Breakdown (per day per site)</button></div></div></div>
 <div class="cache-indicator" id="cacheIndicator">🤖 AI Cache: Ready</div>
@@ -681,7 +759,7 @@ function renderStats() {
       <div class="metric-item"><div class="metric-color" style="background:#f59e0b"></div><span class="metric-name">Avg Position: ${avgPosition.toFixed(1)}</span></div>
       <div class="metric-item"><div class="metric-color" style="background:#ef4444"></div><span class="metric-name">Sites: ${allData.length}</span></div>
     `;
-  }
+  } updateSiteSummary();
 }
 
 function renderTable() {
@@ -1133,7 +1211,33 @@ document.getElementById('preset').onchange = () => {
   
   if (!isCustomOrSingle && accessToken) loadData();
 };
+function updateSiteSummary() {
+  const total = allData.length;
 
+  // sites with 0 impressions or clicks
+  const noDataSites = allData.filter(s => s.impressions === 0 || s.clicks === 0);
+  const withData = total - noDataSites.length;
+
+  document.getElementById('totalSites').textContent = `${total} websites`;
+  document.getElementById('sitesWithData').textContent = `${withData} with data`;
+  document.getElementById('sitesNoData').textContent = `${noDataSites.length} issues`;
+
+  const list = document.getElementById('noDataList');
+
+  if (!noDataSites.length) {
+    list.innerHTML = "No issues 🎉";
+    return;
+  }
+
+  list.innerHTML = noDataSites.map(s => `
+    <div class="no-data-item">🌐 ${s.name}</div>
+  `).join('');
+}
+
+// toggle dropdown
+document.getElementById('noDataBtn').onclick = () => {
+  document.getElementById('noDataDropdown').classList.toggle('open');
+};
 function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
