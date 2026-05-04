@@ -66,6 +66,21 @@ canvas{max-height:260px}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));width:0;transition:width .2s}
 .table-wrap{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
 .table-scroll{overflow-x:auto}
+#noDataListContent::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+#noDataListContent:hover {
+  scrollbar-width: thin;
+}
+.no-data-badge {
+  background: var(--tag-bg-amber);
+  color: var(--tag-fg-amber);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-family: var(--mono);
+}
 table{width:100%;border-collapse:collapse}
 thead th{padding:13px 16px;background:var(--s2);font-size:10.5px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);cursor:pointer}
 td{padding:11px 16px;border-bottom:1px solid var(--border);font-size:13px}
@@ -94,6 +109,24 @@ td{padding:11px 16px;border-bottom:1px solid var(--border);font-size:13px}
   <div id="dashboard" style="display:none"><div class="controls"><div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="1">Single Day</option><option value="custom">Custom range</option></select></div><div class="date-range-wrap" id="dateRangeWrap" style="display:none"><div class="date-field"><label>From</label><div class="date-trigger" id="fromTrigger">📅 <span id="fromLabel">Select date</span></div><div class="cal-popup" id="fromCal"></div></div><span>→</span><div class="date-field"><label>To</label><div class="date-trigger" id="toTrigger">📅 <span id="toLabel">Select date</span></div><div class="cal-popup" id="toCal"></div></div><button id="applyCustomRangeBtn" class="btn btn-blue">Apply</button></div><div class="cg"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div><div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter sites..."></div><button id="refreshBtn" class="btn btn-indigo">🔄 Refresh</button><button id="exportBtn" class="btn btn-green">📎 Excel</button></div>
   <div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">Loading...</div></div>
   <div class="stats-grid"><div class="stat"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div></div><div class="stat"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div></div><div class="stat"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div></div><div class="stat"><h3>Avg Position</h3><div class="val" id="s-pos">—</div></div></div>
+  <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-bottom: 22px;">
+  <div class="stat" style="--accent-color: var(--blue);">
+    <h3>Websites Overview</h3>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 20px; flex-wrap: wrap;">
+      <div>
+        <div class="val" id="totalSitesCount" style="font-size: 32px;">—</div>
+        <div class="sub">websites with data</div>
+      </div>
+      <div>
+        <div class="val" id="noDataSitesCount" style="font-size: 32px; color: var(--amber);">—</div>
+        <div class="sub">with no data</div>
+      </div>
+    </div>
+    <div id="noDataSitesList" style="margin-top: 12px; max-height: 150px; overflow-y: auto; border-top: 1px solid var(--border); padding-top: 10px;">
+      <div style="font-size: 11px; color: var(--text3); text-align: center;">No sites without data</div>
+    </div>
+  </div>
+</div>
   <div class="ts-card"><div class="ts-header"><h3>📈 Combined Performance Over Time (All Websites)</h3><div class="metric-toggles"><button class="metric-btn mb-clicks active" data-m="clicks"><span class="mdot"></span>Clicks</button><button class="metric-btn mb-impressions active" data-m="impressions"><span class="mdot"></span>Impressions</button><button class="metric-btn mb-ctr active" data-m="ctr"><span class="mdot"></span>CTR</button><button class="metric-btn mb-position active" data-m="position"><span class="mdot"></span>Position</button></div></div><div class="ts-canvas-wrap"><canvas id="tsChart"></canvas></div></div>
   <div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div><div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div></div>
   <div class="stats-info-bar"><div class="stats-info">📦 <span id="fetchedCount">0</span> websites • <span id="validCount">0</span> with data • <span id="failedCount">0</span> issues</div><div class="issues-dropdown"><button class="issues-btn" id="issuesDropdownBtn">⚠️ Sites with no data ▼</button><ul class="issues-menu" id="issuesMenu"></ul></div></div>
@@ -455,7 +488,74 @@ async function loadDataFast() {
   renderStats();
   renderCharts();
 }
-
+async function loadData() {
+  const { start, end } = getDates();
+  if (!start || !end) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">Invalid dates</td></tr>';
+    return;
+  }
+  
+  const pw = document.getElementById('progressWrap');
+  pw.style.display = 'block';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressText').textContent = 'Fetching sites...';
+  document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">Fetching sites...</td></tr>';
+  
+  let sites;
+  try {
+    sites = await fetchSites();
+  } catch (e) {
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="5" class="loading-cell" style="color:var(--red)">Error: ${e.message}</td></tr>`;
+    pw.style.display = 'none';
+    return;
+  }
+  
+  if (!sites.length) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">No properties found in Search Console.</td></tr>';
+    pw.style.display = 'none';
+    return;
+  }
+  
+  allData = [];
+  failedSites = []; // Track sites with no data
+  let completed = 0;
+  
+  const results = await parallelBatch(sites.map(s => s.siteUrl), async (siteUrl, idx) => {
+    const res = await fetchTotals(siteUrl, start, end);
+    completed++;
+    const percent = Math.round((completed / sites.length) * 100);
+    document.getElementById('progressFill').style.width = percent + '%';
+    document.getElementById('progressText').textContent = `📊 ${completed}/${sites.length} properties (${percent}%)`;
+    
+    // Track sites that returned null or have zero data
+    if (!res || (res.clicks === 0 && res.impressions === 0)) {
+      const siteName = siteUrl.replace(/^sc-domain:/, '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+      failedSites.push({ url: siteUrl, name: siteName, type: siteUrl.startsWith('sc-domain:') ? 'Domain' : 'URL' });
+      return null;
+    }
+    return res;
+  }, 10);
+  
+  allData = results.filter(r => r !== null);
+  
+  // Update the websites overview stats
+  renderWebsitesOverview();
+  
+  renderStats();
+  renderTable();
+  renderCharts();
+  renderTopSitesTable(); // Add this if you added it earlier
+  
+  document.getElementById('progressText').textContent = '📈 Fetching timeline data...';
+  try {
+    tsRows = await fetchTimeSeriesCombined(allData, start, end);
+    renderTsChart();
+  } catch (e) {
+    tsRows = [];
+    renderTsChart();
+  }
+  pw.style.display = 'none';
+}
 function renderSkeletonTable(count) {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
@@ -463,7 +563,56 @@ function renderSkeletonTable(count) {
     tbody.innerHTML += `<tr style="opacity:0.5"><td>⬤ Loading...</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
   }
 }
+function renderWebsitesOverview() {
+  const totalSites = allData.length;
+  const noDataCount = failedSites.length;
+  
+  document.getElementById('totalSitesCount').textContent = totalSites.toLocaleString();
+  document.getElementById('noDataSitesCount').textContent = noDataCount.toLocaleString();
+  
+  const noDataListDiv = document.getElementById('noDataSitesList');
+  
+  if (noDataCount === 0) {
+    noDataListDiv.innerHTML = '<div style="font-size: 11px; color: var(--text3); text-align: center; padding: 8px;">✓ All sites have data</div>';
+    return;
+  }
+  
+  // Create dropdown/accordion style list
+  let listHtml = `
+    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 5px 0;" onclick="toggleNoDataList()">
+      <span style="font-size: 11px; font-weight: 600; color: var(--text2);">📋 Show sites with no data (${noDataCount})</span>
+      <span id="noDataToggleIcon" style="font-size: 12px;">▼</span>
+    </div>
+    <div id="noDataListContent" style="display: none; margin-top: 8px; max-height: 120px; overflow-y: auto;">
+  `;
+  
+  failedSites.forEach(site => {
+    listHtml += `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 11px;">
+        <span style="font-family: var(--mono); color: var(--text2);">${escapeHtml(site.name)}</span>
+        <span class="tag tag-red" style="font-size: 9px;">No Data</span>
+      </div>
+    `;
+  });
+  
+  listHtml += `</div>`;
+  noDataListDiv.innerHTML = listHtml;
+}
 
+// Add toggle function for the dropdown
+window.toggleNoDataList = function() {
+  const content = document.getElementById('noDataListContent');
+  const icon = document.getElementById('noDataToggleIcon');
+  if (content && icon) {
+    if (content.style.display === 'none') {
+      content.style.display = 'block';
+      icon.textContent = '▲';
+    } else {
+      content.style.display = 'none';
+      icon.textContent = '▼';
+    }
+  }
+};
 function renderTableProgressive() {
   const term = document.getElementById('searchInput').value.toLowerCase();
   let rows = progressiveData.filter(r => r.name.toLowerCase().includes(term));
