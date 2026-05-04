@@ -6,6 +6,8 @@
 <title>Asset Scout — SEO Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://www.googleapis.com">
+<link rel="preconnect" href="https://oauth2.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 [data-theme="dark"] {
@@ -233,6 +235,42 @@ let currentSortField='clicks',currentSortDir='desc';
 function setTableSort(field){if(sortState.field===field)sortState.dir=sortState.dir==='asc'?'desc':'asc'; else{sortState.field=field;sortState.dir=field==='position'?'asc':'desc';} renderTable(); const ths=document.querySelectorAll('#mainTable thead th'); ths.forEach(th=>{th.classList.remove('active-sort-asc','active-sort-desc'); const arrowSpan=th.querySelector('.sort-arrow'); if(arrowSpan)arrowSpan.innerText='⇅';}); const activeTh=document.querySelector(`#mainTable thead th[data-sort="${field}"]`); if(activeTh){activeTh.classList.add(`active-sort-${sortState.dir}`); const arrow=activeTh.querySelector('.sort-arrow'); if(arrow)arrow.innerText=sortState.dir==='asc'?'↑':'↓';}}
 document.querySelectorAll('#mainTable thead th').forEach(th=>{const sortKey=th.getAttribute('data-sort'); if(sortKey)th.addEventListener('click',()=>setTableSort(sortKey));});
 setTableSort('clicks');
+// 1. Debounce search (prevents lag while typing)
+let searchTimeout;
+document.getElementById('searchInput').oninput = () => {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => renderTable(), 300);
+};
+
+
+// 1. Stale-while-revalidate (already have)
+// 2. Debounced search
+let debounceTimer;
+searchInput.addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => renderTable(), 250);
+});
+
+// 3. Preconnect (add to HTML head)
+<link rel="preconnect" href="https://www.googleapis.com">
+<link rel="preconnect" href="https://oauth2.googleapis.com">
+
+// 4. Lazy load charts (load after table)
+requestIdleCallback(() => renderCharts());
+
+// 5. Virtual scrolling for 100+ sites
+// Use simple IntersectionObserver for images
+// 3. Throttle chart redraws
+let chartTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(chartTimeout);
+  chartTimeout = setTimeout(() => { if(clicksChart) clicksChart.resize(); }, 150);
+});
+
+// 4. Show cached data instantly while fetching fresh (stale-while-revalidate)
+const cached = await cache.get(key);
+if(cached) return cached; // show immediately
+// then fetch fresh in background
 document.getElementById('sortBy').onchange=()=>{const val=document.getElementById('sortBy').value; setTableSort(val);};
 document.getElementById('searchInput').oninput=()=>renderTable();
 document.getElementById('refreshBtn').onclick=()=>loadData();
