@@ -180,6 +180,14 @@ tbody tr:last-child td{border-bottom:none}
 .metric-item.active{background:var(--tag-bg-blue)}
 .metric-color{width:10px;height:10px;border-radius:50%}
 .metric-name{font-size:11px}
+.preset-single-indicator { 
+  font-size: 10px; 
+  color: var(--blue); 
+  margin-left: 8px; 
+  background: rgba(59,130,246,.1); 
+  padding: 2px 6px; 
+  border-radius: 4px; 
+}
 .cache-indicator{position:fixed;bottom:16px;left:16px;background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);z-index:99;cursor:help}
 #exportModal .modal-box{max-width:400px;text-align:center}
 @media(max-width:768px){.charts-row{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}.wrap{padding:14px}.ts-canvas-wrap{height:200px}.cal-popup{left:auto;right:0}.logo-img{height:36px}.logo-text h1{font-size:22px}.metrics-sidebar{display:none}}
@@ -189,9 +197,9 @@ tbody tr:last-child td{border-bottom:none}
 <div class="wrap">
   <div class="header"><div class="logo"><div class="logo-text"><h1>SEO Dashboard <em></em></h1></div><img class="logo-img" src="https://assetscout.in/assets/images/Assetscout%20Logo%20Black.webp" alt="Asset Scout" onerror="this.style.display='none'"></div><div class="header-right"><div class="pill off" id="statusPill"><span class="dot"></span><span id="statusText">Not Connected</span></div><button id="themeToggleBtn" class="theme-toggle" title="Toggle light/dark theme">🌙</button><button id="logoutBtn" class="btn btn-red" style="display:none">Sign Out</button></div></div>
   <div id="loginWrap" class="login-wrap"><div class="login-box"><div class="vercel-notice" id="vercelNotice" style="display:none">✓ <strong>Deployment detected.</strong> Redirect URI: <strong id="autoRedirectUri"></strong>.<br>Add this exact URL to your Google OAuth app Authorized redirect URIs.</div><h2>🔌 Connect Google Search Console</h2><p>Connect your Google Search Console account to view SEO data across all your properties.</p><div class="step"><div class="step-head"><div class="snum">1</div>Sign in with Google</div><button id="genBtn" class="btn btn-blue" style="width:100%;padding:12px;font-size:14px">🔗 Connect Google Search Console</button><div class="msg" id="genMsg"></div><small>You will be redirected to Google. After approving, you will be brought back here automatically.</small></div><div class="step"><div class="step-head"><div class="snum">2</div>Paste redirect URL <span style="font-weight:400;color:var(--text3);font-size:12px">(only if not redirected automatically)</span></div><input type="text" id="codeUrl" class="url-input" placeholder="https://your-app.vercel.app/?code=4/0AX4XfW..."><small>Paste the full URL from the address bar after Google redirects you.</small><button id="connectBtn" class="btn btn-green" style="width:100%;margin-top:10px" disabled>✓ Connect &amp; Save Session</button><div class="msg" id="connectMsg"></div></div></div></div>
-  <div id="dashboard" style="display:none"><div class="controls"><div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="custom">Custom range</option></select></div><div class="date-range-wrap" id="dateRangeWrap" style="display:none"><div class="date-field" id="fromField"><label>From</label><div class="date-trigger" id="fromTrigger" onclick="openCalendar('from')"><span style="font-size:13px">📅</span><span id="fromLabel">Select date</span></div><div class="cal-popup" id="fromCal"></div></div><span class="date-sep">→</span><div class="date-field" id="toField"><label>To</label><div class="date-trigger" id="toTrigger" onclick="openCalendar('to')"><span style="font-size:13px">📅</span><span id="toLabel">Select date</span></div><div class="cal-popup" id="toCal"></div></div><div style="display:flex;flex-direction:column;gap:5px"><label>&nbsp;</label><button id="applyCustomRangeBtn" class="btn btn-blue">Apply Range</button></div></div><div class="cg"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div><div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter sites..."></div><div class="cg"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-indigo">🔄 Refresh</button></div><div class="cg"><label>&nbsp;</label><button id="exportBtn" class="btn btn-green">📎 Excel</button></div></div>
-    <div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">Loading data...</div></div>
-    <div class="stats-grid"><div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div><div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">impression-weighted</div></div></div><div class="ts-card"><div class="ts-header"><h3>📈 Combined Performance Over Time (All Websites)</h3><div class="metric-toggles"><button class="metric-btn mb-clicks active" data-m="clicks"><span class="mdot" style="background:#3b82f6"></span>Clicks</button><button class="metric-btn mb-impressions active" data-m="impressions"><span class="mdot" style="background:#8b5cf6"></span>Impressions</button><button class="metric-btn mb-ctr active" data-m="ctr"><span class="mdot" style="background:#10b981"></span>CTR</button><button class="metric-btn mb-position active" data-m="position"><span class="mdot" style="background:#f59e0b"></span>Position</button></div></div><div class="ts-canvas-wrap" id="tsWrap"><canvas id="tsChart"></canvas></div></div><div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div><div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div></div><div class="table-wrap"><div class="table-scroll"> <table><thead>汽<th>🌐 Website</th><th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions <span class="sort-arrow">⇅</span></th><th data-sort="ctr">CTR <span class="sort-arrow">⇅</span></th><th data-sort="position">Avg Position <span class="sort-arrow">⇅</span></th> </thead><tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td> </tbody> </table</div></div></div></div>
+  <div id="dashboard" style="display:none"><div class="controls"><div class="cg"><label>Preset</label><select id="preset"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option><option value="365">Last 365 days</option><option value="1">Single Day</option><option value="custom">Custom range</option></select></div><div class="date-range-wrap" id="dateRangeWrap" style="display:none"><div class="date-field" id="fromField"><label>From</label><div class="date-trigger" id="fromTrigger" onclick="openCalendar('from')"><span style="font-size:13px">📅</span><span id="fromLabel">Select date</span></div><div class="cal-popup" id="fromCal"></div></div><span class="date-sep">→</span><div class="date-field" id="toField"><label>To</label><div class="date-trigger" id="toTrigger" onclick="openCalendar('to')"><span style="font-size:13px">📅</span><span id="toLabel">Select date</span></div><div class="cal-popup" id="toCal"></div></div><div style="display:flex;flex-direction:column;gap:5px"><label>&nbsp;</label><button id="applyCustomRangeBtn" class="btn btn-blue">Apply Range</button></div></div><div class="cg"><label>Sort By</label><select id="sortBy"><option value="clicks">Clicks ↓</option><option value="impressions">Impressions ↓</option><option value="ctr">CTR ↓</option><option value="position">Position ↑</option></select></div><div class="cg search"><label>Search</label><input type="text" id="searchInput" placeholder="Filter sites..."></div><div class="cg"><label>&nbsp;</label><button id="refreshBtn" class="btn btn-indigo">🔄 Refresh</button></div><div class="cg"><label>&nbsp;</label><button id="exportBtn" class="btn btn-green">📎 Excel</button></div></div>
+  <div class="progress-wrap" id="progressWrap"><div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div><div class="progress-text" id="progressText">Loading data...</div></div>
+  <div class="stats-grid"><div class="stat" style="--accent-color:var(--blue)"><h3>Total Clicks</h3><div class="val" id="s-clicks">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--purple)"><h3>Total Impressions</h3><div class="val" id="s-impr">—</div><div class="sub">across all properties</div></div><div class="stat" style="--accent-color:var(--green)"><h3>Average CTR</h3><div class="val" id="s-ctr">—</div><div class="sub">clicks ÷ impressions</div></div><div class="stat" style="--accent-color:var(--amber)"><h3>Avg Position</h3><div class="val" id="s-pos">—</div><div class="sub">impression-weighted</div></div></div><div class="ts-card"><div class="ts-header"><h3>📈 Combined Performance Over Time (All Websites)</h3><div class="metric-toggles"><button class="metric-btn mb-clicks active" data-m="clicks"><span class="mdot" style="background:#3b82f6"></span>Clicks</button><button class="metric-btn mb-impressions active" data-m="impressions"><span class="mdot" style="background:#8b5cf6"></span>Impressions</button><button class="metric-btn mb-ctr active" data-m="ctr"><span class="mdot" style="background:#10b981"></span>CTR</button><button class="metric-btn mb-position active" data-m="position"><span class="mdot" style="background:#f59e0b"></span>Position</button></div></div><div class="ts-canvas-wrap" id="tsWrap"><canvas id="tsChart"></canvas></div></div><div class="charts-row"><div class="chart-card"><h3>📊 Top 10 Sites by Clicks</h3><canvas id="clicksChart"></canvas></div><div class="chart-card"><h3>🎯 Top 10 Sites by CTR</h3><canvas id="ctrChart"></canvas></div></div><div class="table-wrap"><div class="table-scroll"> <table><thead>汽<th>🌐 Website</th><th class="active" data-sort="clicks">Clicks <span class="sort-arrow">↓</span></th><th data-sort="impressions">Impressions <span class="sort-arrow">⇅</span></th><th data-sort="ctr">CTR <span class="sort-arrow">⇅</span></th><th data-sort="position">Avg Position <span class="sort-arrow">⇅</span></th> </thead><tbody id="tbody"><tr><td colspan="5" class="loading-cell">Complete login to view data…</td> </tbody> </table</div></div></div></div>
 <div class="modal" id="modal"><div class="modal-box"><div class="modal-head"><h2 id="modalTitle">Site Details</h2><span class="x" id="closeModal">&times;</span></div><div class="modal-body" id="modalBody"></div></div></div>
 <div class="modal" id="exportModal" style="display:none"><div class="modal-box" style="max-width:400px"><div class="modal-head"><h2>Export Options</h2><span class="x" id="closeExportModal">&times;</span></div><div class="modal-body" style="text-align:center"><button id="exportSummaryBtn" class="btn btn-blue" style="margin:10px;width:80%">📊 Summary (Total per site)</button><button id="exportDailyBtn" class="btn btn-green" style="margin:10px;width:80%">📅 Daily Breakdown (per day per site)</button></div></div></div>
 <div class="metrics-sidebar" id="metricsSidebar"><h4>📈 Quick Metrics</h4><div id="quickMetrics"></div></div>
@@ -445,9 +453,35 @@ applyTheme(localStorage.getItem('theme') || 'dark');
 
 // Helper functions
 function toYMD(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
-function presetDates(days) { const end = new Date(); end.setDate(end.getDate() - 1); const start = new Date(end); start.setDate(end.getDate() - (days - 1)); return { start: toYMD(start), end: toYMD(end) }; }
-function getDates() { const p = document.getElementById('preset').value; if (p === 'custom') return { start: calState.from || '', end: calState.to || '' }; return presetDates(parseInt(p)); }
-
+function presetDates(days) { 
+  if (days === 1) {
+    // Single day - yesterday by default, or selected date
+    const selectedDate = localStorage.getItem('selectedSingleDate');
+    if (selectedDate) {
+      return { start: selectedDate, end: selectedDate };
+    }
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    const singleDay = toYMD(date);
+    return { start: singleDay, end: singleDay };
+  }
+  const end = new Date(); 
+  end.setDate(end.getDate() - 1); 
+  const start = new Date(end); 
+  start.setDate(end.getDate() - (days - 1)); 
+  return { start: toYMD(start), end: toYMD(end) }; 
+}
+function getDates() { 
+  const p = document.getElementById('preset').value; 
+  if (p === 'custom') return { start: calState.from || '', end: calState.to || '' }; 
+  if (p === '1') {
+    // For single day, allow picking a specific date
+    if (calState.from && calState.to && calState.from === calState.to) {
+      return { start: calState.from, end: calState.to };
+    }
+  }
+  return presetDates(parseInt(p)); 
+}
 // API functions
 async function fetchSites() {
   const token = await getValidToken();
@@ -987,21 +1021,30 @@ window.onclick = e => {
 
 // Calendar functions
 function openCalendar(type) {
-  const popup = document.getElementById(type === 'from' ? 'fromCal' : 'toCal');
-  if (popup) popup.classList.toggle('open');
-  renderCalendar(type);
+  const preset = document.getElementById('preset').value;
+  if (preset === '1') {
+    // In single day mode, clicking either field opens calendar for the day picker
+    const popup = document.getElementById('fromCal');
+    if (popup) popup.classList.toggle('open');
+    renderCalendar('single');
+  } else {
+    const popup = document.getElementById(type === 'from' ? 'fromCal' : 'toCal');
+    if (popup) popup.classList.toggle('open');
+    renderCalendar(type);
+  }
 }
 
 function renderCalendar(type) {
-  const popup = document.getElementById(type === 'from' ? 'fromCal' : 'toCal');
+  const isSingleMode = type === 'single';
+  const popup = document.getElementById(isSingleMode ? 'fromCal' : (type === 'from' ? 'fromCal' : 'toCal'));
   if (!popup) return;
-  const vm = calViewMonth[type];
+  const vm = isSingleMode ? calViewMonth.from : calViewMonth[type];
   const year = vm.getFullYear();
   const month = vm.getMonth();
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const todayStr = toYMD(new Date());
-  let html = `<div class="cal-nav"><button class="cal-nav-btn" onclick="window.changeMonth('${type}', -1)">‹</button><span class="cal-month-year">${['January','February','March','April','May','June','July','August','September','October','November','December'][month]} ${year}</span><button class="cal-nav-btn" onclick="window.changeMonth('${type}', 1)">›</button></div><div class="cal-grid">`;
+  let html = `<div class="cal-nav"><button class="cal-nav-btn" onclick="window.changeMonth('${isSingleMode ? 'from' : type}', -1)">‹</button><span class="cal-month-year">${['January','February','March','April','May','June','July','August','September','October','November','December'][month]} ${year}</span><button class="cal-nav-btn" onclick="window.changeMonth('${isSingleMode ? 'from' : type}', 1)">›</button></div><div class="cal-grid">`;
   ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].forEach(d => { html += `<div class="cal-dh">${d}</div>`; });
   for (let i = 0; i < firstDay; i++) html += '<div class="cal-day cal-empty"></div>';
   for (let d = 1; d <= daysInMonth; d++) {
@@ -1010,10 +1053,11 @@ function renderCalendar(type) {
     let cls = 'cal-day';
     if (isFuture) cls += ' cal-dis';
     if (ds === todayStr) cls += ' cal-today';
-    if (ds === calState[type]) cls += ' cal-sel';
-    html += `<div class="${cls}" onclick="if(!${isFuture}) window.selectDate('${type}','${ds}')">${d}</div>`;
+    if (isSingleMode && ds === calState.from) cls += ' cal-sel';
+    if (!isSingleMode && ds === calState[type]) cls += ' cal-sel';
+    html += `<div class="${cls}" onclick="if(!${isFuture}) window.selectDate('${isSingleMode ? 'single' : type}','${ds}')">${d}</div>`;
   }
-  html += `</div><div class="cal-footer"><span class="cal-range-lbl">${calState.from && calState.to ? calState.from + ' to ' + calState.to : 'Pick range'}</span><button class="cal-clear-btn" onclick="window.clearDates()">Clear</button></div>`;
+  html += `</div><div class="cal-footer"><span class="cal-range-lbl">${isSingleMode ? (calState.from || 'Select a date') : (calState.from && calState.to ? calState.from + ' to ' + calState.to : 'Pick range')}</span><button class="cal-clear-btn" onclick="window.clearDates()">Clear</button></div>`;
   popup.innerHTML = html;
 }
 
@@ -1024,25 +1068,53 @@ window.changeMonth = (type, delta) => {
 };
 
 window.selectDate = (type, ds) => {
-  calState[type] = ds;
-  document.getElementById(type === 'from' ? 'fromLabel' : 'toLabel').textContent = ds;
-  document.getElementById(type === 'from' ? 'fromCal' : 'toCal').classList.remove('open');
-  if (calState.from && calState.to) loadData();
+  const preset = document.getElementById('preset').value;
+  if (type === 'single' || preset === '1') {
+    // Single day selection
+    calState.from = ds;
+    calState.to = ds;
+    document.getElementById('fromLabel').textContent = ds;
+    document.getElementById('toLabel').textContent = ds;
+    document.getElementById('fromCal').classList.remove('open');
+    localStorage.setItem('selectedSingleDate', ds);
+    loadData();
+  } else {
+    calState[type] = ds;
+    document.getElementById(type === 'from' ? 'fromLabel' : 'toLabel').textContent = ds;
+    document.getElementById(type === 'from' ? 'fromCal' : 'toCal').classList.remove('open');
+    if (calState.from && calState.to) loadData();
+  }
 };
 
 window.clearDates = () => {
   calState = { from: null, to: null };
   document.getElementById('fromLabel').textContent = 'Select date';
   document.getElementById('toLabel').textContent = 'Select date';
+  localStorage.removeItem('selectedSingleDate');
   if (document.getElementById('fromCal')) document.getElementById('fromCal').classList.remove('open');
   if (document.getElementById('toCal')) document.getElementById('toCal').classList.remove('open');
 };
-
 document.getElementById('applyCustomRangeBtn').onclick = () => {
-  if (calState.from && calState.to) loadData();
-  else alert('Please select both From and To dates');
+  const preset = document.getElementById('preset').value;
+  if (preset === '1') {
+    // Single day mode - just need one date
+    if (calState.from) {
+      calState.to = calState.from;
+      document.getElementById('toLabel').textContent = calState.from;
+      localStorage.setItem('selectedSingleDate', calState.from);
+      loadData();
+    } else {
+      alert('Please select a date from the calendar');
+    }
+  } else {
+    if (calState.from && calState.to) {
+      loadData();
+    } else {
+      alert('Please select both From and To dates');
+    }
+  }
 };
-
+  
 document.getElementById('preset').onchange = () => {
   const isCustom = document.getElementById('preset').value === 'custom';
   document.getElementById('dateRangeWrap').style.display = isCustom ? 'flex' : 'none';
