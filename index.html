@@ -430,24 +430,15 @@ function showDashboard() {
 }
 
 function logout() {
-  if (refreshTimer) clearTimeout(refreshTimer);
-  localStorage.removeItem('gsc_refresh');
-  localStorage.removeItem('gsc_access');
-  localStorage.removeItem('gsc_expires');
-  accessToken = null;
-  allData = [];
-  document.getElementById('loginWrap').style.display = 'flex';
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('logoutBtn').style.display = 'none';
-  document.getElementById('statusPill').className = 'pill off';
-  document.getElementById('statusText').innerHTML = 'Not Connected';
-  document.getElementById('codeUrl').value = '';
-  document.getElementById('connectBtn').disabled = true;
-  const msgDiv = document.getElementById('connectMsg');
-  if (msgDiv) msgDiv.textContent = '';
-}
-
-document.getElementById('logoutBtn').onclick = logout;
+// Replace your logout function
+const originalLogout = logout;
+window.logout = function() {
+  console.trace('Logout called - checking stack trace');
+  console.log('Current URL:', window.location.href);
+  console.log('Has refresh token:', !!localStorage.getItem('gsc_refresh'));
+  console.log('Token expiry:', localStorage.getItem('gsc_expires'));
+  originalLogout();
+};
 
 // ============ REST OF DASHBOARD FUNCTIONALITY (KEPT FULLY INTACT) ============
 let allData = [], failedSites = [], clicksChart, ctrChart, tsChart, tsRows = [], activeMetrics = new Set(['clicks', 'impressions', 'ctr', 'position']);
@@ -635,74 +626,6 @@ async function parallelBatch(items, processor, concurrency = 10) {
 }
 
 // Load main data
-async function loadData() {
-  const { start, end } = getDates();
-  if (!start || !end) {
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">Invalid dates</td></tr>';
-    return;
-  }
-  
-  const pw = document.getElementById('progressWrap');
-  pw.style.display = 'block';
-  document.getElementById('progressFill').style.width = '0%';
-  document.getElementById('progressText').textContent = 'Fetching sites...';
-  document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">Fetching sites...</td></tr>';
-  
-  let sites;
-  try {
-    sites = await fetchSites();
-  } catch (e) {
-    document.getElementById('tbody').innerHTML = `<tr><td colspan="5" class="loading-cell" style="color:var(--red)">Error: ${e.message}</td></tr>`;
-    pw.style.display = 'none';
-    return;
-  }
-  
-  if (!sites.length) {
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">No properties found in Search Console.</td></tr>';
-    pw.style.display = 'none';
-    return;
-  }
-  
-  allData = [];
-  failedSites = []; // Track sites with no data
-  let completed = 0;
-  
-  const results = await parallelBatch(sites.map(s => s.siteUrl), async (siteUrl, idx) => {
-    const res = await fetchTotals(siteUrl, start, end);
-    completed++;
-    const percent = Math.round((completed / sites.length) * 100);
-    document.getElementById('progressFill').style.width = percent + '%';
-    document.getElementById('progressText').textContent = `📊 ${completed}/${sites.length} properties (${percent}%)`;
-    
-    // Track sites that returned null or have zero data
-    if (!res || (res.clicks === 0 && res.impressions === 0)) {
-      const siteName = siteUrl.replace(/^sc-domain:/, '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
-      failedSites.push({ url: siteUrl, name: siteName, type: siteUrl.startsWith('sc-domain:') ? 'Domain' : 'URL' });
-      return null;
-    }
-    return res;
-  }, 10);
-  
-  allData = results.filter(r => r !== null);
-  
-  // Update the websites overview stats
-  renderWebsitesOverview();
-  
-  renderStats();
-  renderTable();
-  renderCharts();
-  renderTopSitesTable(); // Add this if you added it earlier
-  
-  document.getElementById('progressText').textContent = '📈 Fetching timeline data...';
-  try {
-    tsRows = await fetchTimeSeriesCombined(allData, start, end);
-    renderTsChart();
-  } catch (e) {
-    tsRows = [];
-    renderTsChart();
-  }
-  pw.style.display = 'none';
-}
 
 function renderStats() {
   const totalClicks = allData.reduce((s, r) => s + (r.clicks || 0), 0);
@@ -730,6 +653,48 @@ function renderStats() {
     `;
   }
 }
+// Add this function
+async function validateSession() {
+  try {
+    const token = await getValidToken();
+    // Test token with a simple API call
+    const testResponse = await fetch(`${GSC_BASE}/sites`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    if (testResponse.status === 401) {
+      // Token invalid, try refresh
+      const refreshed = await silentRefresh();
+      if (!refreshed) {
+        logout();
+        return false;
+      }
+      return true;
+    }
+    return true;
+  } catch (e) {
+    console.error('Session validation failed:', e);
+    logout();
+    return false;
+  }
+}
+
+// Update auto-initialization
+(async () => {
+  if (!hasValidSession()) return;
+  try {
+    const isValid = await validateSession();
+    if (isValid) {
+      accessToken = await getValidToken();
+      showDashboard();
+      await loadData();
+    }
+  } catch (e) {
+    console.warn('Auto-login failed:', e);
+    logout();
+  }
+})();
+  
 function renderWebsitesOverview() {
   const totalSites = allData.length;
   const noDataCount = failedSites.length;
@@ -806,8 +771,21 @@ async function loadData() {
     document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="loading-cell">No properties found in Search Console.</td></tr>';
     pw.style.display = 'none';
     return;
+  } catch (e) {
+    console.error('Load data error:', e);
+    if (e.message === 'No refresh token available' || 
+        e.message?.includes('invalid_grant') ||
+        e.message?.includes('401')) {
+      // Only logout on actual auth errors
+      alert('Session expired. Please reconnect.');
+      logout();
+    } else {
+      // Just show error, don't logout
+      document.getElementById('tbody').innerHTML = `<tr><td colspan="5" class="loading-cell" style="color:var(--red)">Error: ${e.message}</td></tr>`;
+    }
+    document.getElementById('progressWrap').style.display = 'none';
   }
-  
+}
   allData = [];
   failedSites = []; // Track sites with no data
   let completed = 0;
