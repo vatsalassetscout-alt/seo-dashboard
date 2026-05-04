@@ -246,27 +246,322 @@ function getDates() {
     return { start: start.toISOString().split('T')[0], end: end.toISOString().split('T')[0] };
 }
 
-async function loadData() {
-    const { start, end } = getDates();
-    if (!start || !end) return;
-    document.getElementById('progressWrap').style.display = 'block';
-    const sites = await fetchSites();
-    const results = [], failed = [];
-    for (let i = 0; i < sites.length; i++) {
-        const res = await fetchTotals(sites[i].siteUrl, start, end);
-        if (res) results.push(res); else failed.push(sites[i].siteUrl.replace(/^sc-domain:/, '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''));
-        document.getElementById('progressFill').style.width = ((i + 1) / sites.length * 100) + '%';
-        document.getElementById('progressText').textContent = `${i+1}/${sites.length} sites`;
+// ============ OPTIMIZED FAST FETCHING ENGINE ============
+class FastFetcher {
+  constructor() {
+    this.activeRequests = new Map();
+    this.abortControllers = new Map();
+    this.requestQueue = [];
+    this.maxConcurrent = 15; // Increased from 10 for speed
+    this.running = 0;
+  }
+
+  async fetchWithTimeout(url, options, timeout = 10000) {
+    const controller = new AbortController();
+    const id = Math.random();
+    this.abortControllers.set(id, controller);
+    
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      this.abortControllers.delete(id);
+      return response;
+    } catch (error) {
+      this.abortControllers.delete(id);
+      throw error;
     }
-    allData = results; failedSites = failed;
-    document.getElementById('fetchedCount').innerText = sites.length;
-    document.getElementById('validCount').innerText = allData.length;
-    document.getElementById('failedCount').innerText = failedSites.length;
-    document.getElementById('issuesMenu').innerHTML = failedSites.length ? failedSites.map(s => `<li>⚠️ ${s}</li>`).join('') : '<li>✨ All sites have data</li>';
-    renderStats(); renderTable(); renderCharts();
-    tsRows = await fetchTimeSeriesCombined(allData, start, end);
+  }
+
+  async batchFetch(sites, start, end, onProgress) {
+    const results = [];
+    let completed = 0;
+    
+    // Process in optimized batches
+    const chunks = [];
+    for (let i = 0; i < sites.length; i += this.maxConcurrent) {
+      chunks.push(sites.slice(i, i + this.maxConcurrent));
+    }
+    
+    for (const chunk of chunks) {
+      const promises = chunk.map(async (site) => {
+        try {
+          const result = await this.fetchTotalsFast(site.siteUrl, start, end);
+          completed++;
+          if (onProgress) onProgress(completed, sites.length, result);
+          return result;
+        } catch (e) {
+          completed++;
+          return null;
+        }
+      });
+      
+      const chunkResults = await Promise.all(promises);
+      results.push(...chunkResults.filter(r => r !== null));
+    }
+    
+    return results;
+  }
+
+  async fetchTotalsFast(siteUrl, start, end) {
+    // Check RAM cache first (super fast)
+    const cacheKey = `${siteUrl}_${start}_${end}`;
+    if (window._fastCache && window._fastCache[cacheKey]) {
+      return window._fastCache[cacheKey];
+    }
+    
+    const token = await this.getTokenFast();
+    const url = `${GSC_BASE}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`;
+    
+    // Use HTTP/2 multiplexing - send all requests in parallel
+    const response = await this.fetchWithTimeout(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept-Encoding': 'gzip, deflate' // Compression for speed
+      },
+      body: JSON.stringify({
+        startDate: start,
+        endDate: end,
+        type: 'web',
+        aggregationType: 'byProperty',
+        dataState: 'all'
+      })
+    }, 8000); // 8 second timeout
+    
+    if (!response.ok) return null;
+    const d = await response.json();
+    const row = (d.rows && d.rows[0]) || { clicks: 0, impressions: 0, ctr: 0, position: 0 };
+    const name = siteUrl.replace(/^sc-domain:/, '').replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+    
+    const result = {
+      url: siteUrl,
+      name,
+      type: siteUrl.startsWith('sc-domain:') ? 'Domain' : 'URL',
+      clicks: Math.round(row.clicks),
+      impressions: Math.round(row.impressions),
+      ctr: row.ctr * 100,
+      position: row.position
+    };
+    
+    // Store in RAM cache
+    if (!window._fastCache) window._fastCache = {};
+    window._fastCache[cacheKey] = result;
+    
+    // Also store in IndexedDB for persistence
+    this.storeInIndexedDB(cacheKey, result);
+    
+    return result;
+  }
+
+  async getTokenFast() {
+    // Cache token in memory
+    if (window._cachedToken && window._tokenExpiry > Date.now()) {
+      return window._cachedToken;
+    }
+    
+    const refreshToken = localStorage.getItem('gsc_refresh');
+    if (!refreshToken) throw new Error('No refresh token');
+    
+    const response = await fetch(TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET
+      })
+    });
+    
+    const data = await response.json();
+    window._cachedToken = data.access_token;
+    window._tokenExpiry = Date.now() + (data.expires_in * 1000);
+    return data.access_token;
+  }
+
+  async storeInIndexedDB(key, data) {
+    // Async - don't block
+    requestIdleCallback(() => {
+      const request = indexedDB.open('FastCacheDB', 1);
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction('cache', 'readwrite');
+        const store = tx.objectStore('cache');
+        store.put({ key, data, timestamp: Date.now() });
+      };
+    });
+  }
+}
+
+// ============ PROGRESSIVE RENDERING (Show data as it arrives) ============
+let progressiveData = [];
+let progressiveTimeout;
+
+async function loadDataFast() {
+  const { start, end } = getDates();
+  if (!start || !end) return;
+  
+  // Show progress bar
+  const pw = document.getElementById('progressWrap');
+  pw.style.display = 'block';
+  document.getElementById('progressFill').style.width = '0%';
+  document.getElementById('progressText').textContent = 'Fetching sites list...';
+  
+  // Step 1: Get sites (cached)
+  const sites = await getSitesFast();
+  document.getElementById('progressText').textContent = `📊 Loading ${sites.length} websites...`;
+  
+  // Step 2: Progressive fetch - show data ASAP
+  const fetcher = new FastFetcher();
+  progressiveData = [];
+  
+  // Show table immediately with loading skeleton
+  renderSkeletonTable(sites.length);
+  
+  // Fetch with real-time progress
+  const results = await fetcher.batchFetch(sites, start, end, (completed, total, newSite) => {
+    // Add to results as they come
+    if (newSite) progressiveData.push(newSite);
+    
+    // Update progress bar
+    const percent = Math.round((completed / total) * 100);
+    document.getElementById('progressFill').style.width = percent + '%';
+    document.getElementById('progressText').textContent = `✅ ${completed}/${total} sites (${percent}%)`;
+    
+    // RE-RENDER TABLE EVERY 3 SITES (users see data growing)
+    if (completed % 3 === 0 || completed === total) {
+      renderTableProgressive();
+      renderStatsProgressive();
+    }
+  });
+  
+  allData = results;
+  
+  // Step 3: Fetch time series in background (don't block)
+  document.getElementById('progressText').textContent = '📈 Fetching timeline (background)...';
+  requestIdleCallback(async () => {
+    tsRows = await fetchTimeSeriesFast(allData, start, end);
     renderTsChart();
     document.getElementById('progressWrap').style.display = 'none';
+  });
+  
+  // Update final stats
+  renderStats();
+  renderCharts();
+}
+
+function renderSkeletonTable(count) {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  for (let i = 0; i < Math.min(count, 20); i++) {
+    tbody.innerHTML += `<tr style="opacity:0.5"><td>⬤ Loading...</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
+  }
+}
+
+function renderTableProgressive() {
+  const term = document.getElementById('searchInput').value.toLowerCase();
+  let rows = progressiveData.filter(r => r.name.toLowerCase().includes(term));
+  rows.sort((a, b) => b.clicks - a.clicks);
+  
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  
+  rows.forEach((site, idx) => {
+    const posClass = site.position === 0 ? 'tag-red' : site.position <= 3 ? 'tag-green' : site.position <= 10 ? 'tag-amber' : 'tag-purple';
+    tbody.innerHTML += `
+      <tr class="site-row" onclick="showDetailedModal('${escapeHtml(site.url)}','${escapeHtml(site.name)}')">
+        <td><div><span class="site-domain">${escapeHtml(site.name)}<span class="site-index">#${idx+1}</span></span><div class="site-type">${site.type}</div></div></td>
+        <td><span class="tag tag-blue">${site.clicks.toLocaleString()}</span></td>
+        <td><span class="tag tag-purple">${site.impressions.toLocaleString()}</span></td>
+        <td><span class="tag tag-green">${site.ctr.toFixed(2)}%</span></td>
+        <td><span class="tag ${posClass}">${site.position > 0 ? site.position.toFixed(1) : '—'}</span></td>
+      </tr>
+    `;
+  });
+}
+
+function renderStatsProgressive() {
+  const totalClicks = progressiveData.reduce((s, r) => s + r.clicks, 0);
+  const totalImpressions = progressiveData.reduce((s, r) => s + r.impressions, 0);
+  
+  document.getElementById('s-clicks').innerText = totalClicks.toLocaleString();
+  document.getElementById('s-impr').innerText = totalImpressions.toLocaleString();
+  
+  if (progressiveData.length > 0) {
+    let wCtr = 0, wPos = 0;
+    progressiveData.forEach(s => {
+      wCtr += (s.ctr / 100) * s.impressions;
+      wPos += s.position * s.impressions;
+    });
+    const avgCtr = totalImpressions > 0 ? (wCtr / totalImpressions) * 100 : 0;
+    const avgPos = totalImpressions > 0 ? wPos / totalImpressions : 0;
+    document.getElementById('s-ctr').innerText = avgCtr.toFixed(2) + '%';
+    document.getElementById('s-pos').innerText = avgPos.toFixed(1);
+  }
+}
+
+// Cache sites list
+let cachedSites = null;
+async function getSitesFast() {
+  if (cachedSites) return cachedSites;
+  
+  const token = await getValidToken();
+  const cacheKey = 'sites_list';
+  
+  // Check IndexedDB
+  const cached = await getFromIndexedDB(cacheKey);
+  if (cached && Date.now() - cached.timestamp < 86400000) { // 24 hours
+    cachedSites = cached.data;
+    return cachedSites;
+  }
+  
+  const response = await fetch(`${GSC_BASE}/sites`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await response.json();
+  cachedSites = data.siteEntry || [];
+  
+  // Store in IndexedDB
+  storeInIndexedDB(cacheKey, cachedSites);
+  
+  return cachedSites;
+}
+
+function getFromIndexedDB(key) {
+  return new Promise((resolve) => {
+    const request = indexedDB.open('FastCacheDB', 1);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('cache')) {
+        db.createObjectStore('cache', { keyPath: 'key' });
+      }
+    };
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction('cache', 'readonly');
+      const store = tx.objectStore('cache');
+      const getRequest = store.get(key);
+      getRequest.onsuccess = () => resolve(getRequest.result);
+      getRequest.onerror = () => resolve(null);
+    };
+    request.onerror = () => resolve(null);
+  });
+}
+
+function storeInIndexedDB(key, data) {
+  const request = indexedDB.open('FastCacheDB', 1);
+  request.onsuccess = () => {
+    const db = request.result;
+    const tx = db.transaction('cache', 'readwrite');
+    const store = tx.objectStore('cache');
+    store.put({ key, data, timestamp: Date.now() });
+  };
 }
 
 function renderStats() {
