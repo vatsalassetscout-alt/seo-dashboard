@@ -353,7 +353,10 @@
             color: var(--text2);
             letter-spacing: 0.5px;
         }
-        
+        /* Simple fix - invert calendar icon in dark mode */
+[data-theme="dark"] ::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
         /* TABLE HEADER - FIXED PERFECT ALIGNMENT */
         .table-header {
             display: flex;
