@@ -609,12 +609,12 @@
     <div class="header">
         <div>
             <h1> Leads Dashboard</h1>
-            <div class="live-badge"> LIVE Data</div>
+           
         </div>
         <div class="header-right">
             <!-- WEB BUTTON - Redirects back to SEO Dashboard -->
             <button id="webDashboardBtn" class="web-btn">
-                 Web Dashboard
+                 Web
             </button>
             <div class="theme-toggle">
                 <button class="theme-btn" onclick="setTheme('light')">☀️ Light</button>
@@ -847,7 +847,7 @@
                 html += `
                     <div class="project-item" onclick='showProjectDetails("${safeName.replace(/"/g, '&quot;')}")'>
                         <div class="project-info">
-                            <span class="project-name">🏢 ${escapeHtml(projectName)}</span>
+                            <span class="project-name"> ${escapeHtml(projectName)}</span>
                         </div>
                         <div class="project-location-center">
                              ${escapeHtml(data.location)}
