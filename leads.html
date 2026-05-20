@@ -72,7 +72,6 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto;
             transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
         
@@ -81,6 +80,7 @@
             color: var(--text);
             padding: 30px;
             min-height: 100vh;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto;
         }
         
         .container {
@@ -124,6 +124,39 @@
             letter-spacing: 0.5px;
         }
         
+        /* Header Right Buttons Container */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        /* Web Button - Redirect to SEO Dashboard */
+        .web-btn {
+            background: linear-gradient(135deg, var(--purple), var(--blue));
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .web-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139,92,246,0.3);
+        }
+        
+        .web-btn:active {
+            transform: translateY(0);
+        }
+        
         /* Theme Toggle - Matching SEO Dashboard */
         .theme-toggle {
             display: flex;
@@ -144,6 +177,7 @@
             background: transparent;
             color: var(--text2);
             transition: all 0.2s;
+            font-family: inherit;
         }
         
         .theme-btn.active {
@@ -202,6 +236,7 @@
             background: var(--bg);
             color: var(--text);
             transition: all 0.2s;
+            font-family: inherit;
         }
         
         select:hover, input:hover {
@@ -297,7 +332,7 @@
             font-weight: 500;
         }
         
-        /* Projects Section */
+        /* Projects Section - FIXED ALIGNMENT */
         .projects-section {
             background: var(--s1);
             border: 1px solid var(--border);
@@ -317,6 +352,7 @@
             letter-spacing: 0.5px;
         }
         
+        /* TABLE HEADER - FIXED PERFECT ALIGNMENT */
         .table-header {
             display: flex;
             padding: 12px 25px;
@@ -331,6 +367,7 @@
         .header-project {
             width: 40%;
             text-align: left;
+            padding-left: 4px;
         }
         
         .header-location {
@@ -341,8 +378,10 @@
         .header-count {
             width: 25%;
             text-align: right;
+            padding-right: 10px;
         }
         
+        /* PROJECT ROW - PERFECT ALIGNMENT WITH HEADER */
         .project-item {
             display: flex;
             align-items: center;
@@ -359,6 +398,7 @@
         .project-info {
             width: 40%;
             text-align: left;
+            padding-left: 4px;
         }
         
         .project-name {
@@ -381,13 +421,7 @@
             font-weight: 700;
             font-size: 14px;
             font-family: var(--mono);
-            color: var(--text);
-            background: var(--s2);
-            padding: 4px 10px;
-            border-radius: 20px;
-            display: inline-block;
-            width: auto;
-            float: right;
+            padding-right: 10px;
         }
         
         /* Modal Styles */
@@ -544,11 +578,12 @@
             .project-info, .project-location-center {
                 width: 100%;
                 text-align: center;
+                padding-left: 0;
             }
             .project-count {
-                float: none;
-                display: inline-block;
+                width: 100%;
                 text-align: center;
+                padding-right: 0;
             }
             .filter-bar {
                 flex-direction: column;
@@ -560,6 +595,8 @@
             }
             .header-right {
                 width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
             }
             .theme-toggle {
                 justify-content: center;
@@ -572,9 +609,13 @@
     <div class="header">
         <div>
             <h1> Leads Dashboard</h1>
-            
+            <div class="live-badge"> LIVE Data</div>
         </div>
         <div class="header-right">
+            <!-- WEB BUTTON - Redirects back to SEO Dashboard -->
+            <button id="webDashboardBtn" class="web-btn">
+                 Web Dashboard
+            </button>
             <div class="theme-toggle">
                 <button class="theme-btn" onclick="setTheme('light')">☀️ Light</button>
                 <button class="theme-btn active" onclick="setTheme('dark')">🌙 Dark</button>
@@ -616,11 +657,11 @@
         <div class="section-title"> Projects (Click any row to see leads grouped by source)</div>
         <div class="table-header">
             <div class="header-project">Project Name</div>
-            <div class="header-location">Location</div>
-            <div class="header-count">Lead Count</div>
+            <div class="header-location"> Location</div>
+            <div class="header-count"> Lead Count</div>
         </div>
         <div id="projectList">
-            <div class="loading"> Loading data from Google Sheets...</div>
+            <div class="loading">⏳ Loading data from Google Sheets...</div>
         </div>
     </div>
     <div class="last-updated" id="lastUpdated">--</div>
@@ -644,6 +685,20 @@
     let currentStartDate = null;
     let currentEndDate = null;
     let isLoading = false;
+    
+    // ============================================
+    // WEB DASHBOARD REDIRECT BUTTON
+    // ============================================
+    document.getElementById('webDashboardBtn').onclick = function() {
+        // Change this URL to match your SEO dashboard file location
+        // Options:
+        // Same folder: 'seo-dashboard.html'
+        // Different folder: '../seo/seo-dashboard.html'
+        // Full URL: 'https://yourdomain.com/seo-dashboard.html'
+        
+        window.location.href = 'index.html';
+        // Or open in new tab: window.open('seo-dashboard.html', '_blank');
+    };
     
     // ============================================
     // THEME SYSTEM - Matches SEO Dashboard
@@ -811,14 +866,14 @@
             rangeText = ` | Date: ${startStr} → ${endStr}`;
         }
         const locationLabel = currentLocationFilter !== 'all' ? ` | Location: ${currentLocationFilter}` : '';
-        document.getElementById('lastUpdated').innerHTML = `🕐 ${new Date().toLocaleTimeString()} | ${filteredLeads.length.toLocaleString()} leads${rangeText}${locationLabel}`;
+        document.getElementById('lastUpdated').innerHTML = ` ${new Date().toLocaleTimeString()} | ${filteredLeads.length.toLocaleString()} leads${rangeText}${locationLabel}`;
     }
     
     async function fetchData() {
         if (isLoading) return;
         isLoading = true;
         const statusSpan = document.getElementById('status');
-        statusSpan.innerHTML = '⏳ Fetching...';
+        statusSpan.innerHTML = ' Fetching...';
         document.getElementById('projectList').innerHTML = '<div class="loading">⏳ Loading fresh data...</div>';
         
         try {
@@ -829,10 +884,10 @@
             console.log(` Loaded ${allData.length} records`);
             populateLocationFilter();
             renderDashboard();
-            statusSpan.innerHTML = ' Live';
+            statusSpan.innerHTML = '';
         } catch (err) {
             console.error(err);
-            statusSpan.innerHTML = '❌ Error';
+            statusSpan.innerHTML = ' Error';
             document.getElementById('projectList').innerHTML = '<div class="no-data">⚠️ Failed to load. Click Refresh.</div>';
         } finally {
             isLoading = false;
@@ -903,7 +958,7 @@
         if (currentStartDate || currentEndDate) {
             statusSpan.innerHTML = '📅 Custom range';
         } else {
-            statusSpan.innerHTML = ' Live';
+            statusSpan.innerHTML = '';
         }
     }
     
@@ -940,7 +995,8 @@
         });
         
         const sortedSources = Array.from(sourceMap.entries()).sort((a,b) => b[1].length - a[1].length);
-        document.getElementById('modalTitle').innerHTML = ` ${escapeHtml(projectName)} | ${projectLeads.length} leads`;
+        const location = projectLeads[0]?.[3] || "Unknown";
+        document.getElementById('modalTitle').innerHTML = ` ${escapeHtml(projectName)} |  ${escapeHtml(location)} | ${projectLeads.length} leads`;
         
         if (sortedSources.length === 0) {
             document.getElementById('timestampsList').innerHTML = '<div class="no-data">No timestamps available</div>';
@@ -955,9 +1011,9 @@
                     return db - da;
                 });
                 html += `<div class="source-group">
-                            <div class="source-title">📢 ${escapeHtml(source)} (${timestamps.length})</div>`;
+                            <div class="source-title"> ${escapeHtml(source)} (${timestamps.length})</div>`;
                 timestamps.forEach(ts => {
-                    html += `<div class="timestamp-item">🕒 ${formatDisplayDate(ts)}</div>`;
+                    html += `<div class="timestamp-item"> ${formatDisplayDate(ts)}</div>`;
                 });
                 html += `</div>`;
             });
