@@ -490,10 +490,12 @@
     font-size: 0.7em;
 }
 
+/* Logo Styles - Perfectly Centered */
 .logo-img {
     position: absolute;
     left: 50%;
-    transform: translateX(-50%);
+    top: 50%;
+    transform: translate(-50%, -50%);
     height: 40px;
     width: auto;
     filter: var(--logo-filter);
@@ -501,14 +503,50 @@
     object-fit: contain;
 }
 
-/* Header right buttons */
+/* Header needs relative positioning for absolute logo */
+.header {
+    background: var(--s1);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    box-shadow: 0 1px 4px var(--shadow);
+    position: relative;
+}
+
+/* Left section - takes equal space */
+.header > div:first-child {
+    flex: 1;
+}
+
+/* Right section - takes equal space */
 .header-right {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex: 1;
+    justify-content: flex-end;
+    position: relative;
     z-index: 1;
 }
-        .modal-header {
+
+/* Title styling */
+.header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin: 0;
+}
+        
+.modal-header {
             padding: 15px 20px;
             background: var(--blue);
             color: white;
@@ -517,12 +555,12 @@
             align-items: center;
         }
         
-        .modal-header h3 {
+.modal-header h3 {
             font-size: 16px;
             font-weight: 600;
         }
         
-        .close-modal {
+.close-modal {
             background: none;
             border: none;
             color: white;
@@ -532,22 +570,22 @@
             transition: opacity 0.2s;
         }
         
-        .close-modal:hover {
+.close-modal:hover {
             opacity: 1;
         }
         
-        .timestamps-list {
+.timestamps-list {
             padding: 10px 0;
             max-height: 65vh;
             overflow-y: auto;
         }
         
-        .source-group {
+.source-group {
             margin: 8px 0;
             border-bottom: 1px solid var(--border);
         }
         
-        .source-title {
+.source-title {
             padding: 12px 20px;
             font-weight: 600;
             font-size: 13px;
@@ -556,7 +594,7 @@
             color: var(--text);
         }
         
-        .timestamp-item {
+.timestamp-item {
             padding: 8px 20px 8px 35px;
             font-family: var(--mono);
             font-size: 12px;
@@ -564,14 +602,14 @@
             color: var(--text2);
         }
         
-        .loading, .no-data {
+.loading, .no-data {
             text-align: center;
             padding: 50px;
             color: var(--text3);
             font-size: 14px;
         }
         
-        .last-updated {
+.last-updated {
             text-align: center;
             font-size: 11px;
             color: var(--text3);
@@ -580,71 +618,71 @@
             font-family: var(--mono);
         }
         
-        #status {
+#status {
             font-family: var(--mono);
             font-size: 12px;
         }
         
         /* Scrollbar Styling */
-        ::-webkit-scrollbar {
+::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
         
-        ::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
             background: var(--s2);
             border-radius: 3px;
         }
         
-        ::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
             background: var(--border2);
             border-radius: 3px;
         }
         
-        ::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
             background: var(--blue);
         }
         
-        @media (max-width: 700px) {
-            body {
+@media (max-width: 700px) {
+body {
                 padding: 15px;
             }
-            .stats {
+.stats {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
             }
-            .table-header {
+.table-header {
                 display: none;
             }
-            .project-item {
+.project-item {
                 flex-direction: column;
                 gap: 8px;
                 text-align: center;
             }
-            .project-info, .project-location-center {
+.project-info, .project-location-center {
                 width: 100%;
                 text-align: center;
                 padding-left: 0;
             }
-            .project-count {
+.project-count {
                 width: 100%;
                 text-align: center;
                 padding-right: 0;
             }
-            .filter-bar {
+.filter-bar {
                 flex-direction: column;
                 align-items: stretch;
             }
-            .date-filter-group {
+.date-filter-group {
                 flex-direction: column;
                 align-items: stretch;
             }
-            .header-right {
+.header-right {
                 width: 100%;
                 justify-content: center;
                 flex-wrap: wrap;
             }
-            .theme-toggle {
+.theme-toggle {
                 justify-content: center;
             }
         }
