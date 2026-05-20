@@ -495,7 +495,7 @@ function showDashboard() {
   document.getElementById('dashboard').style.display = 'block';
   document.getElementById('logoutBtn').style.display = 'inline-flex';
   document.getElementById('statusPill').className = 'pill on';
-  document.getElementById('statusText').innerHTML = 'Connected ✓';
+  
 }
 
 function logout() {
@@ -509,7 +509,7 @@ function logout() {
   document.getElementById('dashboard').style.display = 'none';
   document.getElementById('logoutBtn').style.display = 'none';
   document.getElementById('statusPill').className = 'pill off';
-  document.getElementById('statusText').innerHTML = 'Not Connected';
+  
   document.getElementById('codeUrl').value = '';
   document.getElementById('connectBtn').disabled = true;
   const msgDiv = document.getElementById('connectMsg');
