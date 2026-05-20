@@ -1135,7 +1135,17 @@ function openCalendar(type) {
     renderCalendar(type);
   }
 }
-
+// Redirect to Leads Dashboard
+document.getElementById('leadsDashboardBtn').onclick = function() {
+    // Option 1: If Leads Dashboard is on the same domain different page
+    window.location.href = 'leads-dashboard.html';
+    
+    // Option 2: If it's a different URL
+    // window.location.href = 'https://yourdomain.com/leads-dashboard';
+    
+    // Option 3: Open in new tab
+    // window.open('leads-dashboard.html', '_blank');
+};
 function renderCalendar(type) {
   const isSingleMode = type === 'single';
   const popup = document.getElementById(isSingleMode ? 'fromCal' : (type === 'from' ? 'fromCal' : 'toCal'));
