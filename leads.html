@@ -36,6 +36,7 @@
             --tag-bg-red: rgba(239,68,68,.12);
             --tag-fg-red: #fca5a5;
             --mono: 'JetBrains Mono', 'SF Mono', monospace;
+            --logo-filter: brightness(0) invert(1);
         }
         
         [data-theme="light"] {
@@ -66,6 +67,7 @@
             --tag-bg-red: rgba(239,68,68,.1);
             --tag-fg-red: #b91c1c;
             --mono: 'JetBrains Mono', 'SF Mono', monospace;
+            --logo-filter: none;
         }
         
         * {
@@ -461,7 +463,51 @@
                 opacity: 1;
             }
         }
-        
+        /* Logo Styles - Centered with absolute positioning */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    flex: 1;
+}
+
+.logo-text h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.logo-text h1 em {
+    font-style: normal;
+    color: var(--text2);
+    font-weight: 400;
+    font-size: 0.7em;
+}
+
+.logo-img {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 40px;
+    width: auto;
+    filter: var(--logo-filter);
+    transition: filter .25s ease;
+    object-fit: contain;
+}
+
+/* Header right buttons */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1;
+}
         .modal-header {
             padding: 15px 20px;
             background: var(--blue);
@@ -607,21 +653,22 @@
 <body data-theme="dark">
 <div class="container">
     <div class="header">
-        <div>
-            <h1> Leads Dashboard</h1>
-           
+    <div class="logo">
+        <div class="logo-text">
+            <h1>Leads Dashboard <em></em></h1>
         </div>
-        <div class="header-right">
-            <!-- WEB BUTTON - Redirects back to SEO Dashboard -->
-            <button id="webDashboardBtn" class="web-btn">
-                 Web
-            </button>
-            <div class="theme-toggle">
-                <button class="theme-btn" onclick="setTheme('light')">☀️ Light</button>
-                <button class="theme-btn active" onclick="setTheme('dark')">🌙 Dark</button>
-            </div>
+        <img class="logo-img" src="https://assetscout.in/assets/images/Assetscout%20Logo%20Black.webp" alt="Asset Scout" onerror="this.style.display='none'">
+    </div>
+    <div class="header-right">
+        <button id="webDashboardBtn" class="web-btn">
+             Web
+        </button>
+        <div class="theme-toggle">
+            <button class="theme-btn" onclick="setTheme('light')"> Light</button>
+            <button class="theme-btn active" onclick="setTheme('dark')"> Dark</button>
         </div>
     </div>
+</div>
     
     <div class="filter-bar">
         <div class="date-filter-group">
