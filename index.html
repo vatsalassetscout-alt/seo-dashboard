@@ -299,6 +299,66 @@ tbody tr:last-child td{border-bottom:none}
 .cache-indicator{position:fixed;bottom:16px;left:16px;background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:10px;font-family:var(--mono);color:var(--text3);z-index:99;cursor:help}
 #exportModal .modal-box{max-width:400px;text-align:center}
 @media(max-width:768px){.charts-row{grid-template-columns:1fr}.stats-grid{grid-template-columns:repeat(2,1fr)}.wrap{padding:14px}.ts-canvas-wrap{height:200px}.cal-popup{left:auto;right:0}.logo-img{height:36px}.logo-text h1{font-size:22px}.metrics-sidebar{display:none}}
+/* FIXED CONSISTENT DASHBOARD SIZING */
+body {
+    padding: 20px !important;
+    margin: 0 !important;
+}
+
+.container, .wrap {
+    max-width: 1400px !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+}
+
+/* Fix responsive behavior */
+@media (max-width: 1440px) {
+    .container, .wrap {
+        max-width: 1200px !important;
+    }
+}
+
+@media (max-width: 1200px) {
+    .container, .wrap {
+        max-width: 100% !important;
+        padding: 0 15px !important;
+    }
+    
+    body {
+        padding: 15px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats, .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+    
+    .filter-bar, .controls {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    
+    .header {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 15px !important;
+    }
+    
+    .header-right {
+        justify-content: center !important;
+        width: 100% !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats, .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 </style>
 </head>
 <body>
