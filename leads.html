@@ -1100,12 +1100,12 @@ async function fetchData() {
         }
         
         allData = newData;
-        console.log(`✅ Loaded ${allData.length} records`);
+        console.log(` Loaded ${allData.length} records`);
         
         populateLocationFilter();
         renderDashboard();
         
-        statusSpan.innerHTML = `✅ ${allData.length} records`;
+        statusSpan.innerHTML = ` ${}`;
         statusSpan.style.color = '#10b981';
         
     } catch (err) {
