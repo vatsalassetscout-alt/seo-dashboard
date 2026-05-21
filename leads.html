@@ -821,8 +821,11 @@ body {
 </div>
 
 <script>
-    const SHEET_URL = "https://script.google.com/macros/s/AKfycbyuw0IL-xJ9THzl32JjVQ-FFfWA9kyh0j_fNTi3zb5EW4iQ7ZZN7bjxljvm8VvOfwfI/exec";
-    
+
+    // Google Sheets API configuration
+const SHEET_ID = "14TBSWEZ4rlIkLECg2MrBCUYFwy8coCzISZUqJW_lCOc"; // Your actual Sheet ID
+const SHEET_NAME = "SEO Leads Dashboard's Data"; // Change to your sheet name (Sheet1, Sheet2, etc.)
+const API_KEY = "AIzaSyBayWQDOC1xhIlrzyzG9pFNEaKKh8wjFhY"; // Your Google Sheets API key
     let allData = [];
     let currentLocationFilter = "all";
     let currentStartDate = null;
@@ -1012,31 +1015,82 @@ body {
         document.getElementById('lastUpdated').innerHTML = ` ${new Date().toLocaleTimeString()} | ${filteredLeads.length.toLocaleString()} leads${rangeText}${locationLabel}`;
     }
     
-    async function fetchData() {
-        if (isLoading) return;
-        isLoading = true;
-        const statusSpan = document.getElementById('status');
-        statusSpan.innerHTML = ' Fetching...';
-        document.getElementById('projectList').innerHTML = '<div class="loading">⏳ Loading fresh data...</div>';
-        
-        try {
-            const response = await fetch(SHEET_URL);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const data = await response.json();
-            allData = Array.isArray(data) ? data : [];
-            console.log(` Loaded ${allData.length} records`);
-            populateLocationFilter();
-            renderDashboard();
-            statusSpan.innerHTML = '';
-        } catch (err) {
-            console.error(err);
-            statusSpan.innerHTML = ' Error';
-            document.getElementById('projectList').innerHTML = '<div class="no-data">⚠️ Failed to load. Click Refresh.</div>';
-        } finally {
-            isLoading = false;
-        }
-    }
+   async function fetchData() {
+    if (isLoading) return;
+    isLoading = true;
     
+    const statusSpan = document.getElementById('status');
+    statusSpan.innerHTML = '⏳ Fetching data...';
+    statusSpan.style.color = '#f59e0b';
+    document.getElementById('projectList').innerHTML = '<div class="loading">📊 Loading data from Google Sheets...</div>';
+    
+    try {
+        // Google Sheets API URL
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:D?key=${API_KEY}&t=${Date.now()}`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.values || data.values.length <= 1) {
+            document.getElementById('projectList').innerHTML = '<div class="no-data">📭 No data found in sheet</div>';
+            statusSpan.innerHTML = '⚠️ No data';
+            isLoading = false;
+            return;
+        }
+        
+        // Parse data - Skip header row
+        const newData = [];
+        for (let i = 1; i < data.values.length; i++) {
+            const row = data.values[i];
+            if (row[0] && row[1]) {
+                newData.push([
+                    row[0] || '',
+                    row[1] || '',
+                    row[2] || '',
+                    row[3] || '',
+                    SHEET_NAME
+                ]);
+            }
+        }
+        
+        if (newData.length === 0) {
+            document.getElementById('projectList').innerHTML = '<div class="no-data">📭 No valid data rows found</div>';
+            statusSpan.innerHTML = '⚠️ No data';
+            isLoading = false;
+            return;
+        }
+        
+        allData = newData;
+        console.log(`✅ Loaded ${allData.length} records`);
+        
+        populateLocationFilter();
+        renderDashboard();
+        
+        statusSpan.innerHTML = `✅ ${allData.length} records`;
+        statusSpan.style.color = '#10b981';
+        
+    } catch (err) {
+        console.error('Error:', err);
+        statusSpan.innerHTML = '❌ Error';
+        statusSpan.style.color = '#ef4444';
+        
+        document.getElementById('projectList').innerHTML = `
+            <div class="no-data">
+                ⚠️ Failed to load data<br>
+                <small>${err.message}</small><br><br>
+                <button onclick="fetchData()" style="background: var(--blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+                    🔄 Retry
+                </button>
+            </div>`;
+    } finally {
+        isLoading = false;
+    }
+}
     function populateLocationFilter() {
         const locationsSet = new Set();
         allData.forEach(row => {
