@@ -1015,7 +1015,15 @@ const API_KEY = "AIzaSyBayWQDOC1xhIlrzyzG9pFNEaKKh8wjFhY"; // Your Google Sheets
         document.getElementById('lastUpdated').innerHTML = ` ${new Date().toLocaleTimeString()} | ${filteredLeads.length.toLocaleString()} leads${rangeText}${locationLabel}`;
     }
     
-   async function fetchData() {
+    /////////////
+    ////////////
+    ///////////
+    ////////////////
+    //////////////////
+   ////////////////////////
+    //////////////////////////
+
+async function fetchData() {
     if (isLoading) return;
     isLoading = true;
     
@@ -1025,16 +1033,41 @@ const API_KEY = "AIzaSyBayWQDOC1xhIlrzyzG9pFNEaKKh8wjFhY"; // Your Google Sheets
     document.getElementById('projectList').innerHTML = '<div class="loading">📊 Loading data from Google Sheets...</div>';
     
     try {
-        // Google Sheets API URL
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:D?key=${API_KEY}&t=${Date.now()}`;
+        // Validate configuration first
+        if (!SHEET_ID || SHEET_ID === "YOUR_SHEET_ID_HERE") {
+            throw new Error('Sheet ID not configured');
+        }
+        if (!API_KEY || API_KEY === "YOUR_API_KEY_HERE") {
+            throw new Error('API Key not configured');
+        }
+        
+        // Build URL
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:D?key=${API_KEY}`;
+        
+        console.log("Fetching from Sheets API...");
         
         const response = await fetch(url);
         
+        console.log("Response status:", response.status);
+        
+        if (response.status === 404) {
+            throw new Error('Sheet not found. Check Sheet ID and name');
+        }
+        if (response.status === 403) {
+            throw new Error('Access denied. Make sure sheet is shared as "Anyone with link can view"');
+        }
+        if (response.status === 400) {
+            throw new Error('Bad request. Check API key and sheet name');
+        }
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
         }
         
         const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
         
         if (!data.values || data.values.length <= 1) {
             document.getElementById('projectList').innerHTML = '<div class="no-data">📭 No data found in sheet</div>';
@@ -1075,14 +1108,28 @@ const API_KEY = "AIzaSyBayWQDOC1xhIlrzyzG9pFNEaKKh8wjFhY"; // Your Google Sheets
         statusSpan.style.color = '#10b981';
         
     } catch (err) {
-        console.error('Error:', err);
+        console.error('Error details:', err);
         statusSpan.innerHTML = '❌ Error';
         statusSpan.style.color = '#ef4444';
+        
+        let errorMessage = err.message;
+        let helpText = '';
+        
+        if (errorMessage.includes('Sheet not found')) {
+            helpText = 'Check your SHEET_ID. Get it from your Google Sheet URL.';
+        } else if (errorMessage.includes('Access denied')) {
+            helpText = 'Share your Google Sheet as "Anyone with link can view".';
+        } else if (errorMessage.includes('API Key')) {
+            helpText = 'Check your API key and enable Google Sheets API.';
+        } else {
+            helpText = 'Verify SHEET_ID, SHEET_NAME, and API_KEY are correct.';
+        }
         
         document.getElementById('projectList').innerHTML = `
             <div class="no-data">
                 ⚠️ Failed to load data<br>
-                <small>${err.message}</small><br><br>
+                <small>${errorMessage}</small><br><br>
+                <small style="color: var(--text3);">${helpText}</small><br><br>
                 <button onclick="fetchData()" style="background: var(--blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
                     🔄 Retry
                 </button>
@@ -1091,6 +1138,13 @@ const API_KEY = "AIzaSyBayWQDOC1xhIlrzyzG9pFNEaKKh8wjFhY"; // Your Google Sheets
         isLoading = false;
     }
 }
+
+    //////////////////////////////////
+    /////////////////////////////
+    ////////////////////////////
+    //////////////////////////
+    ////////////////////////////////
+    
     function populateLocationFilter() {
         const locationsSet = new Set();
         allData.forEach(row => {
