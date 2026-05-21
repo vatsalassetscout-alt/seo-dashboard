@@ -1239,7 +1239,24 @@ const API_KEY = "AIzaSyBayWQDOC1xhIlrzyzG9pFNEaKKh8wjFhY"; // Your Google Sheets
         document.getElementById('clearDateRangeBtn').addEventListener('click', clearDateRange);
         window.onclick = function(e) { if (e.target === document.getElementById('modal')) closeModal(); };
     }
+    async function debugAPI() {
+    console.log("Testing API Connection...");
+    console.log("Sheet ID:", SHEET_ID);
+    console.log("Sheet Name:", SHEET_NAME);
+    console.log("API Key:", API_KEY ? API_KEY.substring(0, 10) + "..." : "MISSING");
     
+    const testUrl = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:D?key=${API_KEY}`;
+    console.log("Test URL:", testUrl);
+    
+    try {
+        const response = await fetch(testUrl);
+        console.log("Response Status:", response.status);
+        const data = await response.json();
+        console.log("Response Data:", data);
+    } catch(e) {
+        console.error("Error:", e);
+    }
+}
     loadSavedTheme();
     bindEvents();
     fetchData();
