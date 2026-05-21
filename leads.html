@@ -1105,13 +1105,13 @@ async function fetchData() {
         populateLocationFilter();
         renderDashboard();
         
-        statusSpan.innerHTML = ` ${}`;
-        statusSpan.style.color = '#10b981';
+        statusSpan.innerHTML = ``;
+        
         
     } catch (err) {
-        console.error('Error details:', err);
-        statusSpan.innerHTML = '❌ Error';
-        statusSpan.style.color = '#ef4444';
+        
+        statusSpan.innerHTML = '';
+       
         
         let errorMessage = err.message;
         let helpText = '';
