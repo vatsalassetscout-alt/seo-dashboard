@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Leads Dashboard - Date Range Filter | Project & Location View</title>
+    <title>Leads Dashboard</title>
     <style>
         [data-theme="dark"] {
             --bg: #060a12;
@@ -168,12 +168,6 @@
         </div>
     </div>
 
-    <!-- ✅ FIX 1: Added status bar with id="status" element that JS references -->
-    <div class="status-bar">
-        <span id="status"></span>
-        <span id="statusMsg"></span>
-    </div>
-
     <div class="filter-bar">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
             <div class="date-field">
@@ -191,7 +185,7 @@
         <div class="multi-select-wrapper">
             <div class="multi-select-btn" id="locationSelectBtn"> All Locations</div>
             <div class="multi-select-dropdown" id="locationDropdown">
-                <div class="dropdown-search"><input type="text" placeholder="🔍 Search location..." id="locationSearch"></div>
+                <div class="dropdown-search"><input type="text" placeholder=" Search location..." id="locationSearch"></div>
                 <div id="locationOptions"></div>
                 <div class="dropdown-actions">
                     <button id="selectAllLocations"> Select All</button>
@@ -215,7 +209,7 @@
         <div class="project-filter-wrapper">
             <div class="project-filter-btn" id="projectFilterBtn"> All Projects</div>
             <div class="project-filter-dropdown" id="projectDropdown">
-                <div class="dropdown-search"><input type="text" placeholder="🔍 Search project..." id="projectSearch"></div>
+                <div class="dropdown-search"><input type="text" placeholder=" Search project..." id="projectSearch"></div>
                 <div id="projectOptions"></div>
                 <div class="dropdown-actions">
                     <button id="selectAllProjects"> Select All</button>
@@ -224,7 +218,7 @@
             </div>
         </div>
 
-        <button onclick="resetAllFilters()">🔄 Reset All</button>
+        <button onclick="resetAllFilters()"> Reset All</button>
     </div>
 
     <div class="stats">
@@ -235,11 +229,11 @@
     </div>
 
     <div class="projects-section">
-        <div class="section-title">📋 Projects (Click any row to see leads grouped by source)</div>
+        <div class="section-title"> Projects (Click any row to see leads grouped by source)</div>
         <div class="table-header">
             <div class="header-project">Project Name</div>
-            <div class="header-location">📍 Location</div>
-            <div class="header-count">📊 Lead Count</div>
+            <div class="header-location">Location</div>
+            <div class="header-count">Lead Count</div>
         </div>
         <div id="projectList">
             <div class="loading">⏳ Loading data from Google Sheets...</div>
@@ -546,13 +540,13 @@
         const sorted = Array.from(srcMap.entries()).sort((a,b) => b[1].length - a[1].length);
         const loc = leads[0]?.[3] || 'Unknown';
         document.getElementById('modalTitle').innerHTML =
-            `📋 ${escapeHtml(projectName)} | 📍 ${escapeHtml(loc)} | ${leads.length} leads`;
+            ` ${escapeHtml(projectName)} |  ${escapeHtml(loc)} | ${leads.length} leads`;
 
         document.getElementById('timestampsList').innerHTML = sorted.map(([src, ts]) => {
             ts.sort((a,b) => { let da=parseFlexibleDate(a), db=parseFlexibleDate(b); return (db||0)-(da||0); });
             return `<div class="source-group">
-                <div class="source-title">📂 ${escapeHtml(src)} (${ts.length})</div>
-                ${ts.map(t => `<div class="timestamp-item">🕐 ${formatDisplayDate(t)}</div>`).join('')}
+                <div class="source-title"> ${escapeHtml(src)} (${ts.length})</div>
+                ${ts.map(t => `<div class="timestamp-item"> ${formatDisplayDate(t)}</div>`).join('')}
             </div>`;
         }).join('');
 
@@ -622,23 +616,23 @@
     function updateLocationButtonText() {
         const btn = document.getElementById('locationSelectBtn');
         if (!btn) return;
-        btn.innerHTML = selectedLocations.size === 0 ? '📍 All Locations'
-            : selectedLocations.size === 1 ? `📍 ${[...selectedLocations][0]}`
-            : `📍 ${selectedLocations.size} locations`;
+        btn.innerHTML = selectedLocations.size === 0 ? ' All Locations'
+            : selectedLocations.size === 1 ? ` ${[...selectedLocations][0]}`
+            : ` ${selectedLocations.size} locations`;
     }
     function updateSourceButtonText() {
         const btn = document.getElementById('sourceFilterBtn');
         if (!btn) return;
-        btn.innerHTML = selectedSources.size === 0 ? '📂 All Sources'
-            : selectedSources.size === 1 ? `📂 ${[...selectedSources][0]}`
-            : `📂 ${selectedSources.size} sources`;
+        btn.innerHTML = selectedSources.size === 0 ? ' All Sources'
+            : selectedSources.size === 1 ? ` ${[...selectedSources][0]}`
+            : ` ${selectedSources.size} sources`;
     }
     function updateProjectButtonText() {
         const btn = document.getElementById('projectFilterBtn');
         if (!btn) return;
-        btn.innerHTML = selectedProjects.size === 0 ? '🏗️ All Projects'
-            : selectedProjects.size === 1 ? `🏗️ ${[...selectedProjects][0]}`
-            : `🏗️ ${selectedProjects.size} projects`;
+        btn.innerHTML = selectedProjects.size === 0 ? ' All Projects'
+            : selectedProjects.size === 1 ? ` ${[...selectedProjects][0]}`
+            : ` ${selectedProjects.size} projects`;
     }
 
     function escapeHtml(str) {
