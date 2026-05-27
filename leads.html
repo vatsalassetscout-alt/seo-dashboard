@@ -181,7 +181,17 @@
             <button id="applyDateRangeBtn"> Apply Range</button>
             <button id="clearDateRangeBtn" class="clear-range">🗑️ Clear</button>
         </div>
-
+         <div class="project-filter-wrapper">
+            <div class="project-filter-btn" id="projectFilterBtn"> All Projects</div>
+            <div class="project-filter-dropdown" id="projectDropdown">
+                <div class="dropdown-search"><input type="text" placeholder=" Search project..." id="projectSearch"></div>
+                <div id="projectOptions"></div>
+                <div class="dropdown-actions">
+                    <button id="selectAllProjects"> Select All</button>
+                    <button id="clearAllProjects"> Clear All</button>
+                </div>
+            </div>
+        </div>
         <div class="multi-select-wrapper">
             <div class="multi-select-btn" id="locationSelectBtn"> All Locations</div>
             <div class="multi-select-dropdown" id="locationDropdown">
@@ -206,17 +216,7 @@
             </div>
         </div>
 
-        <div class="project-filter-wrapper">
-            <div class="project-filter-btn" id="projectFilterBtn"> All Projects</div>
-            <div class="project-filter-dropdown" id="projectDropdown">
-                <div class="dropdown-search"><input type="text" placeholder=" Search project..." id="projectSearch"></div>
-                <div id="projectOptions"></div>
-                <div class="dropdown-actions">
-                    <button id="selectAllProjects"> Select All</button>
-                    <button id="clearAllProjects"> Clear All</button>
-                </div>
-            </div>
-        </div>
+       
 
         <button onclick="resetAllFilters()"> Reset All</button>
     </div>
