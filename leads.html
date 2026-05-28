@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Leads Dashboard</title>
+    <title>Leads Dashboard - Zone Slider Filter</title>
     <style>
         [data-theme="dark"] {
             --bg: #060a12;
@@ -49,7 +49,6 @@
         body { background: var(--bg); color: var(--text); padding: 20px; min-height: 100vh; font-family: system-ui, -apple-system, 'Segoe UI', Roboto; }
         .container { max-width: 1400px; margin: 0 auto; }
 
-        /* Header */
         .header { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 20px 25px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 1px 4px var(--shadow); position: relative; }
         h1 { font-size: 24px; font-weight: 700; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .logo-img { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); height: 40px; filter: var(--logo-filter); object-fit: contain; }
@@ -61,11 +60,6 @@
         .theme-btn.active { background: var(--blue); color: white; }
         .theme-btn:hover:not(.active) { background: var(--s3); color: var(--text); }
 
-        /* Status bar */
-        .status-bar { background: var(--s1); border: 1px solid var(--border); border-radius: 8px; padding: 8px 20px; margin-bottom: 14px; font-size: 12px; font-family: var(--mono); color: var(--text3); min-height: 34px; display: flex; align-items: center; gap: 10px; }
-        #status { color: var(--amber); }
-
-        /* Filter Bar */
         .filter-bar { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 20px 25px; margin-bottom: 20px; display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; box-shadow: 0 1px 4px var(--shadow); }
         .date-field { display: flex; flex-direction: column; gap: 6px; }
         .date-field label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.9px; color: var(--text3); }
@@ -77,7 +71,6 @@
         button.clear-range:hover { background: var(--text2); }
         [data-theme="dark"] ::-webkit-calendar-picker-indicator { filter: invert(1); }
 
-        /* Multi-select */
         .multi-select-wrapper, .source-filter-wrapper, .project-filter-wrapper { position: relative; display: inline-block; }
         .multi-select-btn, .source-filter-btn, .project-filter-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 32px 8px 16px; font-size: 13px; color: var(--text); cursor: pointer; font-family: inherit; min-width: 150px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative; }
         .multi-select-btn::after, .source-filter-btn::after, .project-filter-btn::after { content: '▼'; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 10px; color: var(--text2); }
@@ -94,7 +87,72 @@
         .dropdown-actions button { padding: 4px 10px; font-size: 11px; background: var(--s2); color: var(--text2); border: 1px solid var(--border); transform: none; }
         .dropdown-actions button:hover { background: var(--blue); color: white; }
 
-        /* Stats */
+        .zone-slider-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .zone-slider-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.9px;
+            color: var(--text3);
+        }
+        .zone-slider-track {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: var(--s2);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            width: 240px;
+            height: 36px;
+            padding: 3px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .zone-slider-pill {
+            position: absolute;
+            width: 33.33%;
+            height: calc(100% - 6px);
+            background: var(--blue);
+            border-radius: 24px;
+            transition: left 0.25s cubic-bezier(.4,0,.2,1), background 0.25s;
+            left: 3px;
+            top: 3px;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.35);
+        }
+        .zone-slider-pill.zone-west { left: 3px; background: var(--purple); box-shadow: 0 2px 8px rgba(139,92,246,0.35); }
+        .zone-slider-pill.zone-mid { left: calc(33.33% + 0px); background: var(--blue); box-shadow: 0 2px 8px rgba(59,130,246,0.35); }
+        .zone-slider-pill.zone-north { left: calc(66.66% - 3px); background: var(--green); box-shadow: 0 2px 8px rgba(16,185,129,0.35); }
+        .zone-labels {
+            display: flex;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+        .zone-label {
+            flex: 1;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text3);
+            transition: color 0.2s;
+            letter-spacing: 0.3px;
+        }
+        .zone-label.active { color: white; }
+        .zone-active-text {
+            font-size: 11px;
+            color: var(--text3);
+            font-weight: 500;
+            text-align: center;
+        }
+        .zone-active-text span { color: var(--blue); font-weight: 700; }
+        .zone-active-text.zone-west span { color: var(--purple); }
+        .zone-active-text.zone-mid span { color: var(--blue); }
+        .zone-active-text.zone-north span { color: var(--green); }
+
         .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 15px; margin-bottom: 25px; }
         .stat-card { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 18px; text-align: center; box-shadow: 0 1px 4px var(--shadow); position: relative; overflow: hidden; transition: transform 0.2s, border-color 0.2s; }
         .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent-color, var(--blue)); opacity: 0.7; }
@@ -106,7 +164,6 @@
         .stat-number { font-size: 32px; font-weight: 800; font-family: var(--mono); color: var(--accent-color, var(--blue)); line-height: 1.2; }
         .stat-label { font-size: 11px; margin-top: 6px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 500; }
 
-        /* Projects Table */
         .projects-section { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px var(--shadow); }
         .section-title { padding: 15px 25px; font-weight: 600; font-size: 14px; border-bottom: 1px solid var(--border); text-align: center; background: var(--s2); color: var(--text2); }
         .table-header { display: flex; padding: 12px 25px; background: var(--blue); color: white; font-weight: 600; font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase; }
@@ -120,7 +177,6 @@
         .project-location-center { width: 35%; text-align: center; font-weight: 500; font-size: 13px; color: var(--blue); }
         .project-count { width: 25%; text-align: right; font-weight: 700; font-size: 14px; font-family: var(--mono); padding-right: 10px; }
 
-        /* Modal */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .modal-content { background: var(--s1); border: 1px solid var(--border); border-radius: 16px; width: 90%; max-width: 550px; max-height: 80vh; overflow: hidden; box-shadow: 0 8px 32px var(--shadow); animation: modalSlideIn 0.2s ease; }
         @keyframes modalSlideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -147,6 +203,7 @@
             .project-info, .project-location-center, .project-count { width: 100%; text-align: center; padding: 0; }
             .filter-bar { flex-direction: column; align-items: stretch; }
             .header-right { width: 100%; justify-content: center; flex-wrap: wrap; }
+            .zone-slider-track { width: 100%; }
         }
         @media (max-width: 480px) { .stats { grid-template-columns: 1fr; } }
     </style>
@@ -160,7 +217,7 @@
         </div>
         <img class="logo-img" src="https://assetscout.in/assets/images/Assetscout%20Logo%20Black.webp" alt="Asset Scout" onerror="this.style.display='none'">
         <div class="header-right">
-            <button class="web-btn" id="webDashboardBtn"> Web</button>
+            <button class="web-btn" id="webDashboardBtn">Web</button>
             <div class="theme-toggle">
                 <button class="theme-btn" onclick="setTheme('light')">☀️</button>
                 <button class="theme-btn active" onclick="setTheme('dark')">🌙</button>
@@ -171,53 +228,67 @@
     <div class="filter-bar">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
             <div class="date-field">
-                <label>📅 START DATE</label>
+                <label>START DATE</label>
                 <input type="date" id="startDateFilter">
             </div>
             <div class="date-field">
-                <label>📅 END DATE</label>
+                <label>END DATE</label>
                 <input type="date" id="endDateFilter">
             </div>
-            <button id="applyDateRangeBtn"> Apply Range</button>
+            <button id="applyDateRangeBtn">Apply Range</button>
+            <button id="clearDateRangeBtn" class="clear-range">Clear Range</button>
         </div>
-         <div class="project-filter-wrapper">
-            <div class="project-filter-btn" id="projectFilterBtn"> All Projects</div>
+
+        <div class="project-filter-wrapper">
+            <div class="project-filter-btn" id="projectFilterBtn">All Projects</div>
             <div class="project-filter-dropdown" id="projectDropdown">
-                <div class="dropdown-search"><input type="text" placeholder=" Search project..." id="projectSearch"></div>
+                <div class="dropdown-search"><input type="text" placeholder="Search project..." id="projectSearch"></div>
                 <div id="projectOptions"></div>
                 <div class="dropdown-actions">
-                    <button id="selectAllProjects"> Select All</button>
-                    <button id="clearAllProjects"> Clear All</button>
+                    <button id="selectAllProjects">Select All</button>
+                    <button id="clearAllProjects">Clear All</button>
                 </div>
             </div>
         </div>
+
         <div class="multi-select-wrapper">
-            <div class="multi-select-btn" id="locationSelectBtn"> All Locations</div>
+            <div class="multi-select-btn" id="locationSelectBtn">All Locations</div>
             <div class="multi-select-dropdown" id="locationDropdown">
-                <div class="dropdown-search"><input type="text" placeholder=" Search location..." id="locationSearch"></div>
+                <div class="dropdown-search"><input type="text" placeholder="Search location..." id="locationSearch"></div>
                 <div id="locationOptions"></div>
                 <div class="dropdown-actions">
-                    <button id="selectAllLocations"> Select All</button>
-                    <button id="clearAllLocations"> Clear All</button>
+                    <button id="selectAllLocations">Select All</button>
+                    <button id="clearAllLocations">Clear All</button>
                 </div>
             </div>
         </div>
 
         <div class="source-filter-wrapper">
-            <div class="source-filter-btn" id="sourceFilterBtn"> All Sources</div>
+            <div class="source-filter-btn" id="sourceFilterBtn">All Sources</div>
             <div class="source-filter-dropdown" id="sourceDropdown">
-                <div class="dropdown-search"><input type="text" placeholder="🔍 Search source..." id="sourceSearch"></div>
+                <div class="dropdown-search"><input type="text" placeholder="Search source..." id="sourceSearch"></div>
                 <div id="sourceOptions"></div>
                 <div class="dropdown-actions">
-                    <button id="selectAllSources"> Select All</button>
-                    <button id="clearAllSources"> Clear All</button>
+                    <button id="selectAllSources">Select All</button>
+                    <button id="clearAllSources">Clear All</button>
                 </div>
             </div>
         </div>
 
-       
+        <div class="zone-slider-wrapper">
+            <div class="zone-slider-label">ZONE FILTER</div>
+            <div class="zone-slider-track" id="zoneSliderTrack">
+                <div class="zone-slider-pill zone-mid" id="zonePill"></div>
+                <div class="zone-labels">
+                    <div class="zone-label" id="zoneLabelWest">West</div>
+                    <div class="zone-label active" id="zoneLabelMid">All</div>
+                    <div class="zone-label" id="zoneLabelNorth">North</div>
+                </div>
+            </div>
+            <div class="zone-active-text zone-mid" id="zoneActiveText">Showing: <span>All Pune</span></div>
+        </div>
 
-        <button onclick="resetAllFilters()"> Reset All</button>
+        <button onclick="resetAllFilters()">Reset All</button>
     </div>
 
     <div class="stats">
@@ -228,14 +299,14 @@
     </div>
 
     <div class="projects-section">
-        <div class="section-title"> Projects (Click any row to see leads grouped by source)</div>
+        <div class="section-title">Projects (Click any row to see leads grouped by source)</div>
         <div class="table-header">
             <div class="header-project">Project Name</div>
             <div class="header-location">Location</div>
             <div class="header-count">Lead Count</div>
         </div>
         <div id="projectList">
-            <div class="loading">⏳ Loading data from Google Sheets...</div>
+            <div class="loading">Loading data from Google Sheets...</div>
         </div>
     </div>
     <div class="last-updated" id="lastUpdated">--</div>
@@ -252,16 +323,15 @@
 </div>
 
 <script>
-    // ============================================
-    // CONFIG — update these three values
-    // ============================================
     const SHEET_ID   = "14TBSWEZ4rlIkLECg2MrBCUYFwy8coCzISZUqJW_lCOc";
     const SHEET_NAME = "Sheet1";
     const API_KEY    = "AIzaSyBayWQDOC1xhIlrzyzG9pFNEaKKh8wjFhY";
 
-    // ============================================
-    // State
-    // ============================================
+    const ZONE_LOCATIONS = {
+        west:  ["West Pune", "Wakad", "Hinjewadi", "Baner", "Aundh", "Pashan", "Balewadi"],
+        north: ["North Pune", "Moshi", "Chakan", "Alandi", "Dehu Road", "Bhosari", "Dighi"]
+    };
+
     let allData = [];
     let currentStartDate = null;
     let currentEndDate   = null;
@@ -269,20 +339,8 @@
     let selectedLocations = new Set();
     let selectedSources   = new Set();
     let selectedProjects  = new Set();
+    let currentZone = 'mid';
 
-    // ============================================
-    // ✅ FIX 2: Safe status helper — never crashes on missing element
-    // ============================================
-    function setStatus(msg, color) {
-        const el = document.getElementById('status');
-        if (!el) return;
-        el.innerHTML = msg || '';
-        el.style.color = color || 'var(--text3)';
-    }
-
-    // ============================================
-    // Theme
-    // ============================================
     function setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         document.body.setAttribute('data-theme', theme);
@@ -295,9 +353,74 @@
         localStorage.setItem('leads_theme', theme);
     }
 
-    // ============================================
-    // Date utilities
-    // ============================================
+    function setZone(zone) {
+        currentZone = zone;
+        const pill = document.getElementById('zonePill');
+        const text = document.getElementById('zoneActiveText');
+        const lW = document.getElementById('zoneLabelWest');
+        const lM = document.getElementById('zoneLabelMid');
+        const lN = document.getElementById('zoneLabelNorth');
+        [lW, lM, lN].forEach(l => l.classList.remove('active'));
+        pill.className = 'zone-slider-pill';
+        text.className = 'zone-active-text';
+        if (zone === 'west') {
+            pill.classList.add('zone-west');
+            text.classList.add('zone-west');
+            text.innerHTML = 'Showing: <span>West Pune</span>';
+            lW.classList.add('active');
+        } else if (zone === 'north') {
+            pill.classList.add('zone-north');
+            text.classList.add('zone-north');
+            text.innerHTML = 'Showing: <span>North Pune</span>';
+            lN.classList.add('active');
+        } else {
+            pill.classList.add('zone-mid');
+            text.classList.add('zone-mid');
+            text.innerHTML = 'Showing: <span>All Pune</span>';
+            lM.classList.add('active');
+        }
+        renderDashboard();
+    }
+
+    function applyZoneFilter(dataArray) {
+        if (currentZone === 'west') {
+            return dataArray.filter(row => ZONE_LOCATIONS.west.some(zoneKey => 
+                row[3] && row[3].toLowerCase().includes(zoneKey.toLowerCase())
+            ));
+        }
+        if (currentZone === 'north') {
+            return dataArray.filter(row => ZONE_LOCATIONS.north.some(zoneKey => 
+                row[3] && row[3].toLowerCase().includes(zoneKey.toLowerCase())
+            ));
+        }
+        return dataArray;
+    }
+
+    function setupZoneSlider() {
+        const track = document.getElementById('zoneSliderTrack');
+        if (!track) return;
+        track.addEventListener('click', function(e) {
+            const rect = track.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const third = rect.width / 3;
+            if (x < third) setZone('west');
+            else if (x < third * 2) setZone('mid');
+            else setZone('north');
+        });
+        let dragStartX = null;
+        track.addEventListener('touchstart', function(e) { 
+            dragStartX = e.touches[0].clientX; 
+        }, { passive: true });
+        track.addEventListener('touchend', function(e) {
+            if (dragStartX === null) return;
+            const diff = e.changedTouches[0].clientX - dragStartX;
+            if (Math.abs(diff) < 10) return;
+            if (diff > 0) setZone(currentZone === 'west' ? 'mid' : 'north');
+            else setZone(currentZone === 'north' ? 'mid' : 'west');
+            dragStartX = null;
+        }, { passive: true });
+    }
+
     function parseFlexibleDate(v) {
         if (!v) return null;
         if (v instanceof Date && !isNaN(v)) return v;
@@ -329,9 +452,6 @@
         return `${dd}/${mm}/${d.getFullYear()} ${hh}:${mi}`;
     }
 
-    // ============================================
-    // Filter & Render
-    // ============================================
     function filterData() {
         if (!allData.length) return [];
         let out = [...allData];
@@ -356,13 +476,15 @@
         if (selectedLocations.size > 0) out = out.filter(r => selectedLocations.has(r[3]));
         if (selectedSources.size   > 0) out = out.filter(r => selectedSources.has(r[2]));
         if (selectedProjects.size  > 0) out = out.filter(r => selectedProjects.has(r[1]));
-
+        
+        out = applyZoneFilter(out);
+        
         return out;
     }
 
     function renderDashboard() {
         if (!allData.length) {
-            document.getElementById('projectList').innerHTML = '<div class="loading">📭 No data loaded.</div>';
+            document.getElementById('projectList').innerHTML = '<div class="loading">No data loaded.</div>';
             ['totalLeads','totalProjects','totalLocations','totalSources'].forEach(id => document.getElementById(id).innerText = '0');
             return;
         }
@@ -389,7 +511,7 @@
         const list = document.getElementById('projectList');
 
         if (!sorted.length) {
-            list.innerHTML = '<div class="no-data">📭 No leads match selected filters</div>';
+            list.innerHTML = '<div class="no-data">No leads match selected filters</div>';
         } else {
             list.innerHTML = sorted.map(([name, data]) => `
                 <div class="project-item" onclick='showProjectDetails(${JSON.stringify(name)})'>
@@ -404,47 +526,40 @@
         if (currentStartDate || currentEndDate) {
             const s = currentStartDate ? currentStartDate.toLocaleDateString('en-GB') : 'any';
             const e = currentEndDate   ? currentEndDate.toLocaleDateString('en-GB')   : 'any';
-            rangeText = ` | Date: ${s} → ${e}`;
+            rangeText = ` | Date: ${s} -> ${e}`;
         }
         let filterText = '';
         if (selectedLocations.size) filterText += ` | Locs: ${selectedLocations.size}`;
         if (selectedSources.size)   filterText += ` | Srcs: ${selectedSources.size}`;
         if (selectedProjects.size)  filterText += ` | Projs: ${selectedProjects.size}`;
+        let zoneText = currentZone !== 'mid' ? ` | Zone: ${currentZone.toUpperCase()}` : '';
 
         document.getElementById('lastUpdated').innerHTML =
-            `🕐 ${new Date().toLocaleTimeString()} | ${leads.length.toLocaleString()} leads${rangeText}${filterText}`;
+            `${new Date().toLocaleTimeString()} | ${leads.length.toLocaleString()} leads${rangeText}${filterText}${zoneText}`;
     }
 
-  
     async function fetchData() {
         if (isLoading) return;
         isLoading = true;
-        setStatus('⏳ Fetching data...', 'var(--amber)');
-        document.getElementById('projectList').innerHTML = '<div class="loading">📊 Loading data from Google Sheets...</div>';
+        document.getElementById('projectList').innerHTML = '<div class="loading">Loading data from Google Sheets...</div>';
 
         try {
-            if (!SHEET_ID || SHEET_ID === 'YOUR_SHEET_ID_HERE') throw new Error('Sheet ID not configured');
-            if (!API_KEY  || API_KEY  === 'YOUR_API_KEY_HERE')  throw new Error('API Key not configured');
-
             const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A:D?key=${API_KEY}`;
             const response = await fetch(url);
 
-            if (response.status === 404) throw new Error('Sheet not found — check SHEET_ID and sheet name');
-            if (response.status === 403) throw new Error('Access denied — share sheet as "Anyone with link can view"');
-            if (response.status === 400) throw new Error('Bad request — check API key and sheet name');
-            if (!response.ok)            throw new Error(`HTTP ${response.status}`);
+            if (response.status === 404) throw new Error('Sheet not found');
+            if (response.status === 403) throw new Error('Access denied');
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const data = await response.json();
             if (data.error) throw new Error(data.error.message);
 
             if (!data.values || data.values.length <= 1) {
-                document.getElementById('projectList').innerHTML = '<div class="no-data">📭 No data found in sheet</div>';
-                setStatus('⚠️ No data', 'var(--amber)');
+                document.getElementById('projectList').innerHTML = '<div class="no-data">No data found in sheet</div>';
                 isLoading = false;
                 return;
             }
 
-            // Skip header row (index 0)
             allData = [];
             for (let i = 1; i < data.values.length; i++) {
                 const r = data.values[i];
@@ -454,8 +569,7 @@
             }
 
             if (!allData.length) {
-                document.getElementById('projectList').innerHTML = '<div class="no-data">📭 No valid rows found</div>';
-                setStatus('⚠️ No valid data', 'var(--amber)');
+                document.getElementById('projectList').innerHTML = '<div class="no-data">No valid rows found</div>';
                 isLoading = false;
                 return;
             }
@@ -464,22 +578,14 @@
             renderSourceOptions();
             renderProjectOptions();
             renderDashboard();
-            setStatus(`✅ ${allData.length.toLocaleString()} records loaded`, 'var(--green)');
 
         } catch (err) {
-            let help = 'Verify SHEET_ID, SHEET_NAME, and API_KEY are correct.';
-            if (err.message.includes('Sheet not found')) help = 'Check your SHEET_ID from the Google Sheet URL.';
-            else if (err.message.includes('Access denied')) help = 'Share your sheet as "Anyone with link can view".';
-            else if (err.message.includes('API Key')) help = 'Check your API key and enable Google Sheets API.';
-
-            setStatus(`❌ ${err.message}`, 'var(--red)');
             document.getElementById('projectList').innerHTML = `
                 <div class="no-data">
-                     Failed to load data<br>
+                    Failed to load data<br>
                     <small>${escapeHtml(err.message)}</small><br><br>
-                    <small style="color:var(--text3);">${help}</small><br><br>
                     <button onclick="fetchData()" style="background:var(--blue);color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">
-                        🔄 Retry
+                        Retry
                     </button>
                 </div>`;
         } finally {
@@ -487,9 +593,6 @@
         }
     }
 
-    // ============================================
-    // Date range
-    // ============================================
     function applyDateRange() {
         const s = document.getElementById('startDateFilter').value;
         const e = document.getElementById('endDateFilter').value;
@@ -498,7 +601,7 @@
         if (e) { let p = e.split('-'); currentEndDate = new Date(+p[0], +p[1]-1, +p[2]); currentEndDate.setHours(23,59,59,999); }
         else currentEndDate = null;
         if (currentStartDate && currentEndDate && currentStartDate > currentEndDate) {
-            alert('⚠️ Start date cannot be after End date');
+            alert('Start date cannot be after End date');
             [currentStartDate, currentEndDate] = [currentEndDate, currentStartDate];
             document.getElementById('startDateFilter').value = currentStartDate.toISOString().split('T')[0];
             document.getElementById('endDateFilter').value   = currentEndDate.toISOString().split('T')[0];
@@ -519,12 +622,10 @@
         selectedLocations.clear(); updateLocationButtonText(); renderLocationOptions();
         selectedSources.clear();   updateSourceButtonText();   renderSourceOptions();
         selectedProjects.clear();  updateProjectButtonText();  renderProjectOptions();
+        setZone('mid');
         renderDashboard();
     }
 
-    // ============================================
-    // Modal
-    // ============================================
     function showProjectDetails(projectName) {
         const leads = filterData().filter(r => r[1] === projectName);
         if (!leads.length) { alert('No leads found for this project under current filters.'); return; }
@@ -539,13 +640,13 @@
         const sorted = Array.from(srcMap.entries()).sort((a,b) => b[1].length - a[1].length);
         const loc = leads[0]?.[3] || 'Unknown';
         document.getElementById('modalTitle').innerHTML =
-            ` ${escapeHtml(projectName)} |  ${escapeHtml(loc)} | ${leads.length} leads`;
+            `${escapeHtml(projectName)} | ${escapeHtml(loc)} | ${leads.length} leads`;
 
         document.getElementById('timestampsList').innerHTML = sorted.map(([src, ts]) => {
             ts.sort((a,b) => { let da=parseFlexibleDate(a), db=parseFlexibleDate(b); return (db||0)-(da||0); });
             return `<div class="source-group">
-                <div class="source-title"> ${escapeHtml(src)} (${ts.length})</div>
-                ${ts.map(t => `<div class="timestamp-item"> ${formatDisplayDate(t)}</div>`).join('')}
+                <div class="source-title">${escapeHtml(src)} (${ts.length})</div>
+                ${ts.map(t => `<div class="timestamp-item">${formatDisplayDate(t)}</div>`).join('')}
             </div>`;
         }).join('');
 
@@ -554,9 +655,6 @@
 
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-    // ============================================
-    // Multi-select dropdowns
-    // ============================================
     function getAllLocations() { return [...new Set(allData.map(r=>r[3]).filter(Boolean))].sort(); }
     function getAllSources()   { return [...new Set(allData.map(r=>r[2]).filter(Boolean))].sort(); }
     function getAllProjects()  { return [...new Set(allData.map(r=>r[1]).filter(Boolean))].sort(); }
@@ -615,23 +713,23 @@
     function updateLocationButtonText() {
         const btn = document.getElementById('locationSelectBtn');
         if (!btn) return;
-        btn.innerHTML = selectedLocations.size === 0 ? ' All Locations'
-            : selectedLocations.size === 1 ? ` ${[...selectedLocations][0]}`
-            : ` ${selectedLocations.size} locations`;
+        btn.innerHTML = selectedLocations.size === 0 ? 'All Locations'
+            : selectedLocations.size === 1 ? `${[...selectedLocations][0]}`
+            : `${selectedLocations.size} locations`;
     }
     function updateSourceButtonText() {
         const btn = document.getElementById('sourceFilterBtn');
         if (!btn) return;
-        btn.innerHTML = selectedSources.size === 0 ? ' All Sources'
-            : selectedSources.size === 1 ? ` ${[...selectedSources][0]}`
-            : ` ${selectedSources.size} sources`;
+        btn.innerHTML = selectedSources.size === 0 ? 'All Sources'
+            : selectedSources.size === 1 ? `${[...selectedSources][0]}`
+            : `${selectedSources.size} sources`;
     }
     function updateProjectButtonText() {
         const btn = document.getElementById('projectFilterBtn');
         if (!btn) return;
-        btn.innerHTML = selectedProjects.size === 0 ? ' All Projects'
-            : selectedProjects.size === 1 ? ` ${[...selectedProjects][0]}`
-            : ` ${selectedProjects.size} projects`;
+        btn.innerHTML = selectedProjects.size === 0 ? 'All Projects'
+            : selectedProjects.size === 1 ? `${[...selectedProjects][0]}`
+            : `${selectedProjects.size} projects`;
     }
 
     function escapeHtml(str) {
@@ -639,16 +737,12 @@
             ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
     }
 
-    // ============================================
-    // Event wiring
-    // ============================================
     function bindEvents() {
         document.getElementById('applyDateRangeBtn').addEventListener('click', applyDateRange);
         document.getElementById('clearDateRangeBtn').addEventListener('click', clearDateRange);
         document.getElementById('webDashboardBtn').addEventListener('click', () => window.location.href = 'index.html');
         window.addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
 
-        // Dropdown toggles
         const pairs = [
             ['locationSelectBtn', 'locationDropdown'],
             ['sourceFilterBtn',   'sourceDropdown'],
@@ -668,7 +762,6 @@
             pairs.forEach(([,dropId]) => document.getElementById(dropId)?.classList.remove('show'));
         });
 
-        // Select/Clear all
         document.getElementById('selectAllLocations')?.addEventListener('click', () => { getAllLocations().forEach(v => selectedLocations.add(v)); renderLocationOptions(); updateLocationButtonText(); renderDashboard(); });
         document.getElementById('clearAllLocations')?.addEventListener('click',  () => { selectedLocations.clear(); renderLocationOptions(); updateLocationButtonText(); renderDashboard(); });
         document.getElementById('selectAllSources')?.addEventListener('click',   () => { getAllSources().forEach(v => selectedSources.add(v)); renderSourceOptions(); updateSourceButtonText(); renderDashboard(); });
@@ -676,18 +769,15 @@
         document.getElementById('selectAllProjects')?.addEventListener('click',  () => { getAllProjects().forEach(v => selectedProjects.add(v)); renderProjectOptions(); updateProjectButtonText(); renderDashboard(); });
         document.getElementById('clearAllProjects')?.addEventListener('click',   () => { selectedProjects.clear(); renderProjectOptions(); updateProjectButtonText(); renderDashboard(); });
 
-        // Search inputs
         document.getElementById('locationSearch')?.addEventListener('input', renderLocationOptions);
         document.getElementById('sourceSearch')?.addEventListener('input',   renderSourceOptions);
         document.getElementById('projectSearch')?.addEventListener('input',  renderProjectOptions);
     }
 
-    // ============================================
-    // Init
-    // ============================================
     const savedTheme = localStorage.getItem('leads_theme') || 'dark';
     setTheme(savedTheme);
     bindEvents();
+    setupZoneSlider();
     fetchData();
 </script>
 </body>
