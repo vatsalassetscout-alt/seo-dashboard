@@ -762,12 +762,48 @@
             pairs.forEach(([,dropId]) => document.getElementById(dropId)?.classList.remove('show'));
         });
 
-        document.getElementById('selectAllLocations')?.addEventListener('click', () => { getAllLocations().forEach(v => selectedLocations.add(v)); renderLocationOptions(); updateLocationButtonText(); renderDashboard(); });
-        document.getElementById('clearAllLocations')?.addEventListener('click',  () => { selectedLocations.clear(); renderLocationOptions(); updateLocationButtonText(); renderDashboard(); });
-        document.getElementById('selectAllSources')?.addEventListener('click',   () => { getAllSources().forEach(v => selectedSources.add(v)); renderSourceOptions(); updateSourceButtonText(); renderDashboard(); });
-        document.getElementById('clearAllSources')?.addEventListener('click',    () => { selectedSources.clear(); renderSourceOptions(); updateSourceButtonText(); renderDashboard(); });
-        document.getElementById('selectAllProjects')?.addEventListener('click',  () => { getAllProjects().forEach(v => selectedProjects.add(v)); renderProjectOptions(); updateProjectButtonText(); renderDashboard(); });
-        document.getElementById('clearAllProjects')?.addEventListener('click',   () => { selectedProjects.clear(); renderProjectOptions(); updateProjectButtonText(); renderDashboard(); });
+       document.getElementById('selectAllLocations')?.addEventListener('click', (e) => { 
+    e.stopPropagation();
+    getAllLocations().forEach(v => selectedLocations.add(v)); 
+    renderLocationOptions(); 
+    updateLocationButtonText(); 
+    renderDashboard(); 
+});
+document.getElementById('clearAllLocations')?.addEventListener('click', (e) => { 
+    e.stopPropagation();
+    selectedLocations.clear(); 
+    renderLocationOptions(); 
+    updateLocationButtonText(); 
+    renderDashboard(); 
+});
+document.getElementById('selectAllSources')?.addEventListener('click', (e) => { 
+    e.stopPropagation();
+    getAllSources().forEach(v => selectedSources.add(v)); 
+    renderSourceOptions(); 
+    updateSourceButtonText(); 
+    renderDashboard(); 
+});
+document.getElementById('clearAllSources')?.addEventListener('click', (e) => { 
+    e.stopPropagation();
+    selectedSources.clear(); 
+    renderSourceOptions(); 
+    updateSourceButtonText(); 
+    renderDashboard(); 
+});
+document.getElementById('selectAllProjects')?.addEventListener('click', (e) => { 
+    e.stopPropagation();
+    getAllProjects().forEach(v => selectedProjects.add(v)); 
+    renderProjectOptions(); 
+    updateProjectButtonText(); 
+    renderDashboard(); 
+});
+document.getElementById('clearAllProjects')?.addEventListener('click', (e) => { 
+    e.stopPropagation();
+    selectedProjects.clear(); 
+    renderProjectOptions(); 
+    updateProjectButtonText(); 
+    renderDashboard(); 
+});
 
         document.getElementById('locationSearch')?.addEventListener('input', renderLocationOptions);
         document.getElementById('sourceSearch')?.addEventListener('input',   renderSourceOptions);
