@@ -670,7 +670,7 @@
                 <label for="loc_${CSS.escape(v)}">${escapeHtml(v)}</label>
             </div>`).join('');
         container.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', e => {
-            e.stopPropagation();
+           // e.stopPropagation();
             selectedLocations[cb.checked ? 'add' : 'delete'](cb.value);
             updateLocationButtonText(); renderDashboard();
         }));
@@ -687,7 +687,7 @@
                 <label for="src_${CSS.escape(v)}">${escapeHtml(v)}</label>
             </div>`).join('');
         container.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', e => {
-            e.stopPropagation();
+          // e.stopPropagation();
             selectedSources[cb.checked ? 'add' : 'delete'](cb.value);
             updateSourceButtonText(); renderDashboard();
         }));
@@ -704,7 +704,7 @@
                 <label for="proj_${CSS.escape(v)}">${escapeHtml(v)}</label>
             </div>`).join('');
         container.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', e => {
-            e.stopPropagation();
+      //      e.stopPropagation();
             selectedProjects[cb.checked ? 'add' : 'delete'](cb.value);
             updateProjectButtonText(); renderDashboard();
         }));
@@ -758,47 +758,57 @@
                 others.forEach(d => d?.classList.remove('show'));
             });
         });
-        document.addEventListener('click', () => {
-            pairs.forEach(([,dropId]) => document.getElementById(dropId)?.classList.remove('show'));
-        });
+       document.addEventListener('click', (e) => {
+    // Check if click is inside any dropdown or its trigger button
+    const isInsideDropdown = pairs.some(([btnId, dropId]) => {
+        const btn = document.getElementById(btnId);
+        const drop = document.getElementById(dropId);
+        return btn?.contains(e.target) || drop?.contains(e.target);
+    });
+    
+    // Only close if click is outside all dropdowns and buttons
+    if (!isInsideDropdown) {
+        pairs.forEach(([,dropId]) => document.getElementById(dropId)?.classList.remove('show'));
+    }
+});
 
        document.getElementById('selectAllLocations')?.addEventListener('click', (e) => { 
-    e.stopPropagation();
+  //  e.stopPropagation();
     getAllLocations().forEach(v => selectedLocations.add(v)); 
     renderLocationOptions(); 
     updateLocationButtonText(); 
     renderDashboard(); 
 });
 document.getElementById('clearAllLocations')?.addEventListener('click', (e) => { 
-    e.stopPropagation();
+ //   e.stopPropagation();
     selectedLocations.clear(); 
     renderLocationOptions(); 
     updateLocationButtonText(); 
     renderDashboard(); 
 });
 document.getElementById('selectAllSources')?.addEventListener('click', (e) => { 
-    e.stopPropagation();
+//    e.stopPropagation();
     getAllSources().forEach(v => selectedSources.add(v)); 
     renderSourceOptions(); 
     updateSourceButtonText(); 
     renderDashboard(); 
 });
 document.getElementById('clearAllSources')?.addEventListener('click', (e) => { 
-    e.stopPropagation();
+  //  e.stopPropagation();
     selectedSources.clear(); 
     renderSourceOptions(); 
     updateSourceButtonText(); 
     renderDashboard(); 
 });
 document.getElementById('selectAllProjects')?.addEventListener('click', (e) => { 
-    e.stopPropagation();
+//    e.stopPropagation();
     getAllProjects().forEach(v => selectedProjects.add(v)); 
     renderProjectOptions(); 
     updateProjectButtonText(); 
     renderDashboard(); 
 });
 document.getElementById('clearAllProjects')?.addEventListener('click', (e) => { 
-    e.stopPropagation();
+//  e.stopPropagation();
     selectedProjects.clear(); 
     renderProjectOptions(); 
     updateProjectButtonText(); 
