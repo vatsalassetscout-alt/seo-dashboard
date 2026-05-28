@@ -236,7 +236,7 @@
                 <input type="date" id="endDateFilter">
             </div>
             <button id="applyDateRangeBtn">Apply Range</button>
-            
+           
         </div>
 
         <div class="project-filter-wrapper">
@@ -276,7 +276,7 @@
         </div>
 
         <div class="zone-slider-wrapper">
-            
+           
             <div class="zone-slider-track" id="zoneSliderTrack">
                 <div class="zone-slider-pill zone-mid" id="zonePill"></div>
                 <div class="zone-labels">
@@ -285,7 +285,7 @@
                     <div class="zone-label" id="zoneLabelNorth">North</div>
                 </div>
             </div>
-            <div class="zone-active-text zone-mid" id="zoneActiveText">Showing: <span>All Pune</span></div>
+            <div class="zone-active-text zone-mid" id="zoneActiveText"><span></span></div>
         </div>
 
         <button onclick="resetAllFilters()">Reset All</button>
@@ -609,13 +609,13 @@
         renderDashboard();
     }
 
-    function clearDateRange() {
-        document.getElementById('startDateFilter').value = '';
-        document.getElementById('endDateFilter').value   = '';
-        currentStartDate = null;
-        currentEndDate   = null;
-        renderDashboard();
-    }
+   // // function clearDateRange() {
+   //      document.getElementById('startDateFilter').value = '';
+   //      document.getElementById('endDateFilter').value   = '';
+   //      currentStartDate = null;
+   //      currentEndDate   = null;
+   //      renderDashboard();
+   //  }
 
     function resetAllFilters() {
         clearDateRange();
@@ -739,7 +739,7 @@
 
     function bindEvents() {
         document.getElementById('applyDateRangeBtn').addEventListener('click', applyDateRange);
-        document.getElementById('clearDateRangeBtn').addEventListener('click', clearDateRange);
+       
         document.getElementById('webDashboardBtn').addEventListener('click', () => window.location.href = 'index.html');
         window.addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
 
