@@ -518,17 +518,17 @@
         if (zone === 'west') {
             pill.classList.add('zone-west');
             text.classList.add('zone-west');
-            text.innerHTML = 'Showing: <span>West Pune</span>';
+            text.innerHTML =' : <span></span>';
             lW.classList.add('active');
         } else if (zone === 'north') {
             pill.classList.add('zone-north');
             text.classList.add('zone-north');
-            text.innerHTML = 'Showing: <span>North Pune</span>';
+            text.innerHTML = ': <span></span>';
             lN.classList.add('active');
         } else {
             pill.classList.add('zone-mid');
             text.classList.add('zone-mid');
-            text.innerHTML = 'Showing: <span>All Pune</span>';
+            text.innerHTML = ': <span></span>';
             lM.classList.add('active');
         }
         renderDashboard();
