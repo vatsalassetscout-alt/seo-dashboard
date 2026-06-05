@@ -72,12 +72,12 @@
             margin-bottom: 20px;
         }
         
-        .filter-bar { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; display: flex; gap: 12px; align-items: flex-end; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; box-shadow: 0 1px 4px var(--shadow); width: 100%; }
+        .filter-bar { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; overflow: visible; box-shadow: 0 1px 4px var(--shadow); width: 100%; position: relative; z-index: 100; }
         .filter-bar::-webkit-scrollbar { height: 4px; }
         .filter-bar::-webkit-scrollbar-track { background: transparent; }
         .filter-bar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
         .filter-bar::-webkit-scrollbar-thumb:hover { background: var(--blue); }
-        .date-field, .filter-field { display: flex; flex-direction: column; gap: 6px; flex: 1 1 0%; min-width: 100px; }
+        .date-field, .filter-field { display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; min-width: 150px; }
         .date-field label, .filter-field label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.9px; color: var(--text3); }
         select, button, input[type="date"] { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 13px; background: var(--bg); color: var(--text); font-family: inherit; height: 38px; display: inline-flex; align-items: center; justify-content: center; }
         input[type="date"], select { width: 100%; }
@@ -160,7 +160,7 @@
             font-size: 11px;
             font-weight: 700;
             color: var(--text3);
-            transition: color 0.2s;
+            transition: color 0.15s;
             letter-spacing: 0.3px;
         }
         .zone-label.active { color: white; }
@@ -174,7 +174,7 @@
         .zone-active-text.zone-west span { color: var(--purple); }
         .zone-active-text.zone-mid span { color: var(--blue); }
         .zone-active-text.zone-north span { color: var(--green); }
-        .stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 4px; }
+        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 4px; }
         .stat-card { background: var(--s1); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; text-align: center; box-shadow: 0 1px 4px var(--shadow); position: relative; overflow: hidden; transition: transform 0.2s, border-color 0.2s; }
         .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--accent-color, var(--blue)); opacity: 0.7; }
         .stat-card:hover { transform: translateY(-2px); border-color: var(--accent-color, var(--blue)); }
@@ -728,12 +728,12 @@
                 },
                 scales: {
                     x: {
-                        grid: { display: false }, // modern border-less vertical grid lines
+                        grid: { display: false },
                         ticks: { color: textColor, font: { size: 11, family: 'system-ui', weight: '700' }, autoSkip: true, maxTicksLimit: 12 }
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: gridColor, drawBorder: false, borderDash: [4, 4] }, // dashed line style
+                        grid: { color: gridColor, drawBorder: false, borderDash: [4, 4] },
                         ticks: {
                             color: textColor,
                             font: { size: 11, family: 'JetBrains Mono', weight: '700' },
@@ -764,7 +764,7 @@
         const locationCtx = document.getElementById('locationChart').getContext('2d');
         const purpleGrad = locationCtx.createLinearGradient(0, 0, 0, 240);
         purpleGrad.addColorStop(0, '#8b5cf6');
-        purpleGrad.addColorStop(1, '#3b82f6'); // smooth premium dual-color gradient
+        purpleGrad.addColorStop(1, '#3b82f6');
 
         if (locationChart) {
             locationChart.destroy();
@@ -850,28 +850,26 @@
         }
 
         const baseColors = [
-            '#3b82f6', // premium blue
-            '#8b5cf6', // Indigo / Purple
-            '#10b981', // Emerald Green
-            '#f59e0b', // Amber
-            '#ef4444', // Tomato Red
-            '#06b6d4', // Cyan
-            '#ec4899', // Pink
-            '#14b8a6', // Teal
-            '#f43f5e', // Rose
-            '#6366f1', // Indigo Indigo
-            '#84cc16', // Lime
-            '#a855f7', // Purple-500
-            '#f97316', // Orange-500
-            '#0284c7', // Sky Blue
-            '#059669', // Emerald Dark
-            '#b45309'  // Brown Amber
+            '#3b82f6',
+            '#8b5cf6',
+            '#10b981',
+            '#f59e0b',
+            '#ef4444',
+            '#06b6d4',
+            '#ec4899',
+            '#14b8a6',
+            '#f43f5e',
+            '#6366f1',
+            '#84cc16',
+            '#a855f7',
+            '#f97316',
+            '#0284c7',
+            '#059669',
+            '#b45309'
         ];
 
-        // Safely cycle through premium colors to handle future potential sources seamlessly
         const sourceColors = srcLabels.map((_, idx) => baseColors[idx % baseColors.length]);
 
-        // Custom responsive center label layout plugin
         const centerLeadTextPlugin = {
             id: 'centerLeadTextPlugin',
             beforeDraw: (chart) => {
@@ -881,12 +879,10 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 
-                // 1. Draw small uppercase title
                 ctx.font = '700 11px system-ui, -apple-system, sans-serif';
                 ctx.fillStyle = isD ? '#cbd5e1' : '#64748b';
                 ctx.fillText('LEADS TOTAL', left + width / 2, top + height / 2 - 14);
                 
-                // 2. Draw big leads metric integer
                 const totalLeads = chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
                 ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
                 ctx.fillStyle = isD ? '#ffffff' : '#0f172a';
@@ -914,7 +910,7 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom', // bottom alignment is much cleaner inside narrower layout columns!
+                        position: 'bottom',
                         labels: {
                             color: textColor,
                             boxWidth: 12,
@@ -940,7 +936,7 @@
                         }
                     }
                 },
-                cutout: '72%' // higher cutout ratio for premium donut aesthetics
+                cutout: '72%'
             }
         });
     }
@@ -1226,6 +1222,31 @@
 
     function bindEvents() {
         document.getElementById('applyDateRangeBtn').addEventListener('click', applyDateRange);
+        
+        // Auto-trigger calendar picker when clicking anywhere on the date container, labels or input boxes
+        document.querySelectorAll('input[type="date"]').forEach(input => {
+            const field = input.closest('.filter-field') || input.parentElement;
+            if (field) {
+                field.addEventListener('click', function(e) {
+                    if (e.target !== input) {
+                        input.focus();
+                        try {
+                            input.showPicker();
+                        } catch (err) {}
+                    }
+                });
+            }
+            input.addEventListener('click', function(e) {
+                try {
+                    this.showPicker();
+                } catch (err) {}
+            });
+            input.addEventListener('focus', function(e) {
+                try {
+                    this.showPicker();
+                } catch (err) {}
+            });
+        });
       
         window.addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
         const pairs = [
@@ -1315,10 +1336,8 @@
             return;
         }
 
-        // CSV Header
         const headers = ["Project Name", "Location", "Lead Count"];
         
-        // Escape helper for CSV cells
         function escapeCSV(val) {
             if (val === null || val === undefined) return "";
             const str = String(val);
@@ -1328,7 +1347,6 @@
             return str;
         }
 
-        // Build Rows
         const rows = [
             headers.join(",")
         ];
@@ -1342,7 +1360,6 @@
             rows.push(rowStr);
         });
 
-        // Add Byte Order Mark (BOM) to force Excel to open it correctly in UTF-8
         const csvContent = "\uFEFF" + rows.join("\n");
         const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
